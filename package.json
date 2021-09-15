@@ -2,7 +2,7 @@
 	"name": "peri.dex",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "svelte-kit dev",
+		"dev": "svelte-kit dev --https",
 		"build": "svelte-kit build",
 		"preview": "svelte-kit preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
@@ -14,6 +14,9 @@
 		"test-invalidate": "aws cloudfront create-invalidation --profile=test.peri.dex-deploy-s3 --distribution-id E1J301CCQZX4DX --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico"
 	},
 	"devDependencies": {
+		"@babel/cli": "^7.15.4",
+		"@babel/core": "^7.15.5",
+		"@babel/preset-env": "^7.15.6",
 		"@sveltejs/adapter-static": "^1.0.0-next.17",
 		"@sveltejs/kit": "next",
 		"@typescript-eslint/eslint-plugin": "^4.19.0",
@@ -36,8 +39,12 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@babel/plugin-syntax-bigint": "^7.8.3",
+		"@perifinance/peri-finance": "^0.1.9",
 		"@tailwindcss/ui": "^0.7.2",
+		"bnc-onboard": "^1.34.2",
 		"chart.js": "^3.5.1",
-		"ethers": "^5.4.6"
+		"ethers": "^5.4.6",
+		"npm": "^7.23.0"
 	}
 }

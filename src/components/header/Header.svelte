@@ -2,12 +2,13 @@
 	import { page } from '$app/stores';
 	let dropdownOpen = false;
 	let isConnect = false;
+	
 </script>
 
 <header>
 	<div class="corner">
-		<a href="https://kit.svelte.dev">
-			<img alt="SvelteKit"/>
+		<a href="/">
+			<img alt="Logo"/>
 		</a>
 	</div>
 	<nav class="flex items-center w-0 justify-between sm:visible sm:w-auto">
@@ -24,7 +25,7 @@
 		</ul>
 	</nav>
 	
-	<div class="flex p-4">
+	<div class="flex py-4">
 		{#if !isConnect}
 		<button class="bg-gray-800 hover:bg-gray-900 text-white text-sm px-4 py-2 rounded-full" on:click={() => isConnect = true}>
             CONNECT
@@ -44,7 +45,7 @@
 		
 	
 	<div class="corner">
-		<div on:click={() => dropdownOpen = !dropdownOpen} class="sm:hidden space-y-2 hover:cursor-pointer p-4">
+		<div on:click={() => dropdownOpen = !dropdownOpen} class="sm:hidden space-y-2 hover:cursor-pointer py-5">
 			<span class="w-10 h-1 bg-gray-400 rounded-full block"></span>
 			<span class="w-10 h-1 bg-gray-400 rounded-full block"></span>
 			<span class="w-10 h-1 bg-gray-400 rounded-full block"></span>
@@ -73,19 +74,10 @@
 	}
 
 	.corner {
-		width: 4em;
 		height: 4em;
 	}
 
 	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner button {
 		display: flex;
 		align-items: center;
 		justify-content: center;
