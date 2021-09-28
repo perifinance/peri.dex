@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.notification-info {
+	background-color: #2184F8 !important;
+}
+
+.notification-success {
+	background-color: #4D984F !important;
+}
+
+.notification-warning {
+	background-color: #E24545 !important;
+}
+  
+.notification-message .title{
+	font-weight: 700 !important;
+	font-size: 1.8rem !important;
+}
+
+.notification-message .message{
+	font-weight: 500;
+	font-size: 1.4rem;
+}
+
+.notification {
+	box-sizing: border-box;
+	padding: 25px 25px 25px 60px;
+	border-radius: 2px;
+	box-shadow: 0 0 12px #999;
+	cursor: pointer;
+	line-height: 1.8em;
+	position: relative;
+	opacity: 1;
+	margin-top: 15px;
+}
+
+.swiper-container {
+    padding: 0 70px;
+    overflow: hidden;
+    height: 100%;
+}
+.swiper-wrapper {
+    width: 100%;
+    height: 300px;
+}
+.swiper-slide.swiper-slide-next {
+	height: 300px !important;
+}
+
+.swiper-slide {
+    text-align: center;
+    width: 100%;
+	height: 300px;
+    /* Center slide text vertically */
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    opacity: 0.18;
+}
+
+.swiper-slide.swiper-slide-active{
+    width: 100%;
+    height: 300px !important;
+    margin-bottom: -5px !important;
+    margin-top: -20px !important;
+    opacity: 1;
+}
+
+
+/* @font-face {
+	font-family: 'Montserrat';
+	font-style: normal;
+	font-weight: 500;
+	src: url(./fonts/Montserrat-Medium.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Montserrat';
+	font-style: normal;
+	font-weight: 600;
+	src: url(./fonts/Montserrat-SemiBold.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Montserrat';
+	font-style: normal;
+	font-weight: 700;
+	src: url(./fonts/Montserrat-Bold.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Montserrat';
+	font-style: normal;
+	font-weight: 800;
+	src: url(./fonts/Montserrat-ExtraBold.ttf) format('truetype');
+} */
+
+::-webkit-scrollbar {
+	display: none;
+}

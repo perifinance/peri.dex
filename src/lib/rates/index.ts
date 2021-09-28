@@ -1,2 +1,2 @@
+export * from './getFeeRateForExchange'
 export * from './getExchangeRates'
-export * from './getRatios'

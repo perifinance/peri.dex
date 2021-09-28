@@ -1,17 +1,11 @@
 import { contracts } from '../contract'
 import { utils } from 'ethers';
 
-export const getExchangeRates = async () => {
+export const getExchangeRates = async (key: string) => {
+    
     const {
         ExchangeRates,
 	} = contracts as any;
-
-    const PERI = BigInt((await ExchangeRates.rateForCurrency(utils.formatBytes32String('PERI'))).toString());
-    const USDC = BigInt((await ExchangeRates.rateForCurrency(utils.formatBytes32String('USDC'))).toString());
-    const DAI = BigInt((await ExchangeRates.rateForCurrency(utils.formatBytes32String('DAI'))).toString());
-    return {
-        PERI,
-        USDC,
-        DAI
-    }
+    console.log(ExchangeRates);
+    return BigInt((await ExchangeRates.rateForCurrency(utils.formatBytes32String(key))).toString());    
 }

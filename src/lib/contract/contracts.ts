@@ -6,7 +6,7 @@ import perifinance from '@perifinance/peri-finance'
 
 const naming = {
     ExchangeRates: 'ExchangeRates',
-    Exchanger: 'Exchanger',
+    Exchanger: 'ExchangerWithVirtualPynth',
     ProxyERC20: {
         1: 'PeriFinanceToEthereum',
         5: 'PeriFinanceToEthereum',
@@ -16,7 +16,10 @@ const naming = {
         137: 'PeriFinanceToPolygon',
         80001: 'PeriFinanceToPolygon'
     },
-    ProxyERC20pUSD: 'PynthpUSD'
+    ProxyERC20pUSD: 'Pynth',
+    ProxyERC20pBTC: 'Pynth',
+    ProxyERC20pETH: 'Pynth',
+    SystemSettings: 'SystemSettings'
 } 
 
 type Contracts = {
@@ -28,12 +31,14 @@ type Contracts = {
     Exchanger?: any
     PeriFinance?: any
     PynthpUSD?: any
+    SystemSettings?: any
     init: (networkId: number) => void
     connect: (address:string) => void
     signers?: {
         Exchanger?: any
         ExchangeRates?: any
         PeriFinance?: any
+        SystemSettings?: any
         PynthpUSD?: any
     }
 }
@@ -50,8 +55,6 @@ export const contracts: Contracts = {
         }
         this.sources = perifinance.getSource({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
         this.addressList = perifinance.getTarget({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
-        console.log(this.addressList);
-        
         this.provider = new providers.JsonRpcProvider(RPC_URLS[this.networkId], this.networkId);
         
         Object.keys(this.addressList).forEach(name => {
@@ -61,9 +64,6 @@ export const contracts: Contracts = {
                 
                 if(name === 'ProxyERC20') {
                     this['PeriFinance'] = this[name];
-                }
-                if(name === 'ProxyERC20pUSD') {
-                    this['PynthpUSD'] = this[name];
                 }
             }
         });
@@ -78,26 +78,6 @@ export const contracts: Contracts = {
                 this.signers[name] = new ethers.Contract(this.addressList[name].address, source ? source.abi : ERC20.abi, this.signer);
                 if(name === 'ProxyERC20') {
                     this.signers['PeriFinance'] = this.signers[name];
-                }
-            }
-        });
-    },
-    clear() {
-        this.wallet = null;
-        this.networkId = Number(import.meta.env.VITE_DEFAULT_NETWORK_ID);
-        this.sources = perifinance.getSource({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
-        this.addressList = perifinance.getTarget({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
-        this.provider = new providers.JsonRpcProvider(RPC_URLS[this.networkId], this.networkId);
-        
-        Object.keys(this.addressList).forEach(name => {
-            if(naming[name]) {
-                const source = typeof naming[name] === 'string' ? this.sources[naming[name]] : this.sources[naming[name][this.networkId]]
-                this[name] = new ethers.Contract(this.addressList[name].address, source ? source.abi : ERC20.abi, this.provider);
-                if(name === 'ProxyERC20') {
-                    this['PeriFinance'] = this[name];
-                }
-                if(name === 'ProxyERC20pUSD') {
-                    this['PynthpUSD'] = this[name];
                 }
             }
         });

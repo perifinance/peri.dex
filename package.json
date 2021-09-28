@@ -1,50 +1,91 @@
 {
-	"name": "peri.dex",
-	"version": "0.0.1",
-	"scripts": {
-		"dev": "svelte-kit dev --https",
-		"build": "svelte-kit build",
-		"preview": "svelte-kit preview",
-		"check": "svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --ignore-path .gitignore  --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
-		"format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. .",
-		"test-deploy": "npm run build && npm run test-deploy-s3 && npm run test-invalidate",
-		"test-deploy-s3": "aws s3 sync ./build s3://test.peri.dex --profile=test.peri.dex-deploy-s3",
-		"test-invalidate": "aws cloudfront create-invalidation --profile=test.peri.dex-deploy-s3 --distribution-id E1J301CCQZX4DX --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico"
-	},
-	"devDependencies": {
-		"@babel/cli": "^7.15.4",
-		"@babel/core": "^7.15.5",
-		"@babel/preset-env": "^7.15.6",
-		"@sveltejs/adapter-static": "^1.0.0-next.17",
-		"@sveltejs/kit": "next",
-		"@typescript-eslint/eslint-plugin": "^4.19.0",
-		"@typescript-eslint/parser": "^4.19.0",
-		"autoprefixer": "^10.3.3",
-		"cssnano": "^5.0.8",
-		"eslint": "^7.22.0",
-		"eslint-config-prettier": "^8.1.0",
-		"eslint-plugin-svelte3": "^3.2.0",
-		"postcss": "^8.3.6",
-		"postcss-load-config": "^3.1.0",
-		"prettier": "~2.2.1",
-		"prettier-plugin-svelte": "^2.2.0",
-		"svelte": "^3.34.0",
-		"svelte-check": "^2.0.0",
-		"svelte-preprocess": "^4.8.0",
-		"tailwindcss": "^2.2.8",
-		"tslib": "^2.0.0",
-		"typescript": "^4.0.0"
-	},
-	"type": "module",
-	"dependencies": {
-		"@babel/plugin-syntax-bigint": "^7.8.3",
-		"@perifinance/peri-finance": "^0.1.9",
-		"@tailwindcss/ui": "^0.7.2",
-		"bnc-onboard": "^1.34.2",
-		"chart.js": "^3.5.1",
-		"ethers": "^5.4.6",
-		"npm": "^7.23.0"
-	}
+  "name": "peri.dex",
+  "version": "0.0.1",
+  "private": true,
+  "author": "perifinance",
+  "types": "lib/index.d.ts",
+  "main": "dist/esm.js",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {
+    "@craco/craco": "^6.3.0",
+    "@egjs/react-flicking": "^4.1.2",
+    "@metamask/detect-provider": "^1.2.0",
+    "@perifinance/peri-finance": "^0.1.9",
+    "@reach/router": "^1.3.4",
+    "@reduxjs/toolkit": "^1.5.0",
+    "@types/node": "^14.14.37",
+    "@types/react-redux": "^7.1.16",
+    "@types/react-router-dom": "^5.1.7",
+    "babel": "^6.23.0",
+    "babel-plugin-styled-components": "^1.13.2",
+    "babel-preset-react-app": "^10.0.0",
+    "bnc-onboard": "^1.34.2",
+    "date-fns": "^2.21.1",
+    "ethers": "^5.4.1",
+    "i18next": "^19.9.1",
+    "i18next-browser-languagedetector": "^6.0.1",
+    "i18next-xhr-backend": "^3.2.2",
+    "npm": "^7.19.1",
+    "react-i18next": "^11.8.8",
+    "react-notifications": "^1.7.2",
+    "react-outside-click-handler": "^1.3.0",
+    "react-redux": "^7.2.2",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "^4.0.3",
+    "redux": "^4.0.5",
+    "redux-persist": "^6.0.0",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "styled-components": "^5.3.0",
+    "swiper": "^6.7.5",
+    "typescript": "^4.2.3",
+    "web-vitals": "^1.1.0",
+    "webpack": "^4.46.0"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject",
+    "e2e": "cypress open",
+    "deploy": "npm run build && npm run deploy-s3 && npm run invalidate",
+    "deploy-s3": "aws s3 sync ./build s3://peri.staking --profile=peri.staking-deploy-s3",
+    "invalidate": "aws cloudfront create-invalidation --profile=peri.staking-deploy-s3 --distribution-id E10BVDVX3OHOTH --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico",
+    "test-deploy": "npm run build && npm run test-deploy-s3 && npm run test-invalidate",
+    "test-deploy-s3": "aws s3 sync ./build s3://test.peri.staking --profile=test.peri.staking-deploy-s3",
+    "test-invalidate": "aws cloudfront create-invalidation --profile=test.peri.staking-deploy-s3 --distribution-id E3O6OMR9TOEU8H --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-syntax-bigint": "^7.8.3",
+    "@rollup/plugin-commonjs": "^19.0.1",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.0.2",
+    "@types/react": "^17.0.3",
+    "@types/styled-components": "^5.1.9",
+    "autoprefixer": "^9.8.6",
+    "postcss": "^7.0.36",
+    "rollup": "^2.53.2",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.0",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.14"
+  }
 }
