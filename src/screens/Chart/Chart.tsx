@@ -16,7 +16,7 @@ const Chart = ({}) => {
     return (
         
         <div className="w-full bg-gray-800 rounded-lg p-4 mt-8">
-            <div className="flex flex-col">
+            <div className="flex flex-col h-48">
                 <div>pUSD/USDC</div>
                 <ResponsiveContainer>
                     <AreaChart width={730} height={250} data={[{uv: 100}, {uv: 200}, {uv: 150}, {uv: 300}, {uv: 400} , {uv: 300}, {uv: 100} ,{uv: 200} ,{uv: 100}]}
