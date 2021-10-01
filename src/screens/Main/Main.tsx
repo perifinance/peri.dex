@@ -2,7 +2,8 @@ import {
     BrowserRouter as Router,
     Switch,
     Route,
-    Link
+    Link,
+    Redirect
 } from "react-router-dom";
 import Header from '../Header'
 import Assets from 'pages/Assets'
@@ -11,7 +12,7 @@ import Home from 'pages/Home'
 
 const Main = () => {
     return <div className="dark:bg-gray-900">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto p-4">
             <Router>
                 <Header></Header>
                 <Switch>
@@ -22,7 +23,7 @@ const Main = () => {
                         <Exchage />
                     </Route>
                     <Route path="/">
-                        <Home />
+                        <Redirect to="/exchage"></Redirect>
                     </Route>
                 </Switch>
             </Router>

@@ -7,6 +7,8 @@ import { contracts } from 'lib';
 import { utils } from 'ethers';
 import { formatCurrency } from 'lib'
 import { updateTransaction } from 'reducers/transaction'
+import { getNetworkFee } from 'lib/fee'
+import { getNetworkPrice } from 'lib/price';
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
     const { isReady } = useSelector((state: RootState) => state.app);
@@ -14,36 +16,81 @@ const Order = ({openCoinList}) => {
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
    
     const [coinListType, setCoinListType] = useState(null);
-    const [per, setPer] = useState(0);
+    const [sourceRate, setSourceRate] = useState(0n);
+    const [per, setPer] = useState(0n);
     const [exchageRates, setExchageRates] = useState(0n);
-    const [fee, setFee] = useState(0n);
+    const [feeRate, setFeeRate] = useState(0n);
+    const [networkFeePrice, setNetworkFeePrice] = useState(0n);
+    const [gasPrice, setGasPrice] = useState(0n);
+    const [gasLimit, setGasLimit] = useState(0n);
+    const [price, setPrice] = useState(0n);
+    const [networkRate, setNetworkRate] = useState(0n);
+    const [feePrice, setFeePrice] = useState(0n);
+    
     const [payAmount, setPayAmount] = useState('0');
-    const [receiveAmount, setReceiveAmount] = useState('0');
-
-    const [available, setAvailable] = useState(0n);
+    const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
+    const [receiveAmount, setReceiveAmount] = useState(0n);
     const [balance, setBalance] = useState(0n);
+    const [isValidation, setIsValidation] = useState(true);
+    const [validationMessage, setValidationMessage] = useState('');
 
     const getRate = async () => {
         const [sourceRate, destinationRate] = await Promise.all([getExchangeRates(selectedCoins.source.symbol), getExchangeRates(selectedCoins.destination.symbol)])
+        setSourceRate(sourceRate);
         setExchageRates(destinationRate * 10n ** 18n / sourceRate);
     }
 
     const getFeeRate = async () => {
-        setFee(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
+        setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
     }
 
     const getSourceBalance = async () => {
         setBalance(await getBalance(address, selectedCoins.source.symbol, 18));
     }
 
+    const validationCheck = (value) => {
+        try {
+            if(isNaN(Number(value))) {
+                setIsValidation(false);
+                setValidationMessage('Please enter pay input only with numbers')
+            } else if(utils.parseEther(value).toBigInt() > balance) {
+                setIsValidation(false);
+                setValidationMessage('Please enter pay input less than the balance')
+            } else {
+                setIsValidation(true);
+                setValidationMessage('');
+            }
+        } catch(e) {
+
+        }
+        
+    }
+
     const changePayAmount = (value) => {
+        validationCheck(value);
         try {
             setPayAmount(value);
-            setReceiveAmount((BigInt(value) * 10n ** 18n * 10n ** 18n / exchageRates).toString());
+            setPayAmountToUSD(utils.parseEther(value).toBigInt() * sourceRate / (10n ** 18n))
+            const exchageAmount = utils.parseEther(value).toBigInt() * 10n ** 18n / exchageRates;
+            const feePrice = exchageAmount * feeRate / (10n ** 18n);
+            setReceiveAmount(exchageAmount - feePrice);
         }catch(e) {
-            console.log(exchageRates);
             console.log(e);
+            setPayAmountToUSD(0n);
+            setReceiveAmount(0n);
         }  
+    }
+
+    const getnetworkFeePrice = () => {
+        getGasEstimate();
+        const feePrice = (gasLimit * gasPrice) * networkRate;
+        setNetworkFeePrice(feePrice);
+    }
+
+    const getPrice = () => {
+        const price = BigInt(payAmount) * sourceRate ;
+        setPrice(price);
+        setFeePrice(price * feeRate / (10n ** 18n));
     }
 
     const getGasEstimate = async () => {
@@ -53,17 +100,17 @@ const Order = ({openCoinList}) => {
             gasLimit = BigInt((await contracts.signers.PeriFinance.estimateGas.exchange(
                 utils.formatBytes32String(selectedCoins.source.symbol), 
                 utils.parseEther(payAmount),
-                utils.formatBytes32String(selectedCoins.destination.symbol))).toString());
+                utils.formatBytes32String(selectedCoins.destination.symbol))));
         } catch(e) {
             console.log(e);
         }
-        
+        setGasLimit(gasLimit);
         return (gasLimit * 12n /10n).toString()
     }
 
     const order = async () => {
         const transactionSettings = {
-            gasPrice: (80n * 10n ** 18n).toString(),
+            gasPrice: (gasPrice * 10n ** 9n).toString(),
             gasLimit: await getGasEstimate(),
         }
         
@@ -88,26 +135,52 @@ const Order = ({openCoinList}) => {
         }  
     }
 
+    const setNetworkFee = async() => {
+        const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
+        setGasPrice(fee);
+        setNetworkRate(rate);
+    }
+
+    const setPerAmount = (per) => {
+        setPer(per);
+        const converPer = per > 0n ? 100n * 10n / per : 0n;
+        const perBalance = converPer > 0n ? balance * 10n / converPer : 0n;
+        changePayAmount(utils.formatEther(perBalance));
+    }
+
     useEffect(() => {
         if(isReady && networkId) {
             getRate();
             getFeeRate();
         }
-    },[isReady, networkId, selectedCoins])
+    },[isReady, networkId, selectedCoins]);
+
+    useEffect(() => {
+        if(isReady && networkId) {
+            setNetworkFee();
+        }
+    }, [isReady, networkId])
 
     useEffect(() => {
         if(isReady && address && networkId) {
             getSourceBalance();
         }
-    },[isReady, networkId, address, selectedCoins])
+    },[isReady, networkId, address, selectedCoins]);
+
+    
     
     return (
         <div className="max-w-sm h-screen">
             <div className="flex py-2 justify-between w-full">
+                <div className="text-gray-200">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
+                <div className="text-gray-200">{ formatCurrency(exchageRates, 2)} (${formatCurrency(exchageRates * sourceRate / (10n ** 18n), 2)})</div>
+            </div>
+            
+            <div className="flex py-2 justify-between w-full">
                 <div className="text-gray-200">Pay</div>
                 <div className="text-gray-200">Available: {formatCurrency(balance, 18)}</div>
             </div>
-            <div className="flex items-center py-2 space-x-6 rounded-xl">
+            <div className="flex items-center space-x-6 rounded-xl">
                 <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto" onClick={() => openCoinList('source')}>
                     <span>{selectedCoins.source.symbol}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,12 +189,16 @@ const Order = ({openCoinList}) => {
                 </div>    
                 
                 <div className="flex bg-gray-100 py-2 w-full rounded-lg ${isError && 'border border-red-500'}">
-                    <input className="bg-gray-100 w-full outline-none" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)}/>
+                    <input className="bg-gray-100 w-full outline-none" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)} onBlur={() => {getnetworkFeePrice(); getPrice();}}/>
                 </div>
             </div>
-            <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
-                <span>Invalid username field !</span>
+            <div className="flex justify-end font-medium tracking-wide text-gray-200 text-xs w-full">    
+                <span>${formatCurrency(payAmountToUSD, 2)}</span>
             </div>
+            {isValidation || <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                <span>{validationMessage}</span>
+            </div>}
+            
 
             
             <div className="flex py-2 justify-between w-full">
@@ -142,43 +219,31 @@ const Order = ({openCoinList}) => {
 
             <div className="py-2 w-full">
                 <div className="bg-gray-300 h-2 w-full rounded-full relative">
-                    <span className="bg-white h-4 w-4 absolute top-0 -ml-2 -mt-1 z-10 shadow rounded-full cursor-pointer" style={{left: `${per}%`}}></span>
-                    <span className="bg-blue-500 h-2 absolute left-0 top-0 rounded-full" style={{width: `${per}%`}}></span>
+                    <span className="bg-white h-4 w-4 absolute top-0 -ml-2 -mt-1 z-10 shadow rounded-full cursor-pointer" style={{left: `${per.toString()}%`}}></span>
+                    <span className="bg-blue-500 h-2 absolute left-0 top-0 rounded-full" style={{width: `${per.toString()}%`}}></span>
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-gray-400">
-                    <span className="w-8 text-left" onClick={() => setPer(0)}>0%</span>
-                    <span className="w-8 text-center" onClick={() => setPer(25)}>25%</span>
-                    <span className="w-8 text-center" onClick={() => setPer(50)}>50%</span>
-                    <span className="w-8 text-center" onClick={() => setPer(75)}>75%</span>
-                    <span className="w-8 text-right" onClick={() => setPer(100)}>100%</span>
+                    <span className="w-8 text-left" onClick={() => setPerAmount(0n)}>0%</span>
+                    <span className="w-8 text-center" onClick={() => setPerAmount(25n)}>25%</span>
+                    <span className="w-8 text-center" onClick={() => setPerAmount(50n)}>50%</span>
+                    <span className="w-8 text-center" onClick={() => setPerAmount(75n)}>75%</span>
+                    <span className="w-8 text-right" onClick={() => setPerAmount(100n)}>100%</span>
                 </div>
             </div>
 
-            
-
             <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Network Fee(40GWEI)</div>
-                <div className="text-gray-200">$0.01</div>
+                <div className="text-gray-200">Network Fee({gasPrice.toString()}GWEI)</div>
+                <div className="text-gray-200">${formatCurrency(networkFeePrice, 4)}</div>
             </div>
 
             <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Price: </div>
-                <div className="text-gray-200">${BigInt(400000).toLocaleString()}</div>
+                <div className="text-gray-200">Cost: </div>
+                <div className="text-gray-200">${formatCurrency(price-feePrice, 18)}</div>
             </div>
 
             <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Received:</div>
-                <div className="text-gray-200">{BigInt(400000).toLocaleString()}BTC</div>
-            </div>
-
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Fee(0.03%:)</div>
-                <div className="text-gray-200">${BigInt(20).toLocaleString()}</div>
-            </div>
-
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Total:</div>
-                <div className="text-gray-200">${BigInt(400020).toLocaleString()}</div>
+                <div className="text-gray-200">Fee({utils.formatEther(feeRate)}%)</div>
+                <div className="text-gray-200">${formatCurrency(feePrice, 18)}</div>
             </div>
 
             <div className="p-6 space-x-6 rounded-xl">

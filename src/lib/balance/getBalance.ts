@@ -1,7 +1,6 @@
 import { contracts } from 'lib/contract'
 
 export const getBalance = async (address: string, coinName: string, decimal) => {
-    console.log(coinName);
     try {
         if(decimal === 18) {
             return BigInt((await contracts[`ProxyERC20${coinName}`].balanceOf(address)).toString());    

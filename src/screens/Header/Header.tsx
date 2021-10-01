@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     BrowserRouter as Router,
     Switch,
     Route,
-    Link
+    Link,
+    useLocation
 } from "react-router-dom";
 
 import { RootState } from 'reducers'
@@ -14,6 +15,7 @@ import { onboard } from 'lib/onboard'
 import './Header.css'
 
 const Header = () => {
+    const location = useLocation();
     const dispatch = useDispatch();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const { isConnect } = useSelector((state: RootState) => state.wallet);
@@ -26,6 +28,10 @@ const Header = () => {
         }
         
     }
+
+    useEffect(() => {
+        setDropdownOpen(false);
+    }, [location])
 
     const onDisConnect = () => {
         ////todo:: need bug
@@ -44,9 +50,9 @@ const Header = () => {
             </div>
             <nav className="flex items-center w-0 justify-between sm:visible sm:w-auto">
                 <ul>
-                    <li className="space-x-5 text-xl inline m-10">
+                    {/* <li className="space-x-5 text-xl inline m-10">
                         <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/">Home</Link>
-                    </li>
+                    </li> */}
                     <li className="space-x-5 text-xl inline m-10">
                         <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/exchage">Exchage</Link>
                     </li>
@@ -85,9 +91,9 @@ const Header = () => {
             {
                 dropdownOpen && 
                 <div className="absolute right-4 mt-14 py-2 w-32 bg-white rounded-md shadow-xl z-20">
-                <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
+                {/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Home
-                </Link>
+                </Link> */}
                 <Link to="/exchage" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Exchage
                 </Link>

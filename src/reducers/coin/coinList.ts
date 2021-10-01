@@ -6,7 +6,8 @@ type Coin = {
     name?: string,
     symbol?: string,
     categories?: Array<string>,
-    decimal?: number
+    decimal?: number,
+	balance?: bigint
 }
 type CoinList = {
 	coinList: Array<Coin>

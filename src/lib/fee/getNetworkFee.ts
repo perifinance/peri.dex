@@ -15,6 +15,6 @@ const api = {
 	80001: polygon
 }
 export const getNetworkFee = async (networkId) => {
-    const gasfee = await api[networkId]();
-    return BigInt(gasfee * 1000000000);
+	const gasfee = await api[networkId]();
+    return BigInt(gasfee);
 }
