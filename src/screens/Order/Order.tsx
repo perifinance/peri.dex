@@ -9,6 +9,8 @@ import { formatCurrency } from 'lib'
 import { updateTransaction } from 'reducers/transaction'
 import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
+import OrderHistories from 'screens/OrderHistories'
+import Chart from 'screens/Chart'
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
     const { isReady } = useSelector((state: RootState) => state.app);
@@ -170,88 +172,92 @@ const Order = ({openCoinList}) => {
     
     
     return (
-        <div className="max-w-sm h-screen">
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
-                <div className="text-gray-200">{ formatCurrency(exchageRates, 2)} (${formatCurrency(exchageRates * sourceRate / (10n ** 18n), 2)})</div>
+        <div className="max-w-sm">
+            <div className="w-full bg-gray-600 rounded-t-lg px-4 py-2">
+                <div className="flex py-2 justify-between w-full">
+                    <div className="text-gray-200">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
+                    <div className="text-gray-200">{ formatCurrency(exchageRates, 2)} (${formatCurrency(exchageRates * sourceRate / (10n ** 18n), 2)})</div>
+                </div>
             </div>
-            
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Pay</div>
-                <div className="text-gray-200">Available: {formatCurrency(balance, 18)}</div>
-            </div>
-            <div className="flex items-center space-x-6 rounded-xl">
-                <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto" onClick={() => openCoinList('source')}>
-                    <span>{selectedCoins.source.symbol}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>    
+            <div className="w-full bg-gray-800 rounded-b-lg p-4">    
+                <div className="flex py-2 justify-between w-full">
+                    <div className="text-gray-200">Pay</div>
+                    <div className="text-gray-200">Available: {formatCurrency(balance, 18)}</div>
+                </div>
+                <div className="flex items-center space-x-6 rounded-xl">
+                    <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto" onClick={() => openCoinList('source')}>
+                        <span>{selectedCoins.source.symbol}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>    
+                    
+                    <div className="flex bg-gray-100 py-2 w-full rounded-lg ${isError && 'border border-red-500'}">
+                        <input className="bg-gray-100 w-full outline-none" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)} onBlur={() => {getnetworkFeePrice(); getPrice();}}/>
+                    </div>
+                </div>
+                <div className="flex justify-end font-medium tracking-wide text-gray-200 text-xs w-full">    
+                    <span>${formatCurrency(payAmountToUSD, 2)}</span>
+                </div>
+                {isValidation || <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                    <span>{validationMessage}</span>
+                </div>}
                 
-                <div className="flex bg-gray-100 py-2 w-full rounded-lg ${isError && 'border border-red-500'}">
-                    <input className="bg-gray-100 w-full outline-none" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)} onBlur={() => {getnetworkFeePrice(); getPrice();}}/>
+
+                
+                <div className="flex py-2 justify-between w-full">
+                    <div className="text-gray-200">Receive(Estimated)</div>
+                </div>
+                
+                <div className="flex items-center py-2 space-x-6 rounded-xl">
+                    <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto">
+                        <span>{selectedCoins.destination.symbol}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div className="flex bg-gray-200 py-2 w-full rounded-lg">
+                        <input className="bg-gray-200 w-full outline-none" type="text" value={formatCurrency(receiveAmount, 18)}/>
+                    </div>
+                </div>
+
+                <div className="py-2 w-full">
+                    <div className="bg-gray-300 h-2 w-full rounded-full relative">
+                        <span className="bg-white h-4 w-4 absolute top-0 -ml-2 -mt-1 z-10 shadow rounded-full cursor-pointer" style={{left: `${per.toString()}%`}}></span>
+                        <span className="bg-blue-500 h-2 absolute left-0 top-0 rounded-full" style={{width: `${per.toString()}%`}}></span>
+                    </div>
+                    <div className="flex justify-between mt-2 text-xs text-gray-400">
+                        <span className="w-8 text-left" onClick={() => setPerAmount(0n)}>0%</span>
+                        <span className="w-8 text-center" onClick={() => setPerAmount(25n)}>25%</span>
+                        <span className="w-8 text-center" onClick={() => setPerAmount(50n)}>50%</span>
+                        <span className="w-8 text-center" onClick={() => setPerAmount(75n)}>75%</span>
+                        <span className="w-8 text-right" onClick={() => setPerAmount(100n)}>100%</span>
+                    </div>
+                </div>
+
+                <div className="flex py-2 justify-between w-full">
+                    <div className="text-gray-200">Network Fee({gasPrice.toString()}GWEI)</div>
+                    <div className="text-gray-200">${formatCurrency(networkFeePrice, 4)}</div>
+                </div>
+
+                <div className="flex py-2 justify-between w-full">
+                    <div className="text-gray-200">Cost: </div>
+                    <div className="text-gray-200">${formatCurrency(price-feePrice, 18)}</div>
+                </div>
+
+                <div className="flex py-2 justify-between w-full">
+                    <div className="text-gray-200">Fee({utils.formatEther(feeRate)}%)</div>
+                    <div className="text-gray-200">${formatCurrency(feePrice, 18)}</div>
+                </div>
+
+                <div className="p-6 space-x-6 rounded-xl">
+                    <button className="bg-blue-400 p-4 w-full rounded-lg text-center text-white" onClick={ () => order()}>
+                        Confirm
+                    </button>
                 </div>
             </div>
-            <div className="flex justify-end font-medium tracking-wide text-gray-200 text-xs w-full">    
-                <span>${formatCurrency(payAmountToUSD, 2)}</span>
-            </div>
-            {isValidation || <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
-                <span>{validationMessage}</span>
-            </div>}
-            
-
-            
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Receive(Estimated)</div>
-            </div>
-            
-            <div className="flex items-center py-2 space-x-6 rounded-xl">
-                <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto">
-                    <span>{selectedCoins.destination.symbol}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-                <div className="flex bg-gray-200 py-2 w-full rounded-lg">
-                    <input className="bg-gray-200 w-full outline-none" type="text" value={formatCurrency(receiveAmount, 18)}/>
-                </div>
-            </div>
-
-            <div className="py-2 w-full">
-                <div className="bg-gray-300 h-2 w-full rounded-full relative">
-                    <span className="bg-white h-4 w-4 absolute top-0 -ml-2 -mt-1 z-10 shadow rounded-full cursor-pointer" style={{left: `${per.toString()}%`}}></span>
-                    <span className="bg-blue-500 h-2 absolute left-0 top-0 rounded-full" style={{width: `${per.toString()}%`}}></span>
-                </div>
-                <div className="flex justify-between mt-2 text-xs text-gray-400">
-                    <span className="w-8 text-left" onClick={() => setPerAmount(0n)}>0%</span>
-                    <span className="w-8 text-center" onClick={() => setPerAmount(25n)}>25%</span>
-                    <span className="w-8 text-center" onClick={() => setPerAmount(50n)}>50%</span>
-                    <span className="w-8 text-center" onClick={() => setPerAmount(75n)}>75%</span>
-                    <span className="w-8 text-right" onClick={() => setPerAmount(100n)}>100%</span>
-                </div>
-            </div>
-
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Network Fee({gasPrice.toString()}GWEI)</div>
-                <div className="text-gray-200">${formatCurrency(networkFeePrice, 4)}</div>
-            </div>
-
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Cost: </div>
-                <div className="text-gray-200">${formatCurrency(price-feePrice, 18)}</div>
-            </div>
-
-            <div className="flex py-2 justify-between w-full">
-                <div className="text-gray-200">Fee({utils.formatEther(feeRate)}%)</div>
-                <div className="text-gray-200">${formatCurrency(feePrice, 18)}</div>
-            </div>
-
-            <div className="p-6 space-x-6 rounded-xl">
-                <button className="bg-blue-400 p-4 w-full rounded-lg text-center text-white" onClick={ () => order()}>
-                    Confirm
-                </button>
-            </div>
-            
+            <Chart/>
+            <OrderHistories/>
         </div>
     )
 }

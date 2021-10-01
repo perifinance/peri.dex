@@ -8,6 +8,7 @@ import { getExchangeRates } from "lib/rates";
 import { formatCurrency } from "lib";
 import { utils } from "ethers";
 import { contracts } from 'lib/contract'
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 const Assets = () => {
     const { isReady } = useSelector((state: RootState) => state.app);
     const { coinList } = useSelector((state: RootState) => state.coinList);
@@ -15,6 +16,7 @@ const Assets = () => {
     const [ balances, setBalances ] = useState([]);
     const [ totalAssets, setTotalAssets ] = useState(0n);
     const [ chartDatas, setChartDatas ] = useState([]);
+    console.log(chartDatas);
     const [ chartColors, setChartColors] = useState([]);
     
     const getAddressColor = (address) => {
@@ -69,7 +71,7 @@ const Assets = () => {
             const value = formatCurrency((e.balanceToUSD * 100n * 10n**18n / totalAssets).toString(), 2);
             return {
                 x: `${value}%`,
-                y: value
+                y: Number(value)
             }
         }));
 
@@ -106,9 +108,9 @@ const Assets = () => {
                             <VictoryPie
                                 data={chartDatas}
                                 colorScale={chartColors}
-                                labelRadius={() => 85 }
-                                innerRadius={80}
-                                style={{ labels: { fill: "white", fontSize: 18, fontWeight: "bold" } }}
+                                labelRadius={() => 90 }
+                                innerRadius={60}
+                                style={{ labels: { fill: "white", fontSize: 20, fontWeight: "bold" } }}
                             />
                         </div>
                         <div>
