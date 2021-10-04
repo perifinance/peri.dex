@@ -57,6 +57,9 @@ const Header = () => {
                         <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/exchage">Exchage</Link>
                     </li>
                     <li className="space-x-5 text-xl inline m-10">
+                        <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/futures">Futures</Link>
+                    </li>
+                    <li className="space-x-5 text-xl inline m-10">
                         <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/assets">Assets</Link>
                     </li>
                 </ul>
@@ -100,6 +103,10 @@ const Header = () => {
                 <Link to="/assets" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Assets
                 </Link>
+                <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
+                    Futures
+                </Link>
+                
             </div>
             }
         </header>

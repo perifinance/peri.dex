@@ -33,6 +33,7 @@ const Order = ({openCoinList}) => {
     const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
     const [receiveAmount, setReceiveAmount] = useState(0n);
     const [balance, setBalance] = useState(0n);
+    const [leverage, setLeverage] = useState(1n);
     const [isValidation, setIsValidation] = useState(true);
     const [validationMessage, setValidationMessage] = useState('');
 
@@ -234,6 +235,15 @@ const Order = ({openCoinList}) => {
                         <span className="w-8 text-center" onClick={() => setPerAmount(50n)}>50%</span>
                         <span className="w-8 text-center" onClick={() => setPerAmount(75n)}>75%</span>
                         <span className="w-8 text-right" onClick={() => setPerAmount(100n)}>100%</span>
+                    </div>
+                </div>
+
+                <div className="py-2 w-full">
+                    <div className="flex justify-center">
+                        <input className="cursor-pointer w-11/12" type="range" min="1" max="20" value={leverage.toString()} onChange={(e) => setLeverage(BigInt(e.target.value))}/>
+                        <div className="w-1/12">
+                            <label className="text-gray-200 border border-gray-200 rounded-lg px-1">x{leverage.toString()}</label>
+                        </div>
                     </div>
                 </div>
 

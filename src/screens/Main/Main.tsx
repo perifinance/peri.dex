@@ -8,6 +8,7 @@ import {
 import Header from '../Header'
 import Assets from 'pages/Assets'
 import Exchage from 'pages/Exchage'
+import Futures from 'pages/Futures'
 import Home from 'pages/Home'
 
 const Main = () => {
@@ -21,6 +22,9 @@ const Main = () => {
                     </Route>
                     <Route path="/exchage">
                         <Exchage />
+                    </Route>
+                    <Route path="/futures">
+                        <Futures/>
                     </Route>
                     <Route path="/">
                         <Redirect to="/exchage"></Redirect>
