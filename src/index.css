@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.min-w-12 {
+	min-width: 3rem;
+}
+
+
 .notification-info {
 	background-color: #2184F8 !important;
 }
