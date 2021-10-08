@@ -22,7 +22,7 @@ const Chart = ({}) => {
 
     return (
         
-        <div className="w-full bg-gray-700 rounded-lg p-4 mt-6">
+        <div className="w-full bg-gray-700 rounded-lg p-4">
             <div className="flex flex-col">
                 <div className="flex space-x-8">
                     <div className="relative">
@@ -34,7 +34,7 @@ const Chart = ({}) => {
                     </div>
                 </div>
                 
-                <ResponsiveContainer height="80%" minHeight={200}>
+                <ResponsiveContainer height="80%" minHeight={200} width="100%">
                     <AreaChart data={data}
                         margin={{ top: 50, right: 0, left: 0, bottom: 50 }}>
                         <defs>
