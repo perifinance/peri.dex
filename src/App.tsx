@@ -141,11 +141,11 @@ const App = () => {
     
     
     return (
-        <>
+        <div>
             {/* <Loading></Loading> */}
             <Main></Main>
             <NotificationContainer/>
-        </>
+        </div>
 
     );
 }

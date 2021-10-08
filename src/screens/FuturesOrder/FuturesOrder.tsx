@@ -151,6 +151,10 @@ const Order = ({openCoinList}) => {
         changePayAmount(utils.formatEther(perBalance));
     }
 
+    const convertNumber = (value: bigint) => {
+        return value < 10n ? `0${value.toString()}` : value.toString()
+    }
+
     useEffect(() => {
         if(isReady && networkId) {
             getRate();
@@ -223,13 +227,13 @@ const Order = ({openCoinList}) => {
                 </div>
 
                 <div className="py-2 w-full">
-                    <div className="flex justify-center">
-                    <input className="cursor-pointer w-11/12" type="range" min="1" max="100" value={per.toString()} onChange={(e) => setPerAmount(BigInt(e.target.value))}/>
-                        <div className="w-1/12">
-                            <label className="text-gray-200 border border-gray-200 rounded-lg px-1">{per.toString()}%</label>
+                    <div className="flex justify-between">
+                        <input className="cursor-pointer w-10/12" type="range" min="1" max="100" value={per.toString()} onChange={(e) => setPerAmount(BigInt(e.target.value))}/>
+                        <div className="w-10">
+                            <label className="text-gray-200 border border-gray-200 rounded-md text-sm px-1">{convertNumber(per)}%</label>
                         </div>
                     </div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-400 w-11/12">
+                    <div className="flex justify-between mt-2 text-xs text-gray-400 w-10/12">
                         <span className="w-8 text-left" onClick={() => setPerAmount(0n)}>0%</span>
                         <span className="w-8 text-center" onClick={() => setPerAmount(25n)}>25%</span>
                         <span className="w-8 text-center" onClick={() => setPerAmount(50n)}>50%</span>
@@ -239,10 +243,10 @@ const Order = ({openCoinList}) => {
                 </div>
 
                 <div className="py-2 w-full">
-                    <div className="flex justify-center">
-                        <input className="cursor-pointer w-11/12" type="range" min="1" max="20" value={leverage.toString()} onChange={(e) => setLeverage(BigInt(e.target.value))}/>
-                        <div className="w-1/12">
-                            <label className="text-gray-200 border border-gray-200 rounded-lg px-1">x{leverage.toString()}</label>
+                    <div className="flex justify-between">
+                        <input className="cursor-pointer w-10/12" type="range" min="1" max="20" value={leverage.toString()} onChange={(e) => setLeverage(BigInt(e.target.value))}/>
+                        <div className="w-10">
+                            <label className="text-gray-200 border border-gray-200 rounded-md text-sm px-1">X{convertNumber(leverage)}</label>
                         </div>
                     </div>
                 </div>

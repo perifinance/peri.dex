@@ -12,8 +12,8 @@ import Futures from 'pages/Futures'
 import Home from 'pages/Home'
 
 const Main = () => {
-    return <div className="dark:bg-gray-900">
-        <div className="container mx-auto p-4">
+    return <div className="text-sm dark:text-white dark:bg-gray-900">
+        <div className="container px-5 pt-5 pb-6">
             <Router>
                 <Header></Header>
                 <Switch>

@@ -13,7 +13,9 @@ import { useSelector, useDispatch } from "react-redux"
 import { clearWallet, clearBalances } from 'reducers/wallet'
 import { onboard } from 'lib/onboard'
 import './Header.css'
-
+const networkColor = {
+    80001: '#53cbc9'
+}
 const Header = () => {
     const location = useLocation();
     const dispatch = useDispatch();
@@ -42,10 +44,10 @@ const Header = () => {
     }
 
     return (
-        <header>
+        <header className="pb-5">
             <div className="corner">
                 <a href="/">
-                    <img alt="Logo"/>
+                    <img className="w-9 h-9" alt="Logo"/>
                 </a>
             </div>
             <nav className="flex items-center w-0 justify-between sm:visible sm:w-auto">
@@ -64,31 +66,28 @@ const Header = () => {
                     </li>
                 </ul>
             </nav>
-            
-            <div className="flex py-4">
-                {isConnect ? 
-                    (
-                        <button className="bg-gray-800 hover:bg-gray-900 text-white text-sm px-4 py-2 rounded-full">
-                            <div className="flex items-center">
-                                <span className="text-gray-400">0x82….8C7</span>
-                                <img className="w-4 h-4 mx-2" src="/logo/logo.png" alt="network"/>
-                                <span className="text-gray-200">ETH</span>
-                            </div>
-                        </button>
-                    ) :
-                    (
-                        <button className="bg-gray-800 hover:bg-gray-900 text-white text-sm px-4 py-2 rounded-full" onClick={() => onConnect()}>
-                            CONNECT
-                        </button>
-                    )
+            <div className="flex items-center">
+                {
+                    isConnect ? 
+                    <div className="flex bg-gray-700 h-full rounded-l-lg font-semibold">
+                        <div className="text-gray-400 my-auto mx-2">
+                            <span>0x82AD...38C7</span>
+                        </div>
+
+                        <div className="transform rotate-45 my-auto">
+                            <div className="bg-red-500 w-2 h-2"></div>
+                        </div>
+
+                        <div className="my-auto mx-2"><span>ETH</span></div>
+                    </div> : <></>
                 }
-            </div>
-            
-            <div className="corner">
-                <div onClick={() => setDropdownOpen(!dropdownOpen)} className="sm:hidden space-y-2 hover:cursor-pointer py-5">
-                    <span className="w-10 h-1 bg-gray-400 rounded-full block"></span>
-                    <span className="w-10 h-1 bg-gray-400 rounded-full block"></span>
-                    <span className="w-10 h-1 bg-gray-400 rounded-full block"></span>
+                
+                <div className={`w-9 h-full mr-2 mt-0 bg-gray-500 ${isConnect ? 'rounded-r-lg' : 'rounded-lg'}`} onClick={() => onConnect()}>
+                    <img className="w-3 h-full mx-auto" src={`/images/icon/power_${isConnect ? 'on' : 'off'}.svg`}/>
+                </div>
+                
+                <div onClick={() => setDropdownOpen(!dropdownOpen)} className="sm:hidden hover:cursor-pointer py-1">
+                    <img className="w-7" src={'/images/icon/drawer.svg'}/>
                 </div>
             </div>
             {

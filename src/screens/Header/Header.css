@@ -4,34 +4,14 @@ header {
     justify-content: space-between;
 }
 
-.corner {
-    height: 4em;
-}
-
-.corner a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-}
 
 .corner img {
-    width: 3em;
-    height: 3em;
     object-fit: contain;
     content:url(./logo/logo.png);
 }
 
 @media (min-width: 640px) {
-    .corner {
-        width: 7em;
-        height: 4em;
-    }
-
     .corner img {
-        width: 6em;
-        height: 3em;
         content:url(./logo/logo_pc.png);
     }
 }

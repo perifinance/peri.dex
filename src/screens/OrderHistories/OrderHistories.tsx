@@ -16,37 +16,48 @@ const OrderHistories = ({}) => {
     
     return (
         
-        <div className="w-full bg-gray-800 rounded-lg p-4 mt-8">
+        <div className="w-full bg-gray-700 rounded-lg p-4 my-8">
             <div className="flex flex-col">
-                <div className="text-gray-200 py-8">Trade Order</div>
-            
-                <table className="table-auto text-gray-200">
+                <div className="text-xl">Trade Order</div>
+                <table className="table-auto mt-10 mb-12">
                     <thead>
-                        <tr>
-                            <th>Pair</th>
-                            <th>Date/ Time</th>
-                            <th>Rate</th>
-                            <th>Pay</th>
+                        <tr className="text-lg border-b border-gray-500">
+                            <th className="font-medium">Pair</th>
+                            <th className="font-medium">Date</th>
+                            <th className="font-medium">Rate</th>
+                            <th className="font-medium">Pay</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td></td>
-                            <td>21/12/08 - 12:00</td>
-                            <td>1,000.0000</td>
-                            <td>265.4503</td>
+                    <tbody className="text-xs">
+                        <tr className="border-b border-gray-500 h-8">
+                            <td className="text-center">pUSD/pBTC</td>
+                            <td className="text-center">21/12/08 12:00</td>
+                            <td className="text-center">1,000.00</td>
+                            <td className="text-center">265.4503</td>
                         </tr>
-                        <tr>
-                            <td></td>
-                            <td>21/12/08 - 12:00</td>
-                            <td>1,000.0000</td>
-                            <td>265.4503</td>    
+                        <tr className="border-b border-gray-500 h-8">
+                            <td className="text-center">pUSD/pBTC</td>
+                            <td className="text-center">21/12/08 12:00</td>
+                            <td className="text-center">1,000.00</td>
+                            <td className="text-center">265.45</td>    
                         </tr>
-                        <tr>
-                            <td></td>
-                            <td>21/12/08 - 12:00</td>
-                            <td>1,000.0000</td>
-                            <td>265.4503</td>
+                        <tr className="border-b border-gray-500 h-8">
+                            <td className="text-center">pUSD/pBTC</td>
+                            <td className="text-center">21/12/08 12:00</td>
+                            <td className="text-center">1,000.00</td>
+                            <td className="text-center">265.45</td>
+                        </tr>
+                        <tr className="border-b border-gray-500 h-8">
+                            <td className="text-center">pUSD/pBTC</td>
+                            <td className="text-center">21/12/08 12:00</td>
+                            <td className="text-center">1,000.00</td>
+                            <td className="text-center">265.45</td>
+                        </tr>
+                        <tr className="border-b border-gray-500 h-8">
+                            <td className="text-center">pUSD/pBTC</td>
+                            <td className="text-center">21/12/08 12:00</td>
+                            <td className="text-center">1,000.00</td>
+                            <td className="text-center">265.45</td>
                         </tr>
                     </tbody>
                     </table>
