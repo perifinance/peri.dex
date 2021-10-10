@@ -22,8 +22,8 @@ const Chart = ({}) => {
 
     return (
         
-        <div className="w-full bg-gray-700 rounded-lg p-4">
-            <div className="flex flex-col">
+        <div className="w-full bg-gray-700 rounded-lg p-4 lg:h-96">
+            <div className="flex flex-col lg:justify-end">
                 <div className="flex space-x-8">
                     <div className="relative">
                         <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
@@ -33,10 +33,10 @@ const Chart = ({}) => {
                         {selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
                     </div>
                 </div>
-                
-                <ResponsiveContainer height="80%" minHeight={200} width="100%">
+                <div className="lg:h-60 mt-8">
+                <ResponsiveContainer>
                     <AreaChart data={data}
-                        margin={{ top: 50, right: 0, left: 0, bottom: 50 }}>
+                        margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.5}/>
@@ -48,7 +48,8 @@ const Chart = ({}) => {
                         <Area type="monotone" dataKey="price" stroke="#00F0FF" fillOpacity={1} fill="url(#colorUv)" />
                     </AreaChart>
                 </ResponsiveContainer>
-                <div className="flex justify-between text-lg text-gray-300">
+                </div>
+                <div className="flex justify-between text-lg text-gray-300 font-bold lg:justify-end lg:space-x-4">
                     <button className={chartTime === '24H' && `text-white`} onClick={() => setChartTime('24H')}>24H</button>
                     <button className={chartTime === '3D' && `text-white`} onClick={() => setChartTime('3D')}>3D</button>
                     <button className={chartTime === '1W' && `text-white`} onClick={() => setChartTime('1W')}>1W</button>

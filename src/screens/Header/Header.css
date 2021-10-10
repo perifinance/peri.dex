@@ -10,8 +10,8 @@ header {
     content:url(./logo/logo.png);
 }
 
-@media (min-width: 640px) {
+/* @media (min-width: 640px) {
     .corner img {
         content:url(./logo/logo_pc.png);
     }
-}
+} */

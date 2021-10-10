@@ -33,6 +33,7 @@ const Header = () => {
 
     useEffect(() => {
         setDropdownOpen(false);
+        console.log(location)
     }, [location])
 
     const onDisConnect = () => {
@@ -45,31 +46,32 @@ const Header = () => {
 
     return (
         <header className="pb-5">
-            <div className="corner">
+            <div className="corner flex">
                 <a href="/">
-                    <img className="w-9 h-9" alt="Logo"/>
+                    <img className="w-9 h-9 lg:w-11 lg:h-11" alt="Logo"/>
                 </a>
+                <nav className="flex items-center w-0 justify-between lg:visible lg:w-auto lg:ml-4">
+                    <ul>
+                        {/* <li className="space-x-5 text-xl inline m-10">
+                            <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/">Home</Link>
+                        </li> */}
+                        <li className="text-xl font-bold inline m-4">
+                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/exchage' && 'text-blue-500'}`} to="/exchage">EXCHANGE</Link>
+                        </li>
+                        <li className="text-xl font-bold inline m-4">
+                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/futures' && 'text-blue-500'}`} to="/futures">PERPETUAL</Link>
+                        </li>
+                        <li className="text-xl font-bold inline m-4">
+                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/assets' && 'text-blue-500'}`} to="/assets">ASSESTS</Link>
+                        </li>
+                    </ul>
+                </nav>
             </div>
-            <nav className="flex items-center w-0 justify-between sm:visible sm:w-auto">
-                <ul>
-                    {/* <li className="space-x-5 text-xl inline m-10">
-                        <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/">Home</Link>
-                    </li> */}
-                    <li className="space-x-5 text-xl inline m-10">
-                        <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/exchage">Exchage</Link>
-                    </li>
-                    <li className="space-x-5 text-xl inline m-10">
-                        <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/futures">Futures</Link>
-                    </li>
-                    <li className="space-x-5 text-xl inline m-10">
-                        <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/assets">Assets</Link>
-                    </li>
-                </ul>
-            </nav>
-            <div className="flex items-center">
+            
+            <div className="flex items-center h-9">
                 {
                     isConnect ? 
-                    <div className="flex bg-gray-700 h-full rounded-l-lg font-semibold">
+                    <div className="flex bg-gray-700 h-full rounded-l-lg font-medium">
                         <div className="text-gray-400 my-auto mx-2">
                             <span>0x82AD...38C7</span>
                         </div>

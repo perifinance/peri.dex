@@ -176,7 +176,7 @@ const Order = ({openCoinList}) => {
     
     
     return (
-        <div className="lg:flex lg:flex-row lg:py-20 lg:justify-between lg:space-x-4 lg:space-x-20">
+        <div className="lg:flex lg:flex-row lg:py-20 lg:justify-between lg:space-x-4 xl:space-x-20">
             <div className="mb-6 lg:w-1/3">
                 <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
                     <div className="flex py-2 justify-between w-full">
@@ -261,7 +261,7 @@ const Order = ({openCoinList}) => {
                     
                 </div>
             </div>
-            <div className="lg:flex lg:flex-col lg:w-2/3">
+            <div className="lg:flex lg:flex-col lg:w-full">
                 <Chart/>
                 <OrderHistories/>
             </div>
