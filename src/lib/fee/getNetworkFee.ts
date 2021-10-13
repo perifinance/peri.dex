@@ -12,6 +12,7 @@ const api = {
 	56: bsc,
 	97: bsctest,
 	137: polygon,
+	1287: polygon,
 	80001: polygon
 }
 export const getNetworkFee = async (networkId) => {

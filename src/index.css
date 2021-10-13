@@ -6,6 +6,11 @@
 	min-width: 3rem;
 }
 
+.card-width {
+	width: 335px;
+	min-width: 335px;
+}
+
 
 .notification-info {
 	background-color: #2184F8 !important;

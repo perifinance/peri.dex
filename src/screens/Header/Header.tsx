@@ -56,7 +56,7 @@ const Header = () => {
                             <Link className="hidden sm:inline-block text-gray-700 hover:text-indigo-700" to="/">Home</Link>
                         </li> */}
                         <li className="text-xl font-bold inline m-4">
-                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/exchage' && 'text-blue-500'}`} to="/exchage">EXCHANGE</Link>
+                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/exchange' && 'text-blue-500'}`} to="/exchange">EXCHANGE</Link>
                         </li>
                         <li className="text-xl font-bold inline m-4">
                             <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/futures' && 'text-blue-500'}`} to="/futures">PERPETUAL</Link>
@@ -77,29 +77,29 @@ const Header = () => {
                         </div>
 
                         <div className="transform rotate-45 my-auto">
-                            <div className="bg-red-500 w-2 h-2"></div>
+                            <div className="bg-red-500" style={{width: '8px', height: '8px'}}></div>
                         </div>
 
                         <div className="my-auto mx-2"><span>ETH</span></div>
                     </div> : <></>
                 }
                 
-                <div className={`w-9 h-full mr-2 mt-0 bg-gray-500 ${isConnect ? 'rounded-r-lg' : 'rounded-lg'}`} onClick={() => onConnect()}>
+                <button className={`w-9 h-full mt-0 bg-gray-500 ${isConnect ? 'rounded-r-lg' : 'rounded-lg'}`} onClick={() => onConnect()}>
                     <img className="w-3 h-full mx-auto" src={`/images/icon/power_${isConnect ? 'on' : 'off'}.svg`}/>
-                </div>
+                </button>
                 
-                <div onClick={() => setDropdownOpen(!dropdownOpen)} className="sm:hidden hover:cursor-pointer py-1">
+                <button onClick={() => setDropdownOpen(!dropdownOpen)} className="sm:hidden hover:cursor-pointer py-1">
                     <img className="w-7" src={'/images/icon/drawer.svg'}/>
-                </div>
+                </button>
             </div>
             {
                 dropdownOpen && 
-                <div className="absolute right-4 mt-14 py-2 w-32 bg-white rounded-md shadow-xl z-20">
+                <div className="absolute right-4 mt-14 ml-2 py-2 w-32 bg-white rounded-md shadow-xl z-20">
                 {/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Home
                 </Link> */}
-                <Link to="/exchage" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
-                    Exchage
+                <Link to="/exchange" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
+                    Exchange
                 </Link>
                 <Link to="/assets" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Assets

@@ -20,7 +20,7 @@ const Order = ({openCoinList}) => {
     const [coinListType, setCoinListType] = useState(null);
     const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
-    const [exchageRates, setExchageRates] = useState(0n);
+    const [exchangeRates, setExchangeRates] = useState(0n);
     const [feeRate, setFeeRate] = useState(0n);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
     const [gasPrice, setGasPrice] = useState(0n);
@@ -40,7 +40,7 @@ const Order = ({openCoinList}) => {
     const getRate = async () => {
         const [sourceRate, destinationRate] = await Promise.all([getExchangeRates(selectedCoins.source.symbol), getExchangeRates(selectedCoins.destination.symbol)])
         setSourceRate(sourceRate);
-        setExchageRates(destinationRate * 10n ** 18n / sourceRate);
+        setExchangeRates(destinationRate * 10n ** 18n / sourceRate);
     }
 
     const getFeeRate = async () => {
@@ -74,9 +74,9 @@ const Order = ({openCoinList}) => {
         try {
             setPayAmount(value);
             setPayAmountToUSD(utils.parseEther(value).toBigInt() * sourceRate / (10n ** 18n))
-            const exchageAmount = utils.parseEther(value).toBigInt() * 10n ** 18n / exchageRates;
-            const feePrice = exchageAmount * feeRate / (10n ** 18n);
-            setReceiveAmount(exchageAmount - feePrice);
+            const exchangeAmount = utils.parseEther(value).toBigInt() * 10n ** 18n / exchangeRates;
+            const feePrice = exchangeAmount * feeRate / (10n ** 18n);
+            setReceiveAmount(exchangeAmount - feePrice);
         }catch(e) {
             console.log(e);
             setPayAmountToUSD(0n);
@@ -181,7 +181,7 @@ const Order = ({openCoinList}) => {
             <div className="w-full bg-gray-600 rounded-t-lg px-4 py-2">
                 <div className="flex py-2 justify-between w-full">
                     <div className="text-gray-200">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
-                    <div className="text-gray-200">{ formatCurrency(exchageRates, 2)} (${formatCurrency(exchageRates * sourceRate / (10n ** 18n), 2)})</div>
+                    <div className="text-gray-200">{ formatCurrency(exchangeRates, 2)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div>
                 </div>
             </div>
             <div className="w-full bg-gray-800 rounded-b-lg p-4">    

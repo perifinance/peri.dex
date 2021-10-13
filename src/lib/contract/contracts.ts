@@ -14,6 +14,7 @@ const naming = {
         56: 'PeriFinanceToBSC',
         97: 'PeriFinanceToBSC',
         137: 'PeriFinanceToPolygon',
+        1287: 'PeriFinance',
         80001: 'PeriFinanceToPolygon'
     },
     ProxyERC20pUSD: 'Pynth',

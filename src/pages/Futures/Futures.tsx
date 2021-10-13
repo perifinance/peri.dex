@@ -31,7 +31,7 @@ const Futures = () => {
     return (
         <>
             {isCoinList ? 
-                (<CoinList selectedCoin={selectedCoin}/>) :
+                (<CoinList coinListType={coinListType} selectedCoin={selectedCoin}/>) :
                 (<FuturesOrder openCoinList={openCoinList}/>)
             }
         </>

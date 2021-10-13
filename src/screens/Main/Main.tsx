@@ -7,27 +7,27 @@ import {
 } from "react-router-dom";
 import Header from '../Header'
 import Assets from 'pages/Assets'
-import Exchage from 'pages/Exchage'
+import Exchange from 'pages/Exchange'
 import Futures from 'pages/Futures'
 import Home from 'pages/Home'
 
 const Main = () => {
     return <div className="text-sm dark:text-white dark:bg-gray-900">
-        <div className="container mx-auto px-5 pt-5 pb-6">
+        <div className="container mx-auto px-5 pt-5 pb-6 min-h-screen">
             <Router>
                 <Header></Header>
                 <Switch>
                     <Route path="/assets">
                         <Assets />
                     </Route>
-                    <Route path="/exchage">
-                        <Exchage />
+                    <Route path="/exchange">
+                        <Exchange />
                     </Route>
                     <Route path="/futures">
                         <Futures/>
                     </Route>
                     <Route path="/">
-                        <Redirect to="/exchage"></Redirect>
+                        <Redirect to="/exchange"></Redirect>
                     </Route>
                 </Switch>
             </Router>

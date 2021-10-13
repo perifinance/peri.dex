@@ -7,5 +7,6 @@ export const SUPPORTED_NETWORKS = {
 	// 56: 'BSC',
 	// 97: 'BSCTEST',
 	// 137: 'POLYGON',
+	1287: 'moonbase-alphanet',
 	80001: 'MUMBAI'
 };

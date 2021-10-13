@@ -1,64 +1,110 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'reducers';
 import pynthsCategories from 'configure/coins/pynthsCategories'
+import { updateCoin } from 'reducers/coin/coinList'
 
-const CoinList = ({selectedCoin}) => {
-    const {coinList} = useSelector((state: RootState) => state.coinList);
+const CoinList = ({coinListType, selectedCoin}) => {
+    const { coinList } = useSelector((state: RootState) => state.coinList);
+    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    const [seletedCategory, setSeletedCategory] = useState('All');
+    const [isFavoriteFilter, setIsFavoriteFilter] = useState(null);
+    const [ filterCoinList, setFilterCoinList] = useState([]);
+    const [ searchValue, setSearchValue] = useState('');
+
+    const dispatch = useDispatch();
+
+    const setFavorite = (coin) => {
+        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        if(coin.favorite) {
+            favorites = favorites.filter((e) => e !== coin.id);
+        } else {
+            favorites.push(coin.id);
+        }
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        dispatch(updateCoin({...coin, favorite: !coin.favorite}));
+    }
+
+    useEffect(() => {
+        let filterResult = coinList.slice();
+        if(seletedCategory === 'My List') {
+            filterResult = filterResult.filter(e => e.favorite === true);
+        } else if(seletedCategory ===  'All'){
+            filterResult = filterResult;
+        } else {
+            filterResult = filterResult.filter(e => e.categories.includes(seletedCategory))
+        }
+
+        if( !(searchValue === '' && searchValue === null)) {
+            filterResult = filterResult.filter(e => e.symbol.toLocaleLowerCase().includes(searchValue.toLowerCase()) || e.name.toLocaleLowerCase().includes(searchValue.toLowerCase()))
+        }
+
+        if(isFavoriteFilter) {
+            filterResult = filterResult.sort((a, b) => Number(b.favorite) - Number(a.favorite));
+        }
+
+        setFilterCoinList(filterResult);
+        
+    },[seletedCategory, isFavoriteFilter, searchValue])
+
+    useEffect(() => {
+        if(coinList.length > 0) {
+            setSeletedCategory(pynthsCategories[0]);
+            setFilterCoinList(coinList.slice());
+        }
+    }, [coinList])
+
     return (
-        <div className="w-full">
-            <div className="flex">
-                <div className="w-full max-w-md">
+        
+            <div className="flex mb-6 card-width bg-gray-700 rounded-lg p-4 min-h-full overflow-y-scroll">
+                <div className="w-full">
                     <div className="mb-4">
-                        <div className="flex flex-row-reverse">
-                            <button type="button" className="rounded-md py-1 inline-flex items-center justify-center text-gray-400 hover:text-gray-500" onClick={() => selectedCoin()}>                                
-                                <svg className="h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                        <div className="relative text-center mb-4 ml-4">
+                            <button type="button" className="absolute top-0 bottom-0 block" onClick={() => selectedCoin()}>
+                                <img src="images/icon/left_arrow.svg"></img>
                             </button>
+                            <div className="text-lg">
+                                Select a token
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center bg-gray-500 rounded-md py-2 px-5">
+                            <svg className="fill-current text-gray-300 w-6 h-6" xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24">
+                                <path className="heroicon-ui"
+                                    d="M16.32 14.9l5.39 5.4a1 1 0 0 1-1.42 1.4l-5.38-5.38a8 8 0 1 1 1.41-1.41zM10 16a6 6 0 1 0 0-12 6 6 0 0 0 0 12z" />
+                            </svg>
+                            <input
+                                className="w-full rounded-md bg-gray-500 text-gray-300 leading-tight focus:outline-none py-2 px-2"
+                                type="text" placeholder="Enter the token symbol or name" onChange={(e)=> setSearchValue(e.target.value)}/>
                         </div>
 
-                        <div className="flex items-center bg-gray-200 rounded-md">
-                            <div className="pl-2">
-                                <svg className="fill-current text-gray-500 w-6 h-6" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24">
-                                    <path className="heroicon-ui"
-                                        d="M16.32 14.9l5.39 5.4a1 1 0 0 1-1.42 1.4l-5.38-5.38a8 8 0 1 1 1.41-1.41zM10 16a6 6 0 1 0 0-12 6 6 0 0 0 0 12z" />
-                                </svg>
-                            </div>
-                            <input
-                                className="w-full rounded-md bg-gray-200 text-gray-700 leading-tight focus:outline-none py-2 px-2"
-                                type="text" placeholder="Enter the token symbol or name"/>
-                        </div>
-                        <nav className="flex flex-row-reverse">
-                            <button className="w-1/6 text-gray-600 px-3 block hover:text-blue-500 focus:outline-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div className="flex overflow-hidden">
-                                {pynthsCategories && pynthsCategories.length > 0 && pynthsCategories.map((category) => {
+                        <div className="flex justify-between">
+                            <div className="flex overflow-hidden py-4">
+                                {pynthsCategories && pynthsCategories.length > 0 && pynthsCategories.map((category, index) => {
                                     return (
-                                        <button className="text-gray-600 py-4 px-2 block hover:text-blue-500 focus:outline-none border-b-2 font-medium border-blue-500">
+                                        <button key={index} className={`block mx-1 px-2 focus:outline-none font-bold border rounded-md border-gray-300 ${seletedCategory === category && 'border-blue-500 text-blue-500 bg-gray-700'}`}
+                                                onClick={() => setSeletedCategory(category)}
+                                        >
                                             {category}
                                         </button>    
                                     )
                                 })}                                    
                             </div>
-                            
-                        </nav>
+                            <img className="w-4 h-4 my-auto cursor-pointer" onClick={() => setIsFavoriteFilter(!isFavoriteFilter)} src={`images/icon/bookmark_${isFavoriteFilter ? 'on': 'off'}.svg`}></img>
+                        </div>
+                        
+
                         <div className="py-3 text-sm">
-                            {coinList && coinList.length > 0 && coinList.map((coin, index) => {
+                            {filterCoinList && filterCoinList.length > 0 && filterCoinList.map((coin, index) => {
                                 return (
-                                    <div className="flex justify-start cursor-pointer text-gray-200 hover:bg-gray-800 rounded-md px-2 py-2 my-2" onClick={ () => {selectedCoin(coin)}}>
-                                        <div onClick={ (e) => {e.stopPropagation();}}>
-                                            <svg className="w-6 h-6 fill-current {coin.favorite ? 'text-yellow-500' : 'text-gray-500'}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                            </svg>
+                                    <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-gray-900 rounded-md px-2 py-2 my-2 ${selectedCoins[coinListType].id === coin.id && 'bg-gray-900'}`} onClick={ () => selectedCoins[coinListType].id === coin.id && selectedCoin(coin)}>
+                                        <div onClick={ (e) => {setFavorite(coin); e.stopPropagation();}}>
+                                            <img className="w-6 h-6" src={`images/icon/bookmark_${coin.favorite ? 'on': 'off'}.svg`}></img>
                                         </div>
-                                        <img className="w-6 h-6 mx-2" src="/logo/logo.png" alt="network"/>
+                                        <img className="w-6 h-6 mx-2" src={`images/currencies/${coin.symbol}.svg`} alt="network"/>
                                         <div className="flex-grow font-medium px-2">{coin.symbol}</div>
-                                        <div className="text-sm font-normal text-gray-500 tracking-wide">{coin.name}</div>
+                                        <div className="text-sm font-normal text-gray-300 tracking-wide">{coin.name}</div>
                                     </div>
                                 )
 
@@ -67,7 +113,7 @@ const CoinList = ({selectedCoin}) => {
                     </div>
                 </div>
             </div>
-        </div>
+        
     )
 }
 export default CoinList;

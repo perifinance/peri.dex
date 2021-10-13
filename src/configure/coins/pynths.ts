@@ -1,4 +1,29 @@
 let pynths = {
+    1287: [
+        {
+            id: 0,
+            favorite: false,
+            name: "USD",
+            symbol: "pUSD",
+            categories: [],
+            decimal: 18
+        },
+        {
+            id: 1,
+            favorite: false,
+            name: "Bitcoin",
+            symbol: "pBTC",
+            categories: [],
+            decimal: 18
+        }, {
+            id: 2,
+            favorite: false,
+            name: "Ethereum",
+            symbol: "pETH",
+            categories: [],
+            decimal: 18
+        },
+    ],
     80001: [
         {
             id: 0,

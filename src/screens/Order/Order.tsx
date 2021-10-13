@@ -9,8 +9,7 @@ import { formatCurrency } from 'lib'
 import { updateTransaction } from 'reducers/transaction'
 import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
-import OrderHistories from 'screens/OrderHistories'
-import Chart from 'screens/Chart'
+
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
     const { isReady } = useSelector((state: RootState) => state.app);
@@ -20,7 +19,7 @@ const Order = ({openCoinList}) => {
     const [coinListType, setCoinListType] = useState(null);
     const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
-    const [exchageRates, setExchageRates] = useState(0n);
+    const [exchangeRates, setExchangeRates] = useState(0n);
     const [feeRate, setFeeRate] = useState(0n);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
     const [gasPrice, setGasPrice] = useState(0n);
@@ -38,8 +37,13 @@ const Order = ({openCoinList}) => {
 
     const getRate = async () => {
         const [sourceRate, destinationRate] = await Promise.all([getExchangeRates(selectedCoins.source.symbol), getExchangeRates(selectedCoins.destination.symbol)])
-        setSourceRate(sourceRate);
-        setExchageRates(destinationRate * 10n ** 18n / sourceRate);
+        try {
+            setSourceRate(sourceRate);
+            setExchangeRates(destinationRate * 10n ** 18n / sourceRate);
+        }catch (e) {
+            console.log(e);
+        }
+        
     }
 
     const getFeeRate = async () => {
@@ -73,9 +77,9 @@ const Order = ({openCoinList}) => {
         try {
             setPayAmount(value);
             setPayAmountToUSD(utils.parseEther(value).toBigInt() * sourceRate / (10n ** 18n))
-            const exchageAmount = utils.parseEther(value).toBigInt() * 10n ** 18n / exchageRates;
-            const feePrice = exchageAmount * feeRate / (10n ** 18n);
-            setReceiveAmount(exchageAmount - feePrice);
+            const exchangeAmount = utils.parseEther(value).toBigInt() * 10n ** 18n / exchangeRates;
+            const feePrice = exchangeAmount * feeRate / (10n ** 18n);
+            setReceiveAmount(exchangeAmount - feePrice);
         }catch(e) {
             console.log(e);
             setPayAmountToUSD(0n);
@@ -176,94 +180,89 @@ const Order = ({openCoinList}) => {
     
     
     return (
-        <div className="lg:flex lg:flex-row lg:py-20 lg:justify-between lg:space-x-4 xl:space-x-20">
-            <div className="mb-6 lg:w-1/3">
-                <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
-                    <div className="flex py-2 justify-between w-full">
-                        <div>{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
-                        <div>{ formatCurrency(exchageRates, 2)} (${formatCurrency(exchageRates * sourceRate / (10n ** 18n), 2)})</div>
-                    </div>
-                </div>
-                <div className="w-full bg-gray-700 rounded-b-lg p-4">    
-                    <div className="flex py-1 justify-between w-full">
-                        <div>Pay</div>
-                        {isValidation || <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
-                            <span>{validationMessage}</span>
-                        </div>}
-                        <div>Available: {formatCurrency(balance, 4)}</div>
-                    </div>
-                    {/* ${isError && 'border border-red-500'} */}
-                    <div className="flex justify-between items-center rounded-md bg-black text-base">
-                        <div className="flex p-3 font-semibold cursor-pointtext-center" onClick={() => openCoinList('source')}>
-                            <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
-                            <div className="mx-1">{selectedCoins.source.symbol}</div>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>    
-                        <input className="bg-black pr-3 outline-none" type="text" dir="rtl" value={payAmount} onChange={(e) => changePayAmount(e.target.value)} onBlur={() => {getnetworkFeePrice(); getPrice();}}/>
-                    </div>
-                    <div className="flex justify-end font-medium tracking-wide text-xs w-full text-blue-500 px-3 mt-1">
-                        <span>${formatCurrency(payAmountToUSD, 2)}</span>
-                    </div>
-
-                    <div className="w-full"><img className="mx-auto w-9 h-9" src={'/images/icon/exchage.svg'}></img></div>
-
-                    <div className="py-1 justify-between w-full">
-                        <div>Receive(Estimated)</div>
-                    </div>             
-                    
-                    <div className="flex justify-between items-center rounded-md bg-black text-base">
-                        <div className="flex p-3 font-semibold cursor-pointtext-center">
-                            <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
-                            <span className="mx-1">{selectedCoins.destination.symbol}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
-                        <input className="bg-black pr-3 outline-none" type="text" dir="rtl"  value={formatCurrency(receiveAmount, 18)}/>
-                    </div>
-
-                    <div className="py-2 w-full">
-                        <div className="flex justify-between">
-                            <input className="cursor-pointer w-full mr-1" type="range" min="1" max="100" value={per.toString()} onChange={(e) => setPerAmount(BigInt(e.target.value))}/>
-                            <div className="border border-gray-200 rounded-md text-sm px-1">
-                                {convertNumber(per)}%
-                            </div>
-                        </div>
-                        <div className="flex justify-between  text-xs text-gray-400 w-10/12">
-                            <span className={`w-8 text-left ${per === 0n && 'text-blue-500'}`} onClick={() => setPerAmount(0n)}>0%</span>
-                            <span className={`w-8 text-center ${per === 25n && 'text-blue-500'}`} onClick={() => setPerAmount(25n)}>25%</span>
-                            <span className={`w-8 text-center ${per === 50n && 'text-blue-500'}`} onClick={() => setPerAmount(50n)}>50%</span>
-                            <span className={`w-8 text-center ${per === 75n && 'text-blue-500'}`} onClick={() => setPerAmount(75n)}>75%</span>
-                            <span className={`w-8 text-right ${per === 100n && 'text-blue-500'}`} onClick={() => setPerAmount(100n)}>100%</span>
-                        </div>
-                    </div>
-                    <div className="pt-4">
-                        <div className="flex py-2 justify-between w-full">
-                            <div>Network Fee({gasPrice.toString()}GWEI)</div>
-                            <div>${formatCurrency(networkFeePrice, 4)}</div>
-                        </div>
-
-                        <div className="flex py-2 justify-between w-full">
-                            <div>Cost: </div>
-                            <div>${formatCurrency(price-feePrice, 18)}</div>
-                        </div>
-
-                        <div className="flex py-2 justify-between w-full">
-                            <div>Fee({utils.formatEther(feeRate)}%)</div>
-                            <div>${formatCurrency(feePrice, 18)}</div>
-                        </div>
-                    </div>
-                    <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => order()}>
-                        Confirm
-                    </button>
-                    
+        
+        <div className="mb-6 card-width">
+            <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
+                <div className="flex py-2 justify-between w-full">
+                    <div>{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
+                    <div>{ formatCurrency(exchangeRates, 2)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div>
                 </div>
             </div>
-            <div className="lg:flex lg:flex-col lg:w-full">
-                <Chart/>
-                <OrderHistories/>
+            <div className="w-full bg-gray-700 rounded-b-lg p-4">    
+                <div className="flex py-1 justify-between w-full">
+                    <div>Pay</div>
+                    {isValidation || <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                        <span>{validationMessage}</span>
+                    </div>}
+                    <div>Available: {formatCurrency(balance, 4)}</div>
+                </div>
+                {/* ${isError && 'border border-red-500'} */}
+                <div className="flex justify-between items-center rounded-md bg-black text-base">
+                    <div className="flex p-3 font-semibold cursor-pointtext-center" onClick={() => openCoinList('source')}>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
+                        <div className="mx-1">{selectedCoins.source.symbol}</div>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>    
+                    <input className="bg-black pr-3 outline-none" type="text" dir="rtl" value={payAmount} onChange={(e) => changePayAmount(e.target.value)} onBlur={() => {getnetworkFeePrice(); getPrice();}}/>
+                </div>
+                <div className="flex justify-end font-medium tracking-wide text-xs w-full text-blue-500 px-3 mt-1">
+                    <span>${formatCurrency(payAmountToUSD, 2)}</span>
+                </div>
+
+                <div className="w-full"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'}></img></div>
+
+                <div className="py-1 justify-between w-full">
+                    <div>Receive(Estimated)</div>
+                </div>             
+                
+                <div className="flex justify-between items-center rounded-md bg-black text-base">
+                    <div className="flex p-3 font-semibold cursor-pointtext-center" onClick={() => openCoinList('destination')}>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
+                        <span className="mx-1">{selectedCoins.destination.symbol}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <input className="bg-black pr-3 outline-none" type="text" dir="rtl"  value={formatCurrency(receiveAmount, 18)}/>
+                </div>
+
+                <div className="py-2 w-full">
+                    <div className="flex justify-between">
+                        <input className="cursor-pointer w-full mr-1" type="range" min="1" max="100" value={per.toString()} onChange={(e) => setPerAmount(BigInt(e.target.value))}/>
+                        <div className="border border-gray-200 rounded-md text-sm px-1">
+                            {convertNumber(per)}%
+                        </div>
+                    </div>
+                    <div className="flex justify-between  text-xs text-gray-400 w-10/12">
+                        <span className={`w-8 text-left ${per === 0n && 'text-blue-500'}`} onClick={() => setPerAmount(0n)}>0%</span>
+                        <span className={`w-8 text-center ${per === 25n && 'text-blue-500'}`} onClick={() => setPerAmount(25n)}>25%</span>
+                        <span className={`w-8 text-center ${per === 50n && 'text-blue-500'}`} onClick={() => setPerAmount(50n)}>50%</span>
+                        <span className={`w-8 text-center ${per === 75n && 'text-blue-500'}`} onClick={() => setPerAmount(75n)}>75%</span>
+                        <span className={`w-8 text-right ${per === 100n && 'text-blue-500'}`} onClick={() => setPerAmount(100n)}>100%</span>
+                    </div>
+                </div>
+                <div className="pt-4">
+                    <div className="flex py-2 justify-between w-full">
+                        <div>Network Fee({gasPrice.toString()}GWEI)</div>
+                        <div>${formatCurrency(networkFeePrice, 4)}</div>
+                    </div>
+
+                    <div className="flex py-2 justify-between w-full">
+                        <div>Cost: </div>
+                        <div>${formatCurrency(price-feePrice, 18)}</div>
+                    </div>
+
+                    <div className="flex py-2 justify-between w-full">
+                        <div>Fee({utils.formatEther(feeRate)}%)</div>
+                        <div>${formatCurrency(feePrice, 18)}</div>
+                    </div>
+                </div>
+                <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => order()}>
+                    Confirm
+                </button>
+                
             </div>
         </div>
     )

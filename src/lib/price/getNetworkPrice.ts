@@ -6,7 +6,11 @@ export const getNetworkPrice = async(networkId) => {
     const address = {
         80001: "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada",
     }
-    
-    const contract = new ethers.Contract(address[networkId], aggregatorV3InterfaceABI, contracts.provider); 
-    return BigInt((await contract.latestRoundData()).answer);
+    try {
+        const contract = new ethers.Contract(address[networkId], aggregatorV3InterfaceABI, contracts.provider); 
+        return BigInt((await contract.latestRoundData()).answer);
+    } catch(e) {
+
+    }
+    return 0n;
 }
