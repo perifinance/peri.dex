@@ -24,7 +24,6 @@ export const loadingSlice = createSlice({
 	initialState,
 	reducers: {
         setSourceCoin: (state, actions: PayloadAction<Coin>) => {
-            console.log(actions.payload);
             state.source = actions.payload;
         },
 

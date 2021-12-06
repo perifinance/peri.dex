@@ -17,9 +17,10 @@ const naming = {
         1287: 'PeriFinance',
         80001: 'PeriFinanceToPolygon'
     },
-    ProxyERC20pUSD: 'Pynth',
-    ProxyERC20pBTC: 'Pynth',
-    ProxyERC20pETH: 'Pynth',
+    ProxyERC20pUSD: 'MultiCollateralPynth',
+    BridgeStatepUSD: 'BridgeState',
+    ProxyERC20pBTC: 'MultiCollateralPynth',
+    ProxyERC20pETH: 'MultiCollateralPynth',
     SystemSettings: 'SystemSettings'
 } 
 
@@ -28,10 +29,11 @@ type Contracts = {
     sources?: any,
     provider?: any,
     wallet?: any,
+    BridgeStatepUSD?: any,
     ExchangeRates?: any
     Exchanger?: any
     PeriFinance?: any
-    PynthpUSD?: any
+    pUSD?: any
     SystemSettings?: any
     init: (networkId: number) => void
     connect: (address:string) => void
@@ -40,7 +42,7 @@ type Contracts = {
         ExchangeRates?: any
         PeriFinance?: any
         SystemSettings?: any
-        PynthpUSD?: any
+        pUSD?: any
     }
 }
 
@@ -66,6 +68,9 @@ export const contracts: Contracts = {
                 if(name === 'ProxyERC20') {
                     this['PeriFinance'] = this[name];
                 }
+                if(name === 'ProxyERC20pUSD') {
+                    this['pUSD'] = this[name];
+                }
             }
         });
     },
@@ -79,6 +84,10 @@ export const contracts: Contracts = {
                 this.signers[name] = new ethers.Contract(this.addressList[name].address, source ? source.abi : ERC20.abi, this.signer);
                 if(name === 'ProxyERC20') {
                     this.signers['PeriFinance'] = this.signers[name];
+                }
+                
+                if(name === 'ProxyERC20pUSD') {
+                    this.signers['pUSD'] = this.signers[name];
                 }
             }
         });

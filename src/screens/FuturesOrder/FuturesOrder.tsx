@@ -17,7 +17,6 @@ const Order = ({openCoinList}) => {
     const { networkId, address } = useSelector((state: RootState) => state.wallet);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
    
-    const [coinListType, setCoinListType] = useState(null);
     const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
     const [exchangeRates, setExchangeRates] = useState(0n);
@@ -160,7 +159,7 @@ const Order = ({openCoinList}) => {
             getRate();
             getFeeRate();
         }
-    },[isReady, networkId, selectedCoins]);
+    },[isReady, networkId, selectedCoins, getFeeRate, getRate]);
 
     useEffect(() => {
         if(isReady && networkId) {
@@ -193,7 +192,7 @@ const Order = ({openCoinList}) => {
                     <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto" onClick={() => openCoinList('source')}>
                         <span>{selectedCoins.source.symbol}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>    
                     
@@ -218,7 +217,7 @@ const Order = ({openCoinList}) => {
                     <div className="flex py-3 rounded-lg text-gray-200 font-semibold cursor-pointtext-center m-auto">
                         <span>{selectedCoins.destination.symbol}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
                     <div className="flex bg-gray-200 py-2 w-full rounded-lg">

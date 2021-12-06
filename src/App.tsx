@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useSelector, useDispatch } from "react-redux"
 import { NotificationContainer, NotificationManager } from 'react-notifications';
 
@@ -18,7 +18,6 @@ import { InitOnboard, onboard } from 'lib/onboard/onboard'
 import { contracts } from 'lib/contract'
 import { getCoinList } from 'lib/coinList'
 
-// import Loading from './screens/Loading'
 import Main from './screens/Main'
 import './App.css'
 
@@ -30,7 +29,7 @@ const App = () => {
     const themeState = useSelector((state: RootState) => state.theme.theme);
     
     const dispatch = useDispatch();
-
+    
     const setOnbaord = async () => {
         
         let networkId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
@@ -42,6 +41,7 @@ const App = () => {
         }
         
         contracts.init(networkId);
+        dispatch(setAppReady());
         dispatch(updateNetwork({networkId: networkId}));
         try{ 
             InitOnboard(networkId, {
@@ -72,7 +72,7 @@ const App = () => {
                                 contracts.connect(address);
                     
                             } else {
-                                NotificationManager.warning(`This network is not supported. Please change to bsc or polygon or ethereum network`, 'ERROR');
+                                NotificationManager.warning(`This network is not supported. Please change to moonbese network`, 'ERROR');
                                 onboard.walletReset();
                                 onboard.config({ networkId: network });
                                 dispatch(updateNetwork({networkId: network}));
@@ -100,27 +100,28 @@ const App = () => {
                 console.log(e);
             }
         }
-        dispatch(setAppReady());
     }
+
+    const getState = useCallback(async () => {
+        await contracts.provider.once(transaction.hash, async (transactionState) => {
+            if(transactionState.status !== 1) {
+                NotificationManager.remove(NotificationManager.listNotify[0])
+                NotificationManager.warning(`${transaction.type} error`, 'ERROR');
+            } else {
+                NotificationManager.remove(NotificationManager.listNotify[0])
+                NotificationManager.success(`${transaction.type} success`, 'SUCCESS');
+                dispatch(resetTransaction());
+            }
+        });
+    }, [transaction, dispatch])
 
     useEffect(() => {
         if(transaction.hash) {
-            const getState = async () => {
-                await contracts.provider.once(transaction.hash, async (transactionState) => {
-                    if(transactionState.status !== 1) {
-                        NotificationManager.remove(NotificationManager.listNotify[0])
-                        NotificationManager.warning(`${transaction.type} error`, 'ERROR');
-                    } else {
-                        NotificationManager.remove(NotificationManager.listNotify[0])
-                        NotificationManager.success(`${transaction.type} success`, 'SUCCESS');
-                        dispatch(resetTransaction());
-                    }
-                });
-            }
+            
             getState();
             NotificationManager.info(transaction.message, 'In progress', 0);
         }
-    }, [transaction])
+    }, [getState, transaction])
 
     useEffect(() => {
         setOnbaord();
@@ -130,14 +131,22 @@ const App = () => {
         // eslint-disable-next-line
     }, []);
 
+    const init = useCallback(() => {
+        const coinList = getCoinList(networkId);
+            try {
+                dispatch(initCoinList(coinList));
+                dispatch(setSourceCoin(coinList[0]));
+                dispatch(setDestinationCoin(coinList[1]));
+            } catch(e) {
+        }
+                
+    },[networkId, dispatch])
+    
     useEffect(() => {
         if(networkId) {
-            const coinList = getCoinList(networkId);
-            dispatch(initCoinList(coinList));
-            dispatch(setSourceCoin(coinList[0]));
-            dispatch(setDestinationCoin(coinList[1]));
+            init();
         }
-    }, [networkId]);
+    }, [init, networkId]);
     
     
     return (

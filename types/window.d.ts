@@ -6,6 +6,7 @@ type EthereumProvider = {
 	ethereum: ethers.providers.Provider | undefined;
 	isMetaMask: boolean;
 	netWorkVersion: string;
+	request: (event: string, cb: () => void) => void;
 }
 
 declare global {

@@ -1,25 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'reducers';
-import { getExchangeRates, getFeeRateForExchange } from 'lib/rates'
-import { getBalance } from 'lib/balance'
+import { getLastRates, getBalances } from 'lib/thegraph/api'
+import { getFeeRateForExchange } from 'lib/rates'
 import { contracts } from 'lib';
 import { utils } from 'ethers';
 import { formatCurrency } from 'lib'
 import { updateTransaction } from 'reducers/transaction'
 import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
+import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
+import balances from 'reducers/wallet/balances';
 
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
     const { isReady } = useSelector((state: RootState) => state.app);
-    const { networkId, address } = useSelector((state: RootState) => state.wallet);
+    const { networkId, address, isConnect } = useSelector((state: RootState) => state.wallet);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
    
-    const [coinListType, setCoinListType] = useState(null);
     const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
     const [exchangeRates, setExchangeRates] = useState(0n);
+    
     const [feeRate, setFeeRate] = useState(0n);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
     const [gasPrice, setGasPrice] = useState(0n);
@@ -34,16 +36,32 @@ const Order = ({openCoinList}) => {
     const [balance, setBalance] = useState(0n);
     const [isValidation, setIsValidation] = useState(true);
     const [validationMessage, setValidationMessage] = useState('');
+    const [rate, setRate] = useState(0n);
 
     const getRate = async () => {
-        const [sourceRate, destinationRate] = await Promise.all([getExchangeRates(selectedCoins.source.symbol), getExchangeRates(selectedCoins.destination.symbol)])
+        const rates = await (async() => {
+            const rates = await Promise.all(
+                [
+                    getLastRates({currencyName: selectedCoins.source.symbol}), 
+                    getLastRates({currencyName: selectedCoins.destination.symbol})
+                ]);
+                
+            return Object.assign(...rates);
+        })()
+        const sourceRate = rates[selectedCoins.source.symbol]
+        const destinationRate = rates[selectedCoins.destination.symbol]
+        
         try {
+            const exchangeRates = destinationRate * 10n ** 18n / sourceRate;
             setSourceRate(sourceRate);
-            setExchangeRates(destinationRate * 10n ** 18n / sourceRate);
+            setExchangeRates(exchangeRates);
+            setRate( 10n ** 18n * 10n ** 18n / (exchangeRates));
         }catch (e) {
             console.log(e);
         }
-        
+        setTimeout(() => {
+            getRate();
+        }, 1000 * 60);
     }
 
     const getFeeRate = async () => {
@@ -51,7 +69,9 @@ const Order = ({openCoinList}) => {
     }
 
     const getSourceBalance = async () => {
-        setBalance(await getBalance(address, selectedCoins.source.symbol, 18));
+        const balance = await getBalances({address, currencyName: selectedCoins.source.symbol});
+
+        setBalance(balance.amount);
     }
 
     const validationCheck = (value) => {
@@ -61,7 +81,7 @@ const Order = ({openCoinList}) => {
                 setValidationMessage('Please enter pay input only with numbers')
             } else if(utils.parseEther(value).toBigInt() > balance) {
                 setIsValidation(false);
-                setValidationMessage('Please enter pay input less than the balance')
+                setValidationMessage('Not Greater Than Balance')
             } else {
                 setIsValidation(true);
                 setValidationMessage('');
@@ -74,8 +94,8 @@ const Order = ({openCoinList}) => {
 
     const changePayAmount = (value) => {
         validationCheck(value);
+        setPayAmount(value);
         try {
-            setPayAmount(value);
             setPayAmountToUSD(utils.parseEther(value).toBigInt() * sourceRate / (10n ** 18n))
             const exchangeAmount = utils.parseEther(value).toBigInt() * 10n ** 18n / exchangeRates;
             const feePrice = exchangeAmount * feeRate / (10n ** 18n);
@@ -84,7 +104,8 @@ const Order = ({openCoinList}) => {
             console.log(e);
             setPayAmountToUSD(0n);
             setReceiveAmount(0n);
-        }  
+        }
+        
     }
 
     const getnetworkFeePrice = () => {
@@ -94,9 +115,14 @@ const Order = ({openCoinList}) => {
     }
 
     const getPrice = () => {
-        const price = BigInt(payAmount) * sourceRate ;
-        setPrice(price);
-        setFeePrice(price * feeRate / (10n ** 18n));
+        try {
+            const price = BigInt(payAmount) * sourceRate ;
+            setPrice(price);
+            setFeePrice(price * feeRate / (10n ** 18n));
+        } catch(e) {
+            setPrice(0n);
+            setFeePrice(0n);
+        }
     }
 
     const getGasEstimate = async () => {
@@ -105,10 +131,10 @@ const Order = ({openCoinList}) => {
         try {
             gasLimit = BigInt((await contracts.signers.PeriFinance.estimateGas.exchange(
                 utils.formatBytes32String(selectedCoins.source.symbol), 
-                utils.parseEther(payAmount),
+                utils.parseEther(payAmount === '0' ? '1' : payAmount),
                 utils.formatBytes32String(selectedCoins.destination.symbol))));
         } catch(e) {
-            console.log(e);
+            
         }
         setGasLimit(gasLimit);
         return (gasLimit * 12n /10n).toString()
@@ -122,23 +148,32 @@ const Order = ({openCoinList}) => {
         
         try {
             let transaction;
+            console.log(utils.parseEther(payAmount).toString());
             transaction = await contracts.signers.PeriFinance.exchange(
                 utils.formatBytes32String(selectedCoins.source.symbol), 
                 utils.parseEther(payAmount),
                 utils.formatBytes32String(selectedCoins.destination.symbol),
                 transactionSettings
             );
-            
+
             dispatch(updateTransaction(
                 {
                     hash: transaction.hash,
-                    message: `매수`,
-                    type: 'Staked & Minted'
+                    message: `Buy ${selectedCoins.destination.symbol} from ${selectedCoins.source.symbol}`,
+                    type: 'Exchange'
                 }
             ));
+            
+            
         } catch(e) {
             console.log(e);
         }  
+    }
+
+    const swapToCurrency = () => {
+        const {source, destination} = Object.assign({}, selectedCoins);
+        dispatch(setSourceCoin(destination));
+        dispatch(setDestinationCoin(source));
     }
 
     const setNetworkFee = async() => {
@@ -160,8 +195,10 @@ const Order = ({openCoinList}) => {
 
     useEffect(() => {
         if(isReady && networkId) {
+            
             getRate();
             getFeeRate();
+            getnetworkFeePrice();
         }
     },[isReady, networkId, selectedCoins]);
 
@@ -177,24 +214,41 @@ const Order = ({openCoinList}) => {
         }
     },[isReady, networkId, address, selectedCoins]);
 
+    useEffect(() => {
+        getPrice();
+    },[receiveAmount])
     
+    useEffect(() => {
+        if(!isConnect) {
+            setPayAmount('0');
+            setPayAmountToUSD(0n);
+            setReceiveAmount(0n);
+            setBalance(0n);
+            setIsValidation(true);
+            setValidationMessage('');
+            setPer(0n);
+        }
+    },[isConnect])
     
     return (
         
-        <div className="mb-6 card-width">
+        <div className="mb-6 cardWidth">
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
-                <div className="flex py-2 justify-between w-full">
-                    <div>{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
-                    <div>{ formatCurrency(exchangeRates, 2)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div>
+                <div className="flex space-x-8 py-2">
+                    <div className="relative">
+                        <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
+                        <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
+                    </div>
+                    <div className="text-xl">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
+                    
                 </div>
             </div>
             <div className="w-full bg-gray-700 rounded-b-lg p-4">    
                 <div className="flex py-1 justify-between w-full">
                     <div>Pay</div>
-                    {isValidation || <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                    {!isValidation ? <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
                         <span>{validationMessage}</span>
-                    </div>}
-                    <div>Available: {formatCurrency(balance, 4)}</div>
+                    </div> : <div>Available: {formatCurrency(balance, 4)}</div>}
                 </div>
                 {/* ${isError && 'border border-red-500'} */}
                 <div className="flex justify-between items-center rounded-md bg-black text-base">
@@ -202,16 +256,16 @@ const Order = ({openCoinList}) => {
                         <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
                         <div className="mx-1">{selectedCoins.source.symbol}</div>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>    
-                    <input className="bg-black pr-3 outline-none" type="text" dir="rtl" value={payAmount} onChange={(e) => changePayAmount(e.target.value)} onBlur={() => {getnetworkFeePrice(); getPrice();}}/>
+                    <input className="bg-black pr-3 outline-none text-right" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)}/>
                 </div>
                 <div className="flex justify-end font-medium tracking-wide text-xs w-full text-blue-500 px-3 mt-1">
                     <span>${formatCurrency(payAmountToUSD, 2)}</span>
                 </div>
 
-                <div className="w-full"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'}></img></div>
+                <div className="w-full"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'} onClick={() => swapToCurrency()}></img></div>
 
                 <div className="py-1 justify-between w-full">
                     <div>Receive(Estimated)</div>
@@ -222,10 +276,10 @@ const Order = ({openCoinList}) => {
                         <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
                         <span className="mx-1">{selectedCoins.destination.symbol}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
-                    <input className="bg-black pr-3 outline-none" type="text" dir="rtl"  value={formatCurrency(receiveAmount, 18)}/>
+                    <input className="bg-black pr-3 outline-none text-right" type="text" value={formatCurrency(receiveAmount, 18)} disabled/>
                 </div>
 
                 <div className="py-2 w-full">
@@ -235,7 +289,7 @@ const Order = ({openCoinList}) => {
                             {convertNumber(per)}%
                         </div>
                     </div>
-                    <div className="flex justify-between  text-xs text-gray-400 w-10/12">
+                    <div className="flex justify-between text-xs text-gray-400 w-10/12">
                         <span className={`w-8 text-left ${per === 0n && 'text-blue-500'}`} onClick={() => setPerAmount(0n)}>0%</span>
                         <span className={`w-8 text-center ${per === 25n && 'text-blue-500'}`} onClick={() => setPerAmount(25n)}>25%</span>
                         <span className={`w-8 text-center ${per === 50n && 'text-blue-500'}`} onClick={() => setPerAmount(50n)}>50%</span>
@@ -248,16 +302,24 @@ const Order = ({openCoinList}) => {
                         <div>Network Fee({gasPrice.toString()}GWEI)</div>
                         <div>${formatCurrency(networkFeePrice, 4)}</div>
                     </div>
-
                     <div className="flex py-2 justify-between w-full">
-                        <div>Cost: </div>
-                        <div>${formatCurrency(price-feePrice, 18)}</div>
+                        <div>rate</div>
+                        <div>1 {selectedCoins.source.symbol} = {formatCurrency(rate, 8)} {selectedCoins.destination.symbol}</div>
                     </div>
+                    
+                    {BigInt(receiveAmount) > 0n && isValidation && <> 
+                        <div className="flex py-2 justify-between w-full">
+                            <div>Cost: </div>
+                            <div>${formatCurrency(price-feePrice, 18)}</div>
+                        </div>
 
-                    <div className="flex py-2 justify-between w-full">
-                        <div>Fee({utils.formatEther(feeRate)}%)</div>
-                        <div>${formatCurrency(feePrice, 18)}</div>
-                    </div>
+                        <div className="flex py-2 justify-between w-full">
+                            <div>Fee({utils.formatEther(feeRate)}%)</div>
+                            <div>${formatCurrency(feePrice, 18)}</div>
+                        </div>
+                    </>}
+                    
+                    
                 </div>
                 <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => order()}>
                     Confirm

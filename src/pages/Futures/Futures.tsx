@@ -1,16 +1,13 @@
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from 'reducers';
+import { useDispatch } from 'react-redux';
 
 import FuturesOrder from 'screens/FuturesOrder'
 import CoinList from 'screens/CoinList'
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
 const Futures = () => {
     const dispatch = useDispatch();
-    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState(null);
-    const [per, setPer] = useState(0);
     
     const openCoinList = (type) => {
         setCoinListType(type);

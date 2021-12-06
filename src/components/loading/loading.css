@@ -1,0 +1,10 @@
+.a div:nth-child(0) {
+    transform: rotate(0deg);
+}
+
+.a div:nth-child(1) {
+    transform: rotate(10deg);
+}
+.a div:nth-child(2) {
+    transform: rotate(0deg);
+}
