@@ -14,7 +14,7 @@ import { utils } from 'ethers';
 import Receive from 'screens/Receive'
 
 
-const Swap = () => {
+const Bridge = () => {
     const dispatch = useDispatch();
     const { isReady } = useSelector((state: RootState) => state.app);
     const { address, networkId } = useSelector((state: RootState) => state.wallet);
@@ -67,7 +67,7 @@ const Swap = () => {
         
     }
 
-    const swapConfrim = async () => {
+    const bridgeConfrim = async () => {
         const transactionSettings = {
             gasPrice: (await getNetworkFee(selectedNetwork.id) * 10n ** 9n).toString(),
             gasLimit: await getGasEstimate(),
@@ -91,7 +91,7 @@ const Swap = () => {
         
     }
 
-    const swapNetwork = () => {
+    const bridgeNetwork = () => {
         setSelectedNetworkType(selectedNetworkType === 'to' ? 'from' : 'to');
     }
 
@@ -115,6 +115,7 @@ const Swap = () => {
     useEffect(() => {
         if(isReady && address && networkId) {
             initBalances();
+            console.log(123);
         }
     }, [initBalances, isReady, address, networkId])
 
@@ -148,7 +149,7 @@ const Swap = () => {
                                 </div>
                             </div>
 
-                            <div className="w-full mt-4"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'} alt="exchage" onClick={() => swapNetwork()}></img></div>
+                            <div className="w-full mt-4"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'} alt="exchage" onClick={() => bridgeNetwork()}></img></div>
 
                             <div className="py-1 w-full">
                                 <div>To</div>
@@ -178,7 +179,7 @@ const Swap = () => {
                                 <input className="bg-black pr-3 outline-none text-right" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)}/>
                             </div>
                             
-                            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => swapConfrim()} disabled={networkId !== selectedNetwork?.id}>
+                            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => bridgeConfrim()} disabled={networkId !== selectedNetwork?.id}>
                                 Confirm
                             </button>
                             {networkId !== selectedNetwork?.id && 
@@ -200,4 +201,4 @@ const Swap = () => {
         </div>
     )
 }
-export default Swap;
+export default Bridge;

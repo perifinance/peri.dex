@@ -11,13 +11,20 @@ const Chart = () => {
     const [data, setData] = useState([]);
     
     const init = useCallback(async() => {
+        console.log(selectedCoins, chartTime)
         const dataFrom = {
             "24H": '15m',
             "3D": '3D',
             "1W": '1W',
             "1M": '1M'
         }
-        const chartRate = await getChartRates({currencyName: selectedCoins.destination.symbol, dataFrom: dataFrom[chartTime]}); 
+        const chartRate = await getChartRates(
+            {
+                currencyName: selectedCoins.destination.id === 0 ? 
+                    selectedCoins.source.symbol : 
+                    selectedCoins.destination.symbol, 
+                dataFrom: dataFrom[chartTime]
+            }); 
         setData(chartRate);
         setTimeout(() => {
             init();
@@ -25,7 +32,7 @@ const Chart = () => {
     },[selectedCoins, chartTime])
 
     useEffect(() => {
-        if(selectedCoins.destination) {
+        if(selectedCoins.destination.symbol && selectedCoins.source.symbol && chartTime) {
             init();
         }
     }, [init, selectedCoins, chartTime])

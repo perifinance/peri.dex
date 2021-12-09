@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'reducers';
 import { getLastRates, getBalances } from 'lib/thegraph/api'
@@ -71,7 +71,7 @@ const Order = ({openCoinList}) => {
     const getSourceBalance = async () => {
         const balance = await getBalances({address, currencyName: selectedCoins.source.symbol});
 
-        setBalance(balance.amount);
+        setBalance(balance?.amount || 0n);
     }
 
     const validationCheck = (value) => {
@@ -105,8 +105,7 @@ const Order = ({openCoinList}) => {
             setPayAmountToUSD(0n);
             setReceiveAmount(0n);
         }
-        
-    }
+    }   
 
     const getnetworkFeePrice = () => {
         getGasEstimate();
@@ -114,16 +113,16 @@ const Order = ({openCoinList}) => {
         setNetworkFeePrice(feePrice);
     }
 
-    const getPrice = () => {
+    const getPrice = useCallback( () => {
         try {
-            const price = BigInt(payAmount) * sourceRate ;
+            const price = BigInt(utils.parseEther(payAmount).toString()) * sourceRate / 10n ** 18n;
             setPrice(price);
             setFeePrice(price * feeRate / (10n ** 18n));
         } catch(e) {
             setPrice(0n);
             setFeePrice(0n);
         }
-    }
+    }, [payAmount, sourceRate, feeRate, setPrice, setFeePrice])
 
     const getGasEstimate = async () => {
         let gasLimit = 600000n;
@@ -216,7 +215,7 @@ const Order = ({openCoinList}) => {
 
     useEffect(() => {
         getPrice();
-    },[receiveAmount])
+    },[receiveAmount, getPrice])
     
     useEffect(() => {
         if(!isConnect) {
@@ -284,7 +283,7 @@ const Order = ({openCoinList}) => {
 
                 <div className="py-2 w-full">
                     <div className="flex justify-between">
-                        <input className="cursor-pointer w-full mr-1" type="range" min="1" max="100" value={per.toString()} onChange={(e) => setPerAmount(BigInt(e.target.value))}/>
+                        <input className="cursor-pointer w-full mr-1" type="range" min="0" max="100" value={per.toString()} onChange={(e) => setPerAmount(BigInt(e.target.value))}/>
                         <div className="border border-gray-200 rounded-md text-sm px-1">
                             {convertNumber(per)}%
                         </div>

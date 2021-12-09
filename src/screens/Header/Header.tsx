@@ -65,7 +65,7 @@ const Header = () => {
                             <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/assets' && 'text-blue-500'} ${!isConnect && 'text-gray-500' }`} to="/assets">ASSETS</Link>
                         </li>
                         <li className="text-xl font-bold inline m-4">
-                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/bridge' && 'text-blue-500'}`} to="/swap">BRIDGE</Link>
+                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/bridge' && 'text-blue-500'}`} to="/bridge">BRIDGE</Link>
                         </li>
                     </ul>
                 </nav>

@@ -12,7 +12,7 @@ import Header from '../Header'
 import Assets from 'pages/Assets'
 import Exchange from 'pages/Exchange'
 import Futures from 'pages/Futures'
-import Swap from 'pages/Swap'
+import Bridge from 'pages/Bridge'
 
 const Main = () => {
     const { isConnect } = useSelector((state: RootState) => state.wallet);
@@ -31,8 +31,8 @@ const Main = () => {
                     <Route path="/futures">
                         <Futures/>
                     </Route>
-                    <Route path="/swap">
-                        <Swap/>
+                    <Route path="/bridge">
+                        <Bridge/>
                     </Route>
                     <Route path="/">
                         <Redirect to="/exchange"></Redirect>

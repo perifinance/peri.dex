@@ -35,17 +35,17 @@ const Assets = () => {
         let balances = (await getBalances({networkId, address, rates}));
         
         setBalances(balances); 
-        
         const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
         setTotalAssets(totalAssets);
-
-        setChartDatas(balances.filter((e)=> e.balanceToUSD > 0n).map(e => {
+        const pieChart = balances.filter((e)=> e.balanceToUSD > 0n).map(e => {
             const value = formatCurrency((e.balanceToUSD * 100n * 10n**18n / totalAssets).toString(), 2);
             return {
                 x: `${value}%`,
                 y: Number(value)
             }
-        }));
+        })
+        
+        setChartDatas(pieChart.length > 0 ? pieChart : [{x: '0%', y: 1}]);
 
         setChartColors(colors);
     }, [coinList, address, networkId])
@@ -60,53 +60,52 @@ const Assets = () => {
 
     return  (
         <>
-            {totalAssets > 0n &&
-                <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
-                    <div className="flex flex-col bg-gray-700 rounded-lg p-4 lg:min-h-max lg:mb-4 max-w-sm">
-                        <div className="flex py-2 justify-between w-full text-lg">
-                            <div className="font-bold">Total Assests</div>
-                            <div>{formatCurrency(totalAssets, 4)}$</div>
-                        </div>
-                        {
-                            balances.length > 0 && totalAssets > 0n && 
-                            <>
-                                <div className="border border-gray-500 mx-2 my-8"></div>
-                                <div className="">
-                                    <div className="flex">
-                                        <div className="flex py-2 justify-between w-full">
-                                            <div className="text-lg font-bold">Portfolio</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="px-12">
-                                        <VictoryPie
-                                            data={chartDatas}
-                                            colorScale={chartColors}
-                                            labelRadius={() => 90 }
-                                            innerRadius={60}
-                                            style={{ labels: { fill: "white", fontSize: 20 } }}
-                                        />
-                                    </div>
-                                    <div className="text-base">
-                                        {balances.map(({amount}, index) => amount > 0n ? 
-                                            <div className="flex" key={index}>
-                                                <div className="flex py-2 justify-between w-full">
-                                                    <div className="flex items-center" key={index}>
-                                                        <div className="font-bold min-w-12">{coinList[index].symbol}</div>
-                                                        <div className="mx-4 w-3 h-3" style={{background: chartColors[index]}}></div>
-                                                    </div>
-                                                    <div className="">{chartDatas[index]?.y}%</div>
-                                                </div>
-                                            </div>
-                                            : null
-                                        )}
+            <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
+                <div className="flex flex-col bg-gray-700 rounded-lg p-4 max-w-sm mb-4 lg:min-h-max lg:mb-0">
+                    <div className="flex py-2 justify-between w-full text-lg">
+                        <div className="font-bold">Total Assests</div>
+                        <div>{formatCurrency(totalAssets, 4)} $</div>
+                    </div>
+                    {
+                        balances.length > 0 && 
+                        <>
+                            <div className="border border-gray-500 mx-2 my-8"></div>
+                            <div className="">
+                                <div className="flex">
+                                    <div className="flex py-2 justify-between w-full">
+                                        <div className="text-lg font-bold">Portfolio</div>
                                     </div>
                                 </div>
-                            </>
-                        }
-                    </div>
-                    <div className="mb-14 flex-1 bg-gray-700 rounded-lg p-4 lg:mb-0">
-                    {balances.length > 0 && balances.map(({currencyName, amount, balanceToUSD}, index) => amount > 0n ?
+
+                                <div className="px-12">
+                                    <VictoryPie
+                                        data={chartDatas}
+                                        colorScale={chartColors}
+                                        labelRadius={() => 90 }
+                                        innerRadius={60}
+                                        style={{ labels: { fill: "white", fontSize: 20 } }}
+                                    />
+                                </div>
+                                <div className="text-base">
+                                    {balances.map(({amount}, index) => amount > 0n ? 
+                                        <div className="flex" key={index}>
+                                            <div className="flex py-2 justify-between w-full">
+                                                <div className="flex items-center" key={index}>
+                                                    <div className="font-bold min-w-12">{coinList[index].symbol}</div>
+                                                    <div className="mx-4 w-3 h-3" style={{background: chartColors[index]}}></div>
+                                                </div>
+                                                <div className="">{chartDatas[index]?.y}%</div>
+                                            </div>
+                                        </div>
+                                        : null
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    }
+                </div>
+                <div className="mb-14 flex-1 bg-gray-700 rounded-lg p-4 lg:mb-0">
+                    {balances.length > 0 && balances.map(({currencyName, amount, balanceToUSD}, index) => 
                         <div className="text-base font-semibold" key={index}>
                             <div className="border border-gray-500 mx-2 my-8"></div>
                             <div className="flex justify-between">
@@ -129,11 +128,9 @@ const Assets = () => {
                                 </div>
                             </div>
                         </div>
-                    : <></>)}
-                    </div>
-                
+                    )}
+                </div>
             </div>
-            }    
         </>
     )
 }

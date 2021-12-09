@@ -10,7 +10,7 @@ export const balance = ({currencyName, address, rate = 0n}) => {
             amount = 0n;
         }
         return {
-            currencyName: data.pynthName,
+            currencyName: data.pynthName || currencyName,
             amount,
             balanceToUSD: amount * rate / (10n ** 18n)
         }
@@ -31,12 +31,12 @@ export const balance = ({currencyName, address, rate = 0n}) => {
         `,
         variables: {address},
         mapping: ({data}) => {    
-            return data.lastPynthBalances.map((e) => {
+            return data.lastPynthBalances.length > 0 ? data.lastPynthBalances.map((e) => {
                 return balanceMapping(e)
-            })[0]
+            })[0] : balanceMapping({amount: 0n, currencyName})
         },
         errorCallback: () => {
-            return balanceMapping({amount: 0n})
+            return balanceMapping({amount: 0n, currencyName})
         }
     }
 }

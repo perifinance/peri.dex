@@ -70,7 +70,6 @@ const App = () => {
                                 onboard.config({ networkId: network });
                                 dispatch(updateNetwork({networkId: network}));
                                 contracts.connect(address);
-                    
                             } else {
                                 NotificationManager.warning(`This network is not supported. Please change to moonbese network`, 'ERROR');
                                 onboard.walletReset();
