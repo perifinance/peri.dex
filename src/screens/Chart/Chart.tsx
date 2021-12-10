@@ -1,7 +1,7 @@
 
 import { useSelector } from 'react-redux';
 import { RootState } from 'reducers';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ResponsiveContainer, AreaChart, Area, Tooltip } from 'recharts';
 import { getChartRates } from 'lib/thegraph/api'
 
@@ -9,9 +9,10 @@ const Chart = () => {
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [chartTime, setChartTime] = useState('24H');
     const [data, setData] = useState([]);
+    const [currencyName, setCurrencyName] = useState<String>(undefined);
     
-    const init = useCallback(async() => {
-        console.log(selectedCoins, chartTime)
+    const init = useCallback(async() => {        
+        console.log(chartTime);
         const dataFrom = {
             "24H": '15m',
             "3D": '3D',
@@ -20,22 +21,33 @@ const Chart = () => {
         }
         const chartRate = await getChartRates(
             {
-                currencyName: selectedCoins.destination.id === 0 ? 
-                    selectedCoins.source.symbol : 
-                    selectedCoins.destination.symbol, 
+                currencyName,
                 dataFrom: dataFrom[chartTime]
             }); 
         setData(chartRate);
-        setTimeout(() => {
-            init();
-        }, 1000 * 60);
-    },[selectedCoins, chartTime])
+    },[currencyName, chartTime]);
 
     useEffect(() => {
-        if(selectedCoins.destination.symbol && selectedCoins.source.symbol && chartTime) {
+        if(selectedCoins.destination.id) {
+            setCurrencyName ( 
+                selectedCoins.destination.id === 0 ? 
+                selectedCoins.source.symbol : 
+                selectedCoins.destination.symbol, 
+            )
+        } 
+        
+    }, [selectedCoins])
+
+    useEffect(() => {
+        if(currencyName) {
+            setData([]);
             init();
+            const timeout = setInterval(() => {
+                init();
+            }, 1000 * 60);
+            return () => clearInterval(timeout)    
         }
-    }, [init, selectedCoins, chartTime])
+    }, [currencyName, chartTime])
     
     return (
         

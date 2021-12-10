@@ -1,7 +1,7 @@
 module.exports = {
     devServer: {
       proxy: {
-        '/subgraphs': 'http://18.222.240.166:8000/',
+        '/graph': 'https://subgraph.peri.finance',
       }
     },
     style: {

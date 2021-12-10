@@ -13,7 +13,6 @@ const Assets = () => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { address, networkId } = useSelector((state: RootState) => state.wallet);
     const [ balances, setBalances ] = useState([]);
-    console.log(balances);
     const [ totalAssets, setTotalAssets ] = useState(0n);
     const [ chartDatas, setChartDatas ] = useState([]);
     

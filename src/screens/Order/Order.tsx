@@ -38,7 +38,7 @@ const Order = ({openCoinList}) => {
     const [validationMessage, setValidationMessage] = useState('');
     const [rate, setRate] = useState(0n);
 
-    const getRate = async () => {
+    const getRate = useCallback(async () => {
         const rates = await (async() => {
             const rates = await Promise.all(
                 [
@@ -59,10 +59,7 @@ const Order = ({openCoinList}) => {
         }catch (e) {
             console.log(e);
         }
-        setTimeout(() => {
-            getRate();
-        }, 1000 * 60);
-    }
+    }, [selectedCoins])
 
     const getFeeRate = async () => {
         setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
@@ -193,9 +190,18 @@ const Order = ({openCoinList}) => {
     }
 
     useEffect(() => {
-        if(isReady && networkId) {
-            
+        if(selectedCoins.source.symbol && selectedCoins.destination.symbol) {
             getRate();
+            const timeout = setInterval(() => {
+                console.log(123);
+                getRate();
+            }, 1000 * 60);
+            return () => clearInterval(timeout)
+        }
+    }, [selectedCoins])
+
+    useEffect(() => {
+        if(isReady && networkId) {
             getFeeRate();
             getnetworkFeePrice();
         }
