@@ -193,9 +193,8 @@ const Order = ({openCoinList}) => {
         if(selectedCoins.source.symbol && selectedCoins.destination.symbol) {
             getRate();
             const timeout = setInterval(() => {
-                console.log(123);
                 getRate();
-            }, 1000 * 60);
+            }, 1000 * 3);
             return () => clearInterval(timeout)
         }
     }, [selectedCoins])
@@ -224,7 +223,7 @@ const Order = ({openCoinList}) => {
     },[receiveAmount, getPrice])
     
     useEffect(() => {
-        if(!isConnect) {
+        if(!isConnect || selectedCoins) {
             setPayAmount('0');
             setPayAmountToUSD(0n);
             setReceiveAmount(0n);
@@ -233,7 +232,7 @@ const Order = ({openCoinList}) => {
             setValidationMessage('');
             setPer(0n);
         }
-    },[isConnect])
+    },[isConnect, selectedCoins])
     
     return (
         
