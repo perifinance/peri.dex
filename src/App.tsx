@@ -65,6 +65,7 @@ const App = () => {
                 },
                 network: async (network) => {
                         if(network) {
+                            console.log(SUPPORTED_NETWORKS[network]);
                             if(SUPPORTED_NETWORKS[network]) {
                                 contracts.init(network);                    
                                 onboard.config({ networkId: network });

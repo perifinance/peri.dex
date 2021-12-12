@@ -13,7 +13,7 @@
     "@craco/craco": "^6.3.0",
     "@egjs/react-flicking": "^4.1.2",
     "@metamask/detect-provider": "^1.2.0",
-    "@perifinance/peri-finance": "^0.2.4",
+    "@perifinance/peri-finance": "^0.2.7",
     "@reach/router": "^1.3.4",
     "@reduxjs/toolkit": "^1.5.0",
     "@types/node": "^14.14.37",

@@ -51,28 +51,33 @@ export const contracts: Contracts = {
     wallet: null,
     signers: {},
     init(networkId) {
-        if(networkId) {
-            this.networkId = networkId;
-        } else {
-            return false;
-        }
-        this.sources = perifinance.getSource({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
-        this.addressList = perifinance.getTarget({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
-        this.provider = new providers.JsonRpcProvider(RPC_URLS[this.networkId], this.networkId);
-        
-        Object.keys(this.addressList).forEach(name => {
-            if(naming[name]) {
-                const source = typeof naming[name] === 'string' ? this.sources[naming[name]] : this.sources[naming[name][this.networkId]]
-                this[name] = new ethers.Contract(this.addressList[name].address, source ? source.abi : ERC20.abi, this.provider);
-                
-                if(name === 'ProxyERC20') {
-                    this['PeriFinance'] = this[name];
-                }
-                if(name === 'ProxyERC20pUSD') {
-                    this['pUSD'] = this[name];
-                }
+        try{
+            if(networkId) {
+                this.networkId = networkId;
+            } else {
+                return false;
             }
-        });
+            this.sources = perifinance.getSource({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
+            this.addressList = perifinance.getTarget({network: SUPPORTED_NETWORKS[this.networkId].toLowerCase()});
+            this.provider = new providers.JsonRpcProvider(RPC_URLS[this.networkId], this.networkId);
+            
+            Object.keys(this.addressList).forEach(name => {
+                if(naming[name]) {
+                    const source = typeof naming[name] === 'string' ? this.sources[naming[name]] : this.sources[naming[name][this.networkId]]
+                    this[name] = new ethers.Contract(this.addressList[name].address, source ? source.abi : ERC20.abi, this.provider);
+                    
+                    if(name === 'ProxyERC20') {
+                        this['PeriFinance'] = this[name];
+                    }
+                    if(name === 'ProxyERC20pUSD') {
+                        this['pUSD'] = this[name];
+                    }
+                }
+            });
+        }catch(e) {
+            
+        }
+        
     },
 
     connect(address) {

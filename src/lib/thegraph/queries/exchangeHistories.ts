@@ -15,7 +15,8 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
             rebate: BigInt(data.rebate),
             srcRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
             destRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
-            timestamp: dateFormat(data.timestamp)
+            timestamp: dateFormat(data.timestamp),
+            timestamp2: data.timestamp
         }
     }
     
@@ -23,7 +24,7 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
         url: `Exchanger-Dev`,
         query: currencyName ? gql`
             query GetExchangeEntrySettleds($currencyKey: String!, $skip: Int!, $first: Int!, $address: String!) {
-                exchangeEntrySettleds(skip: $skip, first: $first, where: {currencyKey: $currencyKey, from: $address}, orderby: timestamp) {
+                exchangeEntrySettleds(skip: $skip, first: $first, where: {currencyKey: $currencyKey, from: $address}, orderBy: timestamp, orderDirection: desc) {
                     id
                     from
                     src
@@ -38,7 +39,7 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
             }
         ` : gql`
             query GetExchangeEntrySettleds($address: String!) {
-                exchangeEntrySettleds(skip: $skip, first: $first where: {from: $address}, orderby: timestamp) {
+                exchangeEntrySettleds(skip: $skip, first: $first where: {from: $address}, orderBy: timestamp, orderDirection: desc) {
                     id
                     from
                     src

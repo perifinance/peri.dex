@@ -115,7 +115,6 @@ const Bridge = () => {
     useEffect(() => {
         if(isReady && address && networkId) {
             initBalances();
-            console.log(123);
         }
     }, [initBalances, isReady, address, networkId])
 

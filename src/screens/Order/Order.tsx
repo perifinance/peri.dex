@@ -10,7 +10,6 @@ import { updateTransaction } from 'reducers/transaction'
 import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
-import balances from 'reducers/wallet/balances';
 
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
@@ -62,7 +61,11 @@ const Order = ({openCoinList}) => {
     }, [selectedCoins])
 
     const getFeeRate = async () => {
-        setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
+        try {
+            setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
+        } catch (e) {
+
+        }
     }
 
     const getSourceBalance = async () => {
@@ -194,7 +197,7 @@ const Order = ({openCoinList}) => {
             getRate();
             const timeout = setInterval(() => {
                 getRate();
-            }, 1000 * 3);
+            }, 1000 * 60);
             return () => clearInterval(timeout)
         }
     }, [selectedCoins])
@@ -236,7 +239,7 @@ const Order = ({openCoinList}) => {
     
     return (
         
-        <div className="mb-6 cardWidth">
+        <div className="mb-6 card-width">
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
                 <div className="flex space-x-8 py-2">
                     <div className="relative">
@@ -255,8 +258,8 @@ const Order = ({openCoinList}) => {
                     </div> : <div>Available: {formatCurrency(balance, 4)}</div>}
                 </div>
                 {/* ${isError && 'border border-red-500'} */}
-                <div className="flex justify-between items-center rounded-md bg-black text-base">
-                    <div className="flex p-3 font-semibold cursor-pointtext-center" onClick={() => openCoinList('source')}>
+                <div className="flex items-center rounded-md bg-black text-base">
+                    <div className="flex p-3 font-semibold cursor-pointer" onClick={() => openCoinList('source')}>
                         <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
                         <div className="mx-1">{selectedCoins.source.symbol}</div>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -269,14 +272,14 @@ const Order = ({openCoinList}) => {
                     <span>${formatCurrency(payAmountToUSD, 2)}</span>
                 </div>
 
-                <div className="w-full"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'} onClick={() => swapToCurrency()}></img></div>
+                <div className="w-full"><img className="mx-auto w-9 h-9 cursor-pointer" src={'/images/icon/exchange.svg'} onClick={() => swapToCurrency()}></img></div>
 
                 <div className="py-1 justify-between w-full">
                     <div>Receive(Estimated)</div>
                 </div>             
                 
-                <div className="flex justify-between items-center rounded-md bg-black text-base">
-                    <div className="flex p-3 font-semibold cursor-pointtext-center" onClick={() => openCoinList('destination')}>
+                <div className="flex items-center rounded-md bg-black text-base">
+                    <div className="flex p-3 font-semibold cursor-pointer" onClick={() => openCoinList('destination')}>
                         <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
                         <span className="mx-1">{selectedCoins.destination.symbol}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
@@ -294,11 +297,11 @@ const Order = ({openCoinList}) => {
                         </div>
                     </div>
                     <div className="flex justify-between text-xs text-gray-400 w-10/12">
-                        <span className={`w-8 text-left ${per === 0n && 'text-blue-500'}`} onClick={() => setPerAmount(0n)}>0%</span>
-                        <span className={`w-8 text-center ${per === 25n && 'text-blue-500'}`} onClick={() => setPerAmount(25n)}>25%</span>
-                        <span className={`w-8 text-center ${per === 50n && 'text-blue-500'}`} onClick={() => setPerAmount(50n)}>50%</span>
-                        <span className={`w-8 text-center ${per === 75n && 'text-blue-500'}`} onClick={() => setPerAmount(75n)}>75%</span>
-                        <span className={`w-8 text-right ${per === 100n && 'text-blue-500'}`} onClick={() => setPerAmount(100n)}>100%</span>
+                        <span className={`w-8 text-left cursor-pointer ${per === 0n && 'text-blue-500'}`} onClick={() => setPerAmount(0n)}>0%</span>
+                        <span className={`w-8 text-center cursor-pointer ${per === 25n && 'text-blue-500'}`} onClick={() => setPerAmount(25n)}>25%</span>
+                        <span className={`w-8 text-center cursor-pointer ${per === 50n && 'text-blue-500'}`} onClick={() => setPerAmount(50n)}>50%</span>
+                        <span className={`w-8 text-center cursor-pointer ${per === 75n && 'text-blue-500'}`} onClick={() => setPerAmount(75n)}>75%</span>
+                        <span className={`w-8 text-right cursor-pointer ${per === 100n && 'text-blue-500'}`} onClick={() => setPerAmount(100n)}>100%</span>
                     </div>
                 </div>
                 <div className="pt-4">

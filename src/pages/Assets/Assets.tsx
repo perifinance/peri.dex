@@ -24,29 +24,34 @@ const Assets = () => {
 
     const init = useCallback(async () => {
         let colors = [];
-
-        coinList.forEach((e) => {
-            colors.push(getAddressColor(contracts[`ProxyERC20${e.symbol}`].address));
-        });
-
-        let rates = await getLastRates({});
+        try {
+            coinList.forEach((e) => {
+                colors.push(getAddressColor(contracts[`ProxyERC20${e.symbol}`].address));
+            });
+            let rates = await getLastRates({});
         
-        let balances = (await getBalances({networkId, address, rates}));
-        
-        setBalances(balances); 
-        const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
-        setTotalAssets(totalAssets);
-        const pieChart = balances.filter((e)=> e.balanceToUSD > 0n).map(e => {
-            const value = formatCurrency((e.balanceToUSD * 100n * 10n**18n / totalAssets).toString(), 2);
-            return {
-                x: `${value}%`,
-                y: Number(value)
-            }
-        })
-        
-        setChartDatas(pieChart.length > 0 ? pieChart : [{x: '0%', y: 1}]);
+            let balances = (await getBalances({networkId, address, rates}));
+            
+            setBalances(balances); 
+            const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
+            setTotalAssets(totalAssets);
+            const pieChart = balances.filter((e)=> e.balanceToUSD > 0n).map(e => {
+                const value = formatCurrency((e.balanceToUSD * 100n * 10n**18n / totalAssets).toString(), 2);
+                return {
+                    x: `${value}%`,
+                    y: Number(value)
+                }
+            })
+            
+            setChartDatas(pieChart.length > 0 ? pieChart : [{x: '0%', y: 1}]);
+    
+            setChartColors(colors);
+        }catch(e) {
 
-        setChartColors(colors);
+        }
+        
+
+       
     }, [coinList, address, networkId])
     useEffect(() => {
 
@@ -61,7 +66,7 @@ const Assets = () => {
         <>
             <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
                 <div className="flex flex-col bg-gray-700 rounded-lg p-4 max-w-sm mb-4 lg:min-h-max lg:mb-0">
-                    <div className="flex py-2 justify-between w-full text-lg">
+                    <div className="flex py-2 justify-between text-lg">
                         <div className="font-bold">Total Assests</div>
                         <div>{formatCurrency(totalAssets, 4)} $</div>
                     </div>
