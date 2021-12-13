@@ -10,7 +10,7 @@ export const getSettleds = async ({currencyName = null, address, page = 0}) => {
         const exchangeRates = utils.parseEther(history.destRate.price).toBigInt() * 10n ** 18n / utils.parseEther(history.srcRate.price).toBigInt();
         
         history.rate = 10n ** 18n * 10n ** 18n / (exchangeRates)
-        history.submitAmount = history.amount * 10n ** 18n / history.rate;
+        history.submitAmount = BigInt(history.amount) * history.rate / 10n ** 18n;
     }
     
     return histories

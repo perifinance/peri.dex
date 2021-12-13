@@ -6,6 +6,12 @@ export default {
         rpcUrls: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
         blockExplorerUrls: 'https://etherscan.io',
     },
+    42: {
+        chainId: '0x2a',
+        chainName: 'Kovan TestNet',
+        rpcUrls: 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+        blockExplorerUrls: 'https://kovan.etherscan.io',
+    },
     56: {
         chainId: '0x38',
         chainName: 'Binance Smart Chain Mainnet',

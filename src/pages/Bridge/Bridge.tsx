@@ -31,27 +31,32 @@ const Bridge = () => {
     };
 
     const switchChain = async (selectedNetwork) => {
-        try {
-            // @ts-ignore
-            await window.ethereum?.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{chainId: networkInfo[selectedNetwork.id].chainId}],
-            });
-        } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask.
-        if (switchError.code === 4902) {
+        if(selectedNetworkType === 'from') {
             try {
                 // @ts-ignore
                 await window.ethereum?.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [networkInfo[selectedNetwork.id]],
+                  method: 'wallet_switchEthereumChain',
+                  params: [{chainId: networkInfo[selectedNetwork.id].chainId}],
                 });
-            } catch (addError) {
-            // handle "add" error
+            } catch (switchError) {
+                console.log(switchError.code);
+            // This error code indicates that the chain has not been added to MetaMask.
+            if (switchError.code === -32002) {
+                try {
+                    // @ts-ignore
+                    await window.ethereum?.request({                            
+                        method: 'wallet_addEthereumChain',
+                        params: [networkInfo[selectedNetwork.id]],
+                    });
+                } catch (addError) {
+                    console.log(addError);
+                // handle "add" error
+                }
+            }
+            // handle other "switch" errors
             }
         }
-        // handle other "switch" errors
-        }
+        
     }
 
     const getGasEstimate = async () => {

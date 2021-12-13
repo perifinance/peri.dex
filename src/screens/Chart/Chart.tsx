@@ -51,7 +51,7 @@ const Chart = () => {
     
     return (
         
-        <div className="w-full bg-gray-700 rounded-lg p-4 lg:h-96 lg:px-12 lg:py-7">
+        <div className="w-full bg-gray-700 rounded-lg p-4 lg:h-96 lg:px-6 lg:py-7">
             <div className="flex flex-col lg:justify-end">
                 <div className="flex space-x-8">
                     <div className="relative">

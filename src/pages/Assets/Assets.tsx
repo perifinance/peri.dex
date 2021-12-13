@@ -54,9 +54,6 @@ const Assets = () => {
        
     }, [coinList, address, networkId])
     useEffect(() => {
-
-    }, [])
-    useEffect(() => {
         if(isReady && coinList && address && networkId) {
             init();
         }
@@ -64,7 +61,7 @@ const Assets = () => {
 
     return  (
         <>
-            <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
+            {balances.length > 0 && <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
                 <div className="flex flex-col bg-gray-700 rounded-lg p-4 max-w-sm mb-4 lg:min-h-max lg:mb-0">
                     <div className="flex py-2 justify-between text-lg">
                         <div className="font-bold">Total Assests</div>
@@ -134,7 +131,7 @@ const Assets = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </div>}
         </>
     )
 }

@@ -8,7 +8,7 @@ const OrderHistories = ({}) => {
     const [ history, setHistory ] = useState([]);
 
     const init = useCallback(async () => {
-        const dd = await getSettleds({address})
+        const dd = await getSettleds({address: '0x3AE82B6da9F013Dc3f026CC1c0761F6327aD04CD'})
         setHistory(dd)
     }, [address, getSettleds, setHistory])
     
@@ -26,7 +26,7 @@ const OrderHistories = ({}) => {
 
     return (
         history.length > 0 &&
-        <div className="w-full bg-gray-700 rounded-lg p-4 my-8">
+        <div className="w-full bg-gray-700 rounded-lg p-4 mt-4">
             <div className="flex flex-col">
                 <div className="text-xl">Trade Order</div>
                 <div className="overflow-x-scroll">
@@ -46,8 +46,8 @@ const OrderHistories = ({}) => {
                                 <tr className="border-b border-gray-500 h-8" key={e.id}>
                                     <td className="text-center">{e.dest}/{e.src}</td>
                                     <td className="text-center">{formatCurrency(e.rate, 8)}</td>
-                                    <td className="text-center">{formatCurrency(e.submitAmount, 8)} {e.src}</td>
-                                    <td className="text-center">{formatCurrency(e.amount, 4)} {e.dest}</td>
+                                    <td className="text-center">{formatCurrency(e.amount, 4)} {e.src}</td>
+                                    <td className="text-center">{formatCurrency(e.submitAmount, 8)} {e.dest}</td>
                                     <td className="text-center">{e.timestamp}</td>
                                 </tr>
                             ))}
