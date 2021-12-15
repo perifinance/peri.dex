@@ -6,7 +6,7 @@ import { differenceInMonths,
     differenceInMinutes
 } from 'date-fns';
 
-export const getChartRates = async({currencyName = null, page = undefined, first = undefined, dataFrom = '15m'}) => {
+export const getChartRates = async({currencyName = null, page = undefined, first = undefined, dataFrom = '5m'}) => {
     const dataFromNum = dataFrom.replace(/[a-z, A-Z]/g, '');
     const dataFromGroup = dataFrom.replace(/\d/g, '');
     let data = await get(chartRate({currencyName, page, first}));
@@ -24,30 +24,39 @@ export const getChartRates = async({currencyName = null, page = undefined, first
 
     let dayFlag;
     let values = [];
+    try {
+        const price = data[0].price;
+        const minPrice = data.reduce( function (a, b) { 
+            return a.price > b.price ? b : a;
+        }).price;
+        const zero = price - minPrice;
+        data.forEach(item => {
+            
+            let differenceIn;
+            switch (dataFromGroup) {
+                case 'M': differenceIn = differenceInMonths;
+                    break;
+                case 'W': differenceIn = differenceInWeeks;
+                    break;
+                case 'D': differenceIn = differenceInDays;
+                    break;
+                case 'm': differenceIn = differenceInMinutes;
+                    break;
+                default: differenceIn = differenceInDays;
+                    break;
+            }
+            
+            if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
+                values[values.length-1].low = BigInt(values[values.length-1].low) < BigInt(item.low) ? values[values.length-1].low : item.low
+                values[values.length-1].price = item.price;
+                values[values.length-1].high = BigInt(values[values.length-1].high) > BigInt(item.high) ? values[values.length-1].high : item.high
+                values[values.length-1].chart = ((item.price - data[0].price + zero) / (data[0].price) * 100).toFixed(2);
+            } else {
+                dayFlag = new Date(item.timestamp * 1000);
+                values.push({...item, chart: ((item.price - data[0].price + zero) / (data[0].price) * 100).toFixed(2)});
+            }
+        });
+    } catch(e){}
     
-    data.forEach(item => {
-        let differenceIn;
-        switch (dataFromGroup) {
-            case 'M': differenceIn = differenceInMonths;
-                break;
-            case 'W': differenceIn = differenceInWeeks;
-                break;
-            case 'D': differenceIn = differenceInDays;
-                break;
-            case 'm': differenceIn = differenceInMinutes;
-                break;
-            default: differenceIn = differenceInDays;
-                break;
-        }
-        
-        if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
-            values[values.length-1].low = BigInt(values[values.length-1].low) < BigInt(item.low) ? values[values.length-1].low : item.low
-            values[values.length-1].price = item.price;
-            values[values.length-1].high = BigInt(values[values.length-1].high) > BigInt(item.high) ? values[values.length-1].high : item.high
-        } else {
-            dayFlag = new Date(item.timestamp * 1000);
-            values.push({...item});
-        } 
-    });
     return values;
 }

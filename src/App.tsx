@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { useSelector, useDispatch } from "react-redux"
 import { NotificationContainer, NotificationManager } from 'react-notifications';
-
+import { getLastRates, getBalances } from 'lib/thegraph/api'
 import { RootState } from 'reducers'
 import detectEthereumProvider from '@metamask/detect-provider';
 
@@ -11,10 +11,11 @@ import { resetTransaction } from 'reducers/transaction'
 import { initCoinList } from 'reducers/coin/coinList'
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
 import { setAppReady } from 'reducers/app'
+import { changeNetwork } from 'lib/network'
 
 import { SUPPORTED_NETWORKS } from 'lib/network'
 import { InitOnboard, onboard } from 'lib/onboard/onboard'
-
+import networkInfo from 'configure/networkInfo/networkInfo'
 import { contracts } from 'lib/contract'
 import { getCoinList } from 'lib/coinList'
 
@@ -25,7 +26,6 @@ import './App.css'
 const App = () => {
     const { address, networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
-    
     const themeState = useSelector((state: RootState) => state.theme.theme);
     
     const dispatch = useDispatch();
@@ -65,14 +65,13 @@ const App = () => {
                 },
                 network: async (network) => {
                         if(network) {
-                            console.log(SUPPORTED_NETWORKS[network]);
                             if(SUPPORTED_NETWORKS[network]) {
                                 contracts.init(network);                    
                                 onboard.config({ networkId: network });
                                 dispatch(updateNetwork({networkId: network}));
                                 contracts.connect(address);
                             } else {
-                                NotificationManager.warning(`This network is not supported. Please change to moonbese network`, 'ERROR');
+                                NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
                                 onboard.walletReset();
                                 onboard.config({ networkId: network });
                                 dispatch(updateNetwork({networkId: network}));
@@ -80,6 +79,7 @@ const App = () => {
                                 localStorage.removeItem('selectedWallet');
                                 dispatch(clearWallet());
                                 dispatch(clearBalances());
+                                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
                             }
                         }
                     },
@@ -110,6 +110,9 @@ const App = () => {
             } else {
                 NotificationManager.remove(NotificationManager.listNotify[0])
                 NotificationManager.success(`${transaction.type} success`, 'SUCCESS');
+                if(transaction.action) {
+                    await transaction.action();
+                }
                 dispatch(resetTransaction());
             }
         });
@@ -131,9 +134,9 @@ const App = () => {
         // eslint-disable-next-line
     }, []);
 
-    const init = useCallback(() => {
-        const coinList = getCoinList(networkId);
+    const init = useCallback(() => {        
             try {
+                const coinList = getCoinList(networkId);
                 dispatch(initCoinList(coinList));
                 dispatch(setSourceCoin(coinList[0]));
                 dispatch(setDestinationCoin(coinList[1]));

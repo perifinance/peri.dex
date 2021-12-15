@@ -12,6 +12,7 @@ import { RootState } from 'reducers'
 import { useSelector, useDispatch } from "react-redux"
 import { clearWallet, clearBalances } from 'reducers/wallet'
 import { onboard } from 'lib/onboard'
+import { SUPPORTED_NETWORKS } from 'lib/network'
 import './Header.css'
 const networkColor = {
     80001: '#53cbc9'
@@ -19,7 +20,7 @@ const networkColor = {
 const Header = () => {
     const location = useLocation();
     const dispatch = useDispatch();
-    const { address } = useSelector((state: RootState) => state.wallet);
+    const { address, networkId } = useSelector((state: RootState) => state.wallet);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const { isConnect } = useSelector((state: RootState) => state.wallet);
 
@@ -83,7 +84,7 @@ const Header = () => {
                             <div className="bg-red-500" style={{width: '8px', height: '8px'}}></div>
                         </div>
 
-                        <div className="my-auto mx-2"><span>Mbase</span></div>
+                        <div className="my-auto mx-2"><span>{SUPPORTED_NETWORKS[networkId]}</span></div>
                     </div> : <></>
                 }
                 

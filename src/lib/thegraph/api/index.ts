@@ -1,4 +1,4 @@
 export { getBalances } from './getBalances'
 export { getLastRates } from './getLastRates'
-export { getSettleds } from './getSettleds'
+export { getExchageHistories } from './getExchageHistories'
 export { getChartRates } from './getChartRates'

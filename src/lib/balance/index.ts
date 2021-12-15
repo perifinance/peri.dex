@@ -1,3 +1,3 @@
 export * from './getBalance'
 export * from './getTotalDebtCache'
-export * from './getpUSDBalances'
+export * from './getBalancesNetworks'

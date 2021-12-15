@@ -2,7 +2,7 @@
 import { useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { ResponsiveContainer, AreaChart, Area, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartRates } from 'lib/thegraph/api'
 
 const Chart = () => {
@@ -12,9 +12,8 @@ const Chart = () => {
     const [currencyName, setCurrencyName] = useState<String>(undefined);
     
     const init = useCallback(async() => {        
-        console.log(chartTime);
         const dataFrom = {
-            "24H": '15m',
+            "24H": '1m',
             "3D": '3D',
             "1W": '1W',
             "1M": '1M'
@@ -24,6 +23,7 @@ const Chart = () => {
                 currencyName,
                 dataFrom: dataFrom[chartTime]
             }); 
+            console.log(chartRate);
         setData(chartRate);
     },[currencyName, chartTime]);
 
@@ -42,10 +42,10 @@ const Chart = () => {
         if(currencyName) {
             setData([]);
             init();
-            const timeout = setInterval(() => {
-                init();
-            }, 1000 * 60);
-            return () => clearInterval(timeout)    
+            // const timeout = setInterval(() => {
+            //     init();
+            // }, 1000 * 60);
+            // return () => clearInterval(timeout)    
         }
     }, [currencyName, chartTime])
     
@@ -70,14 +70,18 @@ const Chart = () => {
                         <defs>
                             <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.5}/>
-                                <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
+                                <stop offset="95%" stopColor="#FFFFFF" stopOpacity={1}/>
+                                
                             </linearGradient>
                         </defs>
                         <Tooltip labelStyle={{color: "transparent"}} contentStyle={{background: "transparent", borderColor: "transparent", color: "#151515"}} itemStyle={{color: "#000000"}}>
                         </Tooltip>
+                        <XAxis dataKey="timestamp" />
+                        <YAxis type="number" domain={[dataMin => (Math.floor(dataMin / 1000) * 1000), dataMax => (Math.ceil(dataMax / 1000) * 1000)]} />
+
                         {/* 라인 */}
                         
-                        <Area type="monotone" dataKey="price" stroke="#00F0FF" fillOpacity={1} fill="url(#colorUv)" />
+                        <Area type="monotone" dataKey="price" stroke="#00F0FF" fill="#00F0FF"/>
                         
                     </AreaChart>
                 </ResponsiveContainer>

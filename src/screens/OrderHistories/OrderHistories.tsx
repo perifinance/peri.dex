@@ -1,22 +1,31 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from 'reducers';
-import { getSettleds } from 'lib/thegraph/api'
+import { getExchageHistories } from 'lib/thegraph/api'
 import { formatCurrency } from 'lib'
+import { changeNetwork } from 'lib/network'
+
+
 const OrderHistories = ({}) => {
-    const { address, isConnect } = useSelector((state: RootState) => state.wallet);
+    const { address, isConnect, networkId } = useSelector((state: RootState) => state.wallet);
+    const transaction = useSelector((state: RootState) => state.transaction);
     const [ history, setHistory ] = useState([]);
 
     const init = useCallback(async () => {
-        const dd = await getSettleds({address: '0x3AE82B6da9F013Dc3f026CC1c0761F6327aD04CD'})
-        setHistory(dd)
-    }, [address, getSettleds, setHistory])
+        const history = await getExchageHistories({address})
+        setHistory(history)
+    }, [address, getExchageHistories, setHistory])
     
     useEffect(() => {
-        if(address) {
-            init();
-        }
-    }, [address])
+        if(address && !transaction.hash) {
+            if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+                init();
+            } else {
+                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+                setHistory([]);
+            }
+        } 
+    }, [address, transaction, networkId])
 
     useEffect(() => {
         if(!isConnect) {
@@ -25,7 +34,7 @@ const OrderHistories = ({}) => {
     },[isConnect])
 
     return (
-        history.length > 0 &&
+        
         <div className="w-full bg-gray-700 rounded-lg p-4 mt-4">
             <div className="flex flex-col">
                 <div className="text-xl">Trade Order</div>
@@ -46,8 +55,8 @@ const OrderHistories = ({}) => {
                                 <tr className="border-b border-gray-500 h-8" key={e.id}>
                                     <td className="text-center">{e.dest}/{e.src}</td>
                                     <td className="text-center">{formatCurrency(e.rate, 8)}</td>
-                                    <td className="text-center">{formatCurrency(e.amount, 4)} {e.src}</td>
-                                    <td className="text-center">{formatCurrency(e.submitAmount, 8)} {e.dest}</td>
+                                    <td className="text-center">{formatCurrency(e.amount, 8)} {e.src}</td>
+                                    <td className="text-center">{formatCurrency(e.amountReceived, 8)} {e.dest}</td>
                                     <td className="text-center">{e.timestamp}</td>
                                 </tr>
                             ))}

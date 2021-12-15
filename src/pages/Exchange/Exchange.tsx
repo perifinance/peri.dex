@@ -7,12 +7,11 @@ import CoinList from 'screens/CoinList'
 import OrderHistories from 'screens/OrderHistories'
 import Chart from 'screens/Chart'
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
-const networks = [
-    '1287'
-]
+import { NotificationManager } from 'react-notifications';
+
 const Exchange = () => {
     const dispatch = useDispatch();
-    const { networkId } = useSelector((state: RootState) => state.wallet);
+    const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState(null);
     const [networkCheck, setNetworkCheck] = useState(false);
@@ -34,8 +33,13 @@ const Exchange = () => {
     }
     
     useEffect(() => {
-        setNetworkCheck(networkId && networks.includes(networkId.toString()))
-    }, [networkId])
+        if(isConnect) {
+            if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+                NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+    
+            }
+        }
+    }, [isConnect, networkId])
 
     return (
         <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">

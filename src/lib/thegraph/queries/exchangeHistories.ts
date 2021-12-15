@@ -13,23 +13,30 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
             txid: (data.id).replace(/-\d+/g, ''),
             reclaim: BigInt(data.reclaim),
             rebate: BigInt(data.rebate),
+            roundIdForSrc: data.roundIdForSrc,
+            roundIdForDest: data.roundIdForDest,
+            amountReceived: BigInt(data.amountReceived),
+            exchangeFeeRate: BigInt(data.exchangeFeeRate),
             srcRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
             destRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
             timestamp: dateFormat(data.timestamp),
-            timestamp2: data.timestamp
         }
     }
     
     return {
         url: `Exchanger-Dev`,
         query: currencyName ? gql`
-            query GetExchangeEntrySettleds($currencyKey: String!, $skip: Int!, $first: Int!, $address: String!) {
-                exchangeEntrySettleds(skip: $skip, first: $first, where: {currencyKey: $currencyKey, from: $address}, orderBy: timestamp, orderDirection: desc) {
+            query GetExchangeHistories($skip: Int!, $first: Int!, $address: String!) {
+                exchangeHistories(skip: $skip, first: $first, where: {account: $address}, orderBy: timestamp, orderDirection: desc) {
                     id
-                    from
+                    account
                     src
                     amount
                     dest
+                    amountReceived
+                    exchangeFeeRate
+                    roundIdForSrc
+                    roundIdForDest
                     reclaim
                     rebate
                     srcRoundIdAtPeriodEnd
@@ -38,13 +45,17 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
                 }
             }
         ` : gql`
-            query GetExchangeEntrySettleds($address: String!) {
-                exchangeEntrySettleds(skip: $skip, first: $first where: {from: $address}, orderBy: timestamp, orderDirection: desc) {
+            query GetExchangeEntrySettleds($skip: Int!, $first: Int!, $address: String!) {
+                exchangeHistories(skip: $skip, first: $first, where: {account: $address}, orderBy: timestamp, orderDirection: desc) {
                     id
-                    from
+                    account
                     src
                     amount
                     dest
+                    amountReceived
+                    exchangeFeeRate
+                    roundIdForSrc
+                    roundIdForDest
                     reclaim
                     rebate
                     srcRoundIdAtPeriodEnd
@@ -54,7 +65,7 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
         }`,
         variables: {currencyKey, address, skip, first},
         mapping: ({data}) => {    
-            return data.exchangeEntrySettleds.map((item) => {
+            return data.exchangeHistories.map((item) => {
                 return settledMap(item);
             });
         },

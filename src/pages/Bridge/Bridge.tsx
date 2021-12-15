@@ -3,67 +3,52 @@ import { useDispatch ,useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 import { contracts, formatCurrency } from 'lib'
 import { SUPPORTED_NETWORKS } from 'lib/network'
-
-import { getpUSDBalances } from 'lib/balance'
+import { getBalancesNetworks } from 'lib/balance'
 import { getNetworkFee } from 'lib/fee'
 import { updateTransaction } from 'reducers/transaction'
+import { changeNetwork } from 'lib/network'
 
-import networkInfo from 'configure/networkInfo/networkInfo'
 import NetworkList from 'screens/NetworkList'
 import { utils } from 'ethers';
 import Receive from 'screens/Receive'
-
-
+import pynths from 'configure/coins/bridge'
+import BridgeCoinList from 'screens/BridgeCoinList'
 const Bridge = () => {
     const dispatch = useDispatch();
     const { isReady } = useSelector((state: RootState) => state.app);
-    const { address, networkId } = useSelector((state: RootState) => state.wallet);
+    const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [payAmount, setPayAmount] = useState('0');
-    
+    const [selectedCoin, setSelectedCoin] = useState<{name?: string, id?:Number}>({});
     const [networks, setNetworks] = useState([]);
-    const [selectedNetwork, setSelectedNetwork] = useState(networks[0]);
-    const [selectedNetworkType, setSelectedNetworkType] = useState('from');
-    const [isNetworkList, setIsNetworkList] = useState(false);
+    const [selectedFromNetwork, setSelectedFromNetwork] = useState<{name?: string, id?: Number, balance?: {pUSD: bigint, PERI: bigint}}>();
+    const [selectedToNetwork, setSelectedToNetwork] = useState<{name?: string, id?: Number, balance?: {pUSD: bigint, PERI: bigint}}>();
+    const [isFromNetworkList, setIsFromNetworkList] = useState(false);
+    const [isToNetworkList, setIsToNetworkList] = useState(false);
+    const [isCoinList, setIsCoinList] = useState(false);
     const [tabType, setTabType] = useState('submit')
-    
+    const [initBridge, setInitBridge] = useState(false);
     const changePayAmount = (value) => {
         setPayAmount(value);
     };
 
     const switchChain = async (selectedNetwork) => {
-        if(selectedNetworkType === 'from') {
-            try {
-                // @ts-ignore
-                await window.ethereum?.request({
-                  method: 'wallet_switchEthereumChain',
-                  params: [{chainId: networkInfo[selectedNetwork.id].chainId}],
-                });
-            } catch (switchError) {
-                console.log(switchError.code);
-            // This error code indicates that the chain has not been added to MetaMask.
-            if (switchError.code === -32002) {
-                try {
-                    // @ts-ignore
-                    await window.ethereum?.request({                            
-                        method: 'wallet_addEthereumChain',
-                        params: [networkInfo[selectedNetwork.id]],
-                    });
-                } catch (addError) {
-                    console.log(addError);
-                // handle "add" error
-                }
-            }
-            // handle other "switch" errors
-            }
-        }
-        
+        changeNetwork(selectedNetwork.id)
+    }
+
+    const getBridgeTransferGasCost = async () => {
+        return await contracts.SystemSettings.bridgeTransferGasCost();
     }
 
     const getGasEstimate = async () => {
         let gasLimit = 600000n;
+        const contractName = {
+            PERI: 'PeriFinance',
+            pUSD: 'pUSD'
+        }
         try {
-            gasLimit = BigInt((await contracts.signers.pUSD.estimateGas.overchainTransfer(
-                utils.parseEther(payAmount), selectedNetworkType === 'from' ? 1287 : selectedNetwork.id
+            gasLimit = BigInt((await contracts.signers[contractName[selectedCoin.name]].estimateGas.overchainTransfer(
+                utils.parseEther(payAmount), selectedToNetwork.id,
+                {value: (await getBridgeTransferGasCost()).toString()}
             )));
         } catch(e) {
             console.log(e);
@@ -73,132 +58,170 @@ const Bridge = () => {
     }
 
     const bridgeConfrim = async () => {
-        const transactionSettings = {
-            gasPrice: (await getNetworkFee(selectedNetwork.id) * 10n ** 9n).toString(),
-            gasLimit: await getGasEstimate(),
+        const contractName = {
+            PERI: 'PeriFinance',
+            pUSD: 'pUSD'
         }
-
+        const transactionSettings = {
+            gasPrice: (await getNetworkFee(selectedFromNetwork.id) * 10n ** 9n).toString(),
+            gasLimit: await getGasEstimate(),
+            value: (await getBridgeTransferGasCost()).toString()
+        }
         try {
             let transaction;
-            transaction = await contracts.signers.pUSD.overchainTransfer( 
-                utils.parseEther(payAmount), selectedNetworkType === 'from' ? 1287 : selectedNetwork.id, transactionSettings
+            transaction = await contracts.signers[contractName[selectedCoin.name]].overchainTransfer( 
+                utils.parseEther(payAmount), selectedToNetwork.id, transactionSettings,
             )
             dispatch(updateTransaction(
                 {
                     hash: transaction.hash,
                     message: `overchainTransfer`,
-                    type: 'overchainTransfer'
+                    type: 'overchainTransfer',
+                    action: initBalances
                 }
             ));
         } catch(e) {
-
+            console.log(e);
         }
         
     }
 
-    const bridgeNetwork = () => {
-        setSelectedNetworkType(selectedNetworkType === 'to' ? 'from' : 'to');
+    const networkSwap = () => {
+        const fromNetwork = selectedFromNetwork && Object.assign({}, selectedFromNetwork);
+        const toNetwork = selectedToNetwork && Object.assign({}, selectedToNetwork);
+        if(toNetwork || fromNetwork) {
+            setSelectedFromNetwork(toNetwork);
+            setSelectedToNetwork(fromNetwork);
+        }
     }
 
     const initBalances = useCallback(async() => {
-        let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [42, 97, 1287, 80001].includes(Number(e))).map(e => {
-            return {name: SUPPORTED_NETWORKS[e], id: Number(e)}
-        })
-        
-        const balances = await (getpUSDBalances(networks, address));
-        networks = networks.map((e, i) => {
-            return {...e, balance: BigInt(balances[i])}
+        console.log(123);
+        const pUSDBalances = await (getBalancesNetworks(networks, address, 'ProxyERC20pUSD'));
+        const PERIbalances = await (getBalancesNetworks(networks, address, 'ProxyERC20'));
+        const networksAddBalances = networks.map((e, i) => {
+            return {...e, balance: {
+                pUSD: BigInt(pUSDBalances[i]),
+                PERI: BigInt(PERIbalances[i]),
+            }}
         });
-        setSelectedNetwork(networks.find(e => networkId === e.id) || networks[0])
-        setNetworks(networks);
-    }, [address, networkId])
+        console.log(networksAddBalances);
+        setNetworks(networksAddBalances);
+    }, [networks, address, networkId, setNetworks])
     
     useEffect(() => {
-        switchChain(selectedNetwork);
-    }, [selectedNetwork, setSelectedNetworkType])
+        if(selectedFromNetwork && isReady) {
+            switchChain(selectedFromNetwork);
+        }
+    }, [selectedFromNetwork, isReady])
 
     useEffect(() => {
-        if(isReady && address && networkId) {
+        if(isConnect && initBridge) {
+            console.log(123);
+            setSelectedCoin(pynths[0]);
             initBalances();
         }
-    }, [initBalances, isReady, address, networkId])
+    }, [isConnect, initBridge]);
+
+    useEffect(() => {
+        let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [42, 97, 1287, 80001].includes(Number(e))).map(e => {
+            return {name: SUPPORTED_NETWORKS[e], id: Number(e), balance: {
+                pUSD: BigInt(0),
+                PERI: BigInt(0),
+            }}
+        })
+        setSelectedCoin(pynths[0]);
+        setNetworks(networks);
+        setInitBridge(true);
+    }, [])
 
     return (
         <div className="flex space-x-4">
             
-            { isNetworkList ? 
-                <NetworkList networks={networks} selectedNetwork={selectedNetwork} setSelectedNetwork={setSelectedNetwork} setIsNetworkList={setIsNetworkList}></NetworkList>
-                : 
-           
+            { 
                 <div className="mb-6 card-width">
                     <ul className='flex cursor-pointer'>
                         <li className={`py-2 px-6 rounded-t-lg ${tabType === 'submit' ? 'bg-gray-700' : 'bg-gray-500'}`} onClick={() => setTabType('submit')}>submit</li>
                         <li className={`py-2 px-6 rounded-t-lg ${tabType === 'receive'? 'bg-gray-700' :  'bg-gray-500'}`} onClick={() => setTabType('receive')}>receive</li>
                     </ul>
-                    {tabType === 'submit' ?            
+                    {
+                        isFromNetworkList ? <NetworkList networks={networks} selectedNetwork={selectedFromNetwork} setSelectedNetwork={setSelectedFromNetwork} setIsNetworkList={setIsFromNetworkList}></NetworkList>  :
+                        isToNetworkList ? <NetworkList networks={selectedFromNetwork?.id !== 1287 ? networks.filter(e=> e.id === 1287) : networks.filter(e=> e.id !== 1287)} selectedNetwork={selectedToNetwork} setSelectedNetwork={setSelectedToNetwork} setIsNetworkList={setIsToNetworkList}></NetworkList> :
+                        isCoinList ? <BridgeCoinList coinList={pynths} setSelectedCoin={setSelectedCoin} setIsCoinList={setIsCoinList}></BridgeCoinList> :
+                        tabType === 'submit' ?
                         <div className="w-full bg-gray-700 rounded-b-lg p-4">   
-                            <div className="py-1 w-full">
+                            <div className="flex py-1">
                                 <div>From</div>
+                                { !selectedFromNetwork?.id && 
+                                    <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                                        <span>please select from network</span>
+                                    </div>
+                                }
                             </div>
                             
                             <div className="py-1">
-                                <div className="flex p-3 font-semibold cursor-pointtext-center bg-gray-900 rounded-md justify-between" onClick={() => selectedNetworkType === 'from' && setIsNetworkList(true)}>
-                                    <span className="mx-1">{selectedNetworkType === 'from' ? selectedNetwork?.name : 'moonBase'}</span>
-                                    {
-                                        selectedNetworkType === 'from' && 
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => {}}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    }
+                                <div className="flex p-3 font-semibold bg-gray-900 rounded-md justify-between cursor-pointer" onClick={() => setIsFromNetworkList(true)}>
+                                    <span className="mx-1">{selectedFromNetwork?.name}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => {}}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
 
-                            <div className="w-full mt-4"><img className="mx-auto w-9 h-9" src={'/images/icon/exchange.svg'} alt="exchage" onClick={() => bridgeNetwork()}></img></div>
+                            <div className="w-full mt-4"><img className="mx-auto w-9 h-9 cursor-pointer" src={'/images/icon/exchange.svg'} alt="exchage" onClick={() => networkSwap()}></img></div>
 
-                            <div className="py-1 w-full">
+                            <div className="flex py-1">
                                 <div>To</div>
+                                { !selectedToNetwork?.id && 
+                                    <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                                        <span>please select from network</span>
+                                    </div>
+                                }
                             </div>
                             <div className="py-1">
-                                <div className="flex p-3 font-semibold cursor-pointtext-center bg-gray-900 rounded-md justify-between" onClick={() => selectedNetworkType === 'to' && setIsNetworkList(true)}>
-                                    <span className="mx-1">{selectedNetworkType === 'to' ? selectedNetwork?.name : 'moonBase'}</span>
-                                    {
-                                        selectedNetworkType === 'to' && 
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    }
-                                    
+                                <div className="flex p-3 font-semibold bg-gray-900 rounded-md justify-between cursor-pointer" onClick={() => setIsToNetworkList(true)}>
+                                    <span className="mx-1">{selectedToNetwork?.name}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
 
                             <div className="flex py-1 justify-between w-full">
-                                <div></div>
-                                <div>Available: {formatCurrency(selectedNetwork?.balance, 4)}</div>
+                                <div>{selectedCoin?.name}</div>
+                                <div>Available: {formatCurrency(selectedFromNetwork && selectedFromNetwork?.balance[selectedCoin?.name], 4)}</div>
                             </div>
                             <div className="flex justify-between items-center rounded-md bg-black text-base">
                             
-                                <div className="flex p-3 font-semibold cursor-pointtext-center">
-                                    <div className="mx-1">pUSD</div>
-                                </div>    
+                                <div className="flex p-3 font-semibold cursor-pointer" onClick={() => setIsCoinList(true)}>
+                                    <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
+                                    <div className="mx-1">{selectedCoin?.name}</div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                                 <input className="bg-black pr-3 outline-none text-right" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)}/>
                             </div>
                             
-                            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => bridgeConfrim()} disabled={networkId !== selectedNetwork?.id}>
+                            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => bridgeConfrim()} disabled={networkId !== selectedFromNetwork?.id || !selectedToNetwork?.id}>
                                 Confirm
                             </button>
-                            {networkId !== selectedNetwork?.id && 
+                            {!isConnect ? 
+                                <div className="font-medium text-red-500 text-xs text-center">
+                                    <div className="">You are currently connecting in app</div>
+                                </div>
+                                : selectedFromNetwork && networkId !== selectedFromNetwork?.id &&
                                 <div className="font-medium text-red-500 text-xs text-center">
                                     <div className="">You are currently connecting to {SUPPORTED_NETWORKS[networkId]}</div>
                                     
                                     <div>
-                                        change your wallet network to {selectedNetwork?.name}
+                                        change your wallet network to {selectedFromNetwork?.name}
                                     </div>
                                 </div>
                             }
-                            
                         </div>
                     :
-                    <Receive selectedNetwork={selectedNetwork} setIsNetworkList={setIsNetworkList}></Receive>
+                    <Receive selectedNetwork={selectedFromNetwork} setIsNetworkList={setIsFromNetworkList} selectedCoin={selectedCoin} setIsCoinList={setIsCoinList}></Receive>
                     }
                 </div>
             }

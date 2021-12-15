@@ -18,6 +18,7 @@ const naming = {
         80001: 'PeriFinanceToPolygon'
     },
     ProxyERC20pUSD: 'MultiCollateralPynth',
+    BridgeState: 'BridgeState',
     BridgeStatepUSD: 'BridgeState',
     ProxyERC20pBTC: 'MultiCollateralPynth',
     ProxyERC20pETH: 'MultiCollateralPynth',
@@ -30,6 +31,7 @@ type Contracts = {
     provider?: any,
     wallet?: any,
     BridgeStatepUSD?: any,
+    BridgeState?: any,
     ExchangeRates?: any
     Exchanger?: any
     PeriFinance?: any
@@ -40,6 +42,7 @@ type Contracts = {
     signers?: {
         Exchanger?: any
         ExchangeRates?: any
+        BridgeState?: any
         PeriFinance?: any
         SystemSettings?: any
         pUSD?: any

@@ -10,6 +10,8 @@ import { updateTransaction } from 'reducers/transaction'
 import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
+import { changeNetwork } from 'lib/network'
+import { NotificationManager } from 'react-notifications';
 
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
@@ -38,19 +40,19 @@ const Order = ({openCoinList}) => {
     const [rate, setRate] = useState(0n);
 
     const getRate = useCallback(async () => {
-        const rates = await (async() => {
-            const rates = await Promise.all(
-                [
-                    getLastRates({currencyName: selectedCoins.source.symbol}), 
-                    getLastRates({currencyName: selectedCoins.destination.symbol})
-                ]);
-                
-            return Object.assign(...rates);
-        })()
-        const sourceRate = rates[selectedCoins.source.symbol]
-        const destinationRate = rates[selectedCoins.destination.symbol]
-        
         try {
+            const rates = await (async() => {
+                const rates = await Promise.all(
+                    [
+                        getLastRates({currencyName: selectedCoins.source.symbol}), 
+                        getLastRates({currencyName: selectedCoins.destination.symbol})
+                    ]);
+                    
+                return Object.assign(...rates);
+            })()
+            const sourceRate = rates[selectedCoins.source.symbol]
+            const destinationRate = rates[selectedCoins.destination.symbol]
+
             const exchangeRates = destinationRate * 10n ** 18n / sourceRate;
             setSourceRate(sourceRate);
             setExchangeRates(exchangeRates);
@@ -107,10 +109,15 @@ const Order = ({openCoinList}) => {
         }
     }   
 
-    const getnetworkFeePrice = () => {
-        getGasEstimate();
-        const feePrice = (gasLimit * gasPrice) * networkRate;
-        setNetworkFeePrice(feePrice);
+    const getNetworkFeePrice = () => {
+        try {
+            getGasEstimate();
+            const feePrice = (gasLimit * gasPrice) * networkRate;
+            setNetworkFeePrice(feePrice);
+        } catch (e) {
+
+        }
+        
     }
 
     const getPrice = useCallback( () => {
@@ -140,6 +147,9 @@ const Order = ({openCoinList}) => {
     }
 
     const order = async () => {
+        if(networkId !== 1287) {
+            return false;
+        }
         const transactionSettings = {
             gasPrice: (gasPrice * 10n ** 9n).toString(),
             gasLimit: await getGasEstimate(),
@@ -147,7 +157,6 @@ const Order = ({openCoinList}) => {
         
         try {
             let transaction;
-            console.log(utils.parseEther(payAmount).toString());
             transaction = await contracts.signers.PeriFinance.exchange(
                 utils.formatBytes32String(selectedCoins.source.symbol), 
                 utils.parseEther(payAmount),
@@ -159,7 +168,8 @@ const Order = ({openCoinList}) => {
                 {
                     hash: transaction.hash,
                     message: `Buy ${selectedCoins.destination.symbol} from ${selectedCoins.source.symbol}`,
-                    type: 'Exchange'
+                    type: 'Exchange',
+                    action: getSourceBalance
                 }
             ));
             
@@ -176,9 +186,14 @@ const Order = ({openCoinList}) => {
     }
 
     const setNetworkFee = async() => {
-        const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
-        setGasPrice(fee);
-        setNetworkRate(rate);
+        try {
+            const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
+            setGasPrice(fee);
+            setNetworkRate(rate);
+        } catch(e) {
+            
+        }
+        
     }
 
     const setPerAmount = (per) => {
@@ -205,7 +220,7 @@ const Order = ({openCoinList}) => {
     useEffect(() => {
         if(isReady && networkId) {
             getFeeRate();
-            getnetworkFeePrice();
+            getNetworkFeePrice();
         }
     },[isReady, networkId, selectedCoins]);
 
@@ -216,10 +231,21 @@ const Order = ({openCoinList}) => {
     }, [isReady, networkId])
 
     useEffect(() => {
-        if(isReady && address && networkId) {
-            getSourceBalance();
-        }
-    },[isReady, networkId, address, selectedCoins]);
+        if(isReady && isConnect) {
+            if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+                getSourceBalance();
+            } else {
+                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+                setPayAmount('0');
+                setPayAmountToUSD(0n);
+                setReceiveAmount(0n);
+                setBalance(0n);
+                setIsValidation(true);
+                setValidationMessage('');
+                setPer(0n);
+            }
+        } 
+    },[isReady, networkId, isConnect, selectedCoins]);
 
     useEffect(() => {
         getPrice();

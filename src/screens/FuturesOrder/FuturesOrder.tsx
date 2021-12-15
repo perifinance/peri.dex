@@ -125,13 +125,13 @@ const Order = ({openCoinList}) => {
                 transactionSettings
             );
             
-            dispatch(updateTransaction(
-                {
-                    hash: transaction.hash,
-                    message: `매수`,
-                    type: 'Staked & Minted'
-                }
-            ));
+            // dispatch(updateTransaction(
+            //     {
+            //         hash: transaction.hash,
+            //         message: `매수`,
+            //         type: 'Staked & Minted'
+            //     }
+            // ));
         } catch(e) {
             console.log(e);
         }  

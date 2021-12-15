@@ -7,11 +7,13 @@ import { getLastRates } from "lib/thegraph/api";
 import { formatCurrency } from "lib";
 import { contracts } from 'lib/contract'
 import { getBalances } from 'lib/thegraph/api'
+import { changeNetwork } from 'lib/network'
+import { NotificationManager } from 'react-notifications';
 
 const Assets = () => {
     const { isReady } = useSelector((state: RootState) => state.app);
     const { coinList } = useSelector((state: RootState) => state.coinList);
-    const { address, networkId } = useSelector((state: RootState) => state.wallet);
+    const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [ balances, setBalances ] = useState([]);
     const [ totalAssets, setTotalAssets ] = useState(0n);
     const [ chartDatas, setChartDatas ] = useState([]);
@@ -32,7 +34,7 @@ const Assets = () => {
         
             let balances = (await getBalances({networkId, address, rates}));
             
-            setBalances(balances); 
+            setBalances(balances);
             const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
             setTotalAssets(totalAssets);
             const pieChart = balances.filter((e)=> e.balanceToUSD > 0n).map(e => {
@@ -54,10 +56,19 @@ const Assets = () => {
        
     }, [coinList, address, networkId])
     useEffect(() => {
-        if(isReady && coinList && address && networkId) {
-            init();
+        if(isReady && coinList && address && isConnect) {
+            if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+                init();
+            } else {
+                NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
+                setBalances([]);
+                setTotalAssets(0n);
+                setChartDatas([]);
+                setChartColors([]);
+            }
         }
-    },[init, isReady, coinList, address, networkId])
+    },[init, isReady, coinList, address, networkId, isConnect])
 
     return  (
         <>
@@ -92,7 +103,7 @@ const Assets = () => {
                                         <div className="flex" key={index}>
                                             <div className="flex py-2 justify-between w-full">
                                                 <div className="flex items-center" key={index}>
-                                                    <div className="font-bold min-w-12">{coinList[index].symbol}</div>
+                                                    <div className="font-bold min-w-12">{coinList[index]?.symbol}</div>
                                                     <div className="mx-4 w-3 h-3" style={{background: chartColors[index]}}></div>
                                                 </div>
                                                 <div className="">{chartDatas[index]?.y}%</div>
