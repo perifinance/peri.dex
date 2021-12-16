@@ -45,7 +45,6 @@ export const getChartRates = async({currencyNames, page = undefined, first = und
                 default: differenceIn = differenceInDays;
                     break;
             }
-            
             if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
                 values[values.length-1].low = BigInt(values[values.length-1].low) < BigInt(item.low) ? values[values.length-1].low : item.low
                 values[values.length-1].price = item.price;

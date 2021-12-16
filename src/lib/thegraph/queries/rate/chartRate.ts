@@ -17,7 +17,6 @@ export const chartRate = ({currencyName, page = 0, first = 1000}) => {
         return {
             ...data,
             price,
-            timestamp: dateFormat(data.timestamp)
         }
     }
     return {

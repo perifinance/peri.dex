@@ -12,7 +12,6 @@ const Chart = () => {
     const [currencyNames, setCurrencyNames] = useState<{source: String, destination: String}>();
     
     const init = useCallback(async() => {    
-        console.log(123);
         const dataFrom = {
             "24H": '1m',
             "3D": '3D',
