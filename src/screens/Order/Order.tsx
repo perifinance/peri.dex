@@ -11,7 +11,6 @@ import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
 import { changeNetwork } from 'lib/network'
-import { NotificationManager } from 'react-notifications';
 
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
@@ -169,7 +168,15 @@ const Order = ({openCoinList}) => {
                     hash: transaction.hash,
                     message: `Buy ${selectedCoins.destination.symbol} from ${selectedCoins.source.symbol}`,
                     type: 'Exchange',
-                    action: getSourceBalance
+                    action: () => {
+                        getSourceBalance()
+                        setPayAmount('0');
+                        setIsValidation(true);
+                        setValidationMessage('');
+                        setPer(0n);
+                        setPayAmountToUSD(0n);
+                        setReceiveAmount(0n);
+                    }
                 }
             ));
             
@@ -279,7 +286,7 @@ const Order = ({openCoinList}) => {
             <div className="w-full bg-gray-700 rounded-b-lg p-4">    
                 <div className="flex py-1 justify-between w-full">
                     <div>Pay</div>
-                    {!isValidation ? <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
+                    {!isValidation && payAmount !== '' ? <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
                         <span>{validationMessage}</span>
                     </div> : <div>Available: {formatCurrency(balance, 4)}</div>}
                 </div>

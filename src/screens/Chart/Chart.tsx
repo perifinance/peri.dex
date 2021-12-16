@@ -9,9 +9,10 @@ const Chart = () => {
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [chartTime, setChartTime] = useState('24H');
     const [data, setData] = useState([]);
-    const [currencyName, setCurrencyName] = useState<String>(undefined);
+    const [currencyNames, setCurrencyNames] = useState<{source: String, destination: String}>();
     
-    const init = useCallback(async() => {        
+    const init = useCallback(async() => {    
+        console.log(123);
         const dataFrom = {
             "24H": '1m',
             "3D": '3D',
@@ -20,26 +21,27 @@ const Chart = () => {
         }
         const chartRate = await getChartRates(
             {
-                currencyName,
+                currencyNames,
                 dataFrom: dataFrom[chartTime]
             }); 
-            console.log(chartRate);
+            console.log(chartRate)
         setData(chartRate);
-    },[currencyName, chartTime]);
+    },[currencyNames, chartTime]);
 
     useEffect(() => {
-        if(selectedCoins.destination.id) {
-            setCurrencyName ( 
-                selectedCoins.destination.id === 0 ? 
-                selectedCoins.source.symbol : 
-                selectedCoins.destination.symbol, 
+        if(selectedCoins.source.symbol && selectedCoins.destination.symbol) {
+            setCurrencyNames ( 
+                {
+                    source: selectedCoins.source.symbol,
+                    destination: selectedCoins.destination.symbol
+                }
             )
         } 
         
     }, [selectedCoins])
 
     useEffect(() => {
-        if(currencyName) {
+        if(currencyNames) {
             setData([]);
             init();
             // const timeout = setInterval(() => {
@@ -47,7 +49,7 @@ const Chart = () => {
             // }, 1000 * 60);
             // return () => clearInterval(timeout)    
         }
-    }, [currencyName, chartTime])
+    }, [currencyNames, chartTime])
     
     return (
         

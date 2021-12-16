@@ -5,8 +5,6 @@ import {
     Link,
     Redirect
 } from "react-router-dom";
-import { useSelector } from "react-redux"
-import { RootState } from 'reducers'
 
 import Header from '../Header'
 import Assets from 'pages/Assets'

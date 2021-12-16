@@ -48,9 +48,7 @@ const Header = () => {
     return (
         <header className="pb-5">
             <div className="corner flex">
-                <a href="/">
-                    <img className="h-9 lg:h-12" alt="Logo"/>
-                </a>
+                <Link to="/"><img className="h-9 lg:h-12" alt="Logo"/></Link>
                 <nav className="flex items-center w-0 justify-between lg:visible lg:w-auto lg:ml-4">
                     <ul>
                         {/* <li className="space-x-5 text-xl inline m-10">

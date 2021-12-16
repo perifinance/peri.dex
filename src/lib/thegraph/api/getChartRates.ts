@@ -6,21 +6,21 @@ import { differenceInMonths,
     differenceInMinutes
 } from 'date-fns';
 
-export const getChartRates = async({currencyName = null, page = undefined, first = undefined, dataFrom = '5m'}) => {
+type ChartRateParameter = {
+    currencyNames: {
+        source: String
+        destination: String
+    },
+    page?: number, 
+    first?: number, 
+    dataFrom?: String
+}
+export const getChartRates = async({currencyNames, page = undefined, first = undefined, dataFrom = '5m'} : ChartRateParameter) => {
     const dataFromNum = dataFrom.replace(/[a-z, A-Z]/g, '');
     const dataFromGroup = dataFrom.replace(/\d/g, '');
-    let data = await get(chartRate({currencyName, page, first}));
-    
-    switch (dataFromGroup) {
-        case 'M': data = data.concat(await get(chartRate({currencyName, page, first}))).concat(await get(chartRate({currencyName, page, first}))).concat(await get(chartRate({currencyName, page, first})));
-            break;
-        case 'W': data = data.concat(await get(chartRate({currencyName, page, first}))).concat(await get(chartRate({currencyName, page, first})));
-            break;
-        case 'D': data = data.concat(await get(chartRate({currencyName, page, first})));
-            break;
-        default: 
-            break;
-    }
+    const searchCurrencyName = currencyNames.source === 'pUSD' ? currencyNames.destination : currencyNames.source
+
+    let data = await get(chartRate({currencyName: searchCurrencyName, page, first}));
 
     let dayFlag;
     let values = [];

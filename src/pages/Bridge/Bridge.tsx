@@ -96,7 +96,6 @@ const Bridge = () => {
     }
 
     const initBalances = useCallback(async() => {
-        console.log(123);
         const pUSDBalances = await (getBalancesNetworks(networks, address, 'ProxyERC20pUSD'));
         const PERIbalances = await (getBalancesNetworks(networks, address, 'ProxyERC20'));
         const networksAddBalances = networks.map((e, i) => {
@@ -105,7 +104,6 @@ const Bridge = () => {
                 PERI: BigInt(PERIbalances[i]),
             }}
         });
-        console.log(networksAddBalances);
         setNetworks(networksAddBalances);
     }, [networks, address, networkId, setNetworks])
     
@@ -117,9 +115,18 @@ const Bridge = () => {
 
     useEffect(() => {
         if(isConnect && initBridge) {
-            console.log(123);
             setSelectedCoin(pynths[0]);
             initBalances();
+        } else {
+            let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [42, 97, 1287, 80001].includes(Number(e))).map(e => {
+                return {name: SUPPORTED_NETWORKS[e], id: Number(e), balance: {
+                    pUSD: BigInt(0),
+                    PERI: BigInt(0),
+                }}
+            })
+            setNetworks(networks);
+            setSelectedFromNetwork(null);
+            setSelectedToNetwork(null);
         }
     }, [isConnect, initBridge]);
 
