@@ -12,18 +12,12 @@ const Chart = () => {
     const [currencyNames, setCurrencyNames] = useState<{source: String, destination: String}>();
     
     const init = useCallback(async() => {    
-        const dataFrom = {
-            "24H": '1m',
-            "3D": '3D',
-            "1W": '1W',
-            "1M": '1M'
-        }
         const chartRate = await getChartRates(
             {
                 currencyNames,
-                dataFrom: dataFrom[chartTime]
+                chartTime,
             }); 
-            console.log(chartRate)
+            console.log(chartRate[0])
         setData(chartRate);
     },[currencyNames, chartTime]);
 
@@ -77,8 +71,8 @@ const Chart = () => {
                         </defs>
                         <Tooltip labelStyle={{color: "transparent"}} contentStyle={{background: "transparent", borderColor: "transparent", color: "#151515"}} itemStyle={{color: "#000000"}}>
                         </Tooltip>
-                        <XAxis dataKey="timestamp" />
-                        <YAxis type="number" domain={[dataMin => (Math.floor(dataMin / 1000) * 1000), dataMax => (Math.ceil(dataMax / 1000) * 1000)]} />
+                        <XAxis dataKey="time"/>
+                        <YAxis type="number" domain={[dataMin => dataMin, dataMax => dataMax]} hide={true}/>
 
                         {/* 라인 */}
                         

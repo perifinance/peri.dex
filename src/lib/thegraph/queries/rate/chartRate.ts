@@ -1,29 +1,20 @@
 import { gql } from '@apollo/client'
-import { timeStamp } from 'console';
 import { utils } from 'ethers'
-import { dateFormat } from 'lib'
-export const chartRate = ({currencyName, page = 0, first = 1000}) => {
+
+export const chartRate = ({currencyName, page = 0, first = 1000, searchDate = 0}) => {
     const currencyKey = currencyName && utils.formatBytes32String(currencyName);
     const skip = page * first;
     
     const RateMapping = (data) => {
-        let price;
-        try {
-            price = utils.formatEther(data.price)
-        } catch(e) {
-
-        }
-
         return {
-            ...data,
-            price,
+            ...data
         }
     }
     return {
         url: `ExchangeRates-Dev`,
         query: gql`
-            query GetChartRates($currencyKey: String!, $skip: Int!, $first: Int!) {
-                chartRates(skip: $skip, first: $first, where: {currencyKey: $currencyKey}, orderBy: timestamp, orderDirection: asc) {
+            query GetChartRates($currencyKey: String!, $skip: Int!, $first: Int!, $searchDate: Int!) {
+                chartRates(skip: $skip, first: $first, where: {currencyKey: $currencyKey, timestamp_gt: $searchDate}, orderBy: timestamp, orderDirection: asc) {
                     price
                     low
                     high
@@ -31,7 +22,7 @@ export const chartRate = ({currencyName, page = 0, first = 1000}) => {
                 }
             }
         `,
-        variables: {currencyKey, skip, first},
+        variables: {currencyKey, skip, first, searchDate},
         mapping: ({data}) => {    
             
             return data.chartRates.map((item) => RateMapping(item));

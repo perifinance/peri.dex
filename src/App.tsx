@@ -15,7 +15,6 @@ import { changeNetwork } from 'lib/network'
 
 import { SUPPORTED_NETWORKS } from 'lib/network'
 import { InitOnboard, onboard } from 'lib/onboard/onboard'
-import networkInfo from 'configure/networkInfo/networkInfo'
 import { contracts } from 'lib/contract'
 import { getCoinList } from 'lib/coinList'
 

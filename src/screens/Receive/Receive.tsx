@@ -146,7 +146,7 @@ const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList
                 <input className="bg-black pr-3 outline-none" type="text" dir="rtl" value={formatCurrency(totalAmount, 4)} disabled/>
             </div>
             
-            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => confrim()} disabled={networkId !== selectedNetwork?.id || !selectedNetwork?.id}>
+            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => confrim()} disabled={networkId !== selectedNetwork?.id || !selectedNetwork?.id || totalAmount === 0n}>
                 Confirm
             </button>
             {!isConnect ? 

@@ -3,8 +3,12 @@ import { get } from '../service'
 import { differenceInMonths,
     differenceInWeeks,
     differenceInDays,
-    differenceInMinutes
+    differenceInMinutes,
+    format,
+    sub
 } from 'date-fns';
+import { utils } from 'ethers'
+import { dateFormat } from 'lib'
 
 type ChartRateParameter = {
     currencyNames: {
@@ -13,49 +17,87 @@ type ChartRateParameter = {
     },
     page?: number, 
     first?: number, 
-    dataFrom?: String
+    chartTime?: String
 }
-export const getChartRates = async({currencyNames, page = undefined, first = undefined, dataFrom = '5m'} : ChartRateParameter) => {
-    const dataFromNum = dataFrom.replace(/[a-z, A-Z]/g, '');
-    const dataFromGroup = dataFrom.replace(/\d/g, '');
-    const searchCurrencyName = currencyNames.source === 'pUSD' ? currencyNames.destination : currencyNames.source
+export const getChartRates = async({currencyNames, page = undefined, first = undefined, chartTime = '24H'} : ChartRateParameter) => {
+    let searchDate;
 
-    let data = await get(chartRate({currencyName: searchCurrencyName, page, first}));
+    switch (chartTime) {
+        case '24H': searchDate = Number((new Date().getTime() / 1000).toFixed(0)) - (60 * 60 * 24);
+            break;
+        case '3D': searchDate = Number((new Date().getTime() / 1000).toFixed(0)) - (60 * 60 * 24 * 3);
+            break;
+        case '1W': searchDate = Number((new Date().getTime() / 1000).toFixed(0)) - (60 * 60 * 24 * 7);
+            break;
+        case '1M': searchDate = Number((new Date().getTime() / 1000).toFixed(0)) - (60 * 60 * 24 * 30);
+            break;
+        default: searchDate = 0;
+            break;
+    }
+
+    const pUSDPrice = {
+        low: (10n ** 18n).toString(),
+        price: (10n ** 18n).toString(),
+        high: (10n ** 18n).toString(),
+        timestamp: new Date()
+    }
+
+    let sourceData = currencyNames.source === 'pUSD' ? [ {...pUSDPrice, itemstamp: searchDate}, pUSDPrice ] : 
+        await get(chartRate({currencyName: currencyNames.source, page, first, searchDate}));
+
+    if(currencyNames.source !== 'pUSD' && sourceData.length <= 1) {
+        sourceData = await get(chartRate({currencyName: currencyNames.source, page: 0, first: 2}));
+    } 
+
+    let destinationData = currencyNames.destination === 'pUSD' ? [{...pUSDPrice, itemstamp: searchDate},pUSDPrice] : 
+        await get(chartRate({currencyName: currencyNames.destination, page, first, searchDate}));
+
+    if(currencyNames.destination !== 'pUSD' && destinationData.length <= 1) {
+        destinationData = await get(chartRate({currencyName: currencyNames.destination, page: 0, first: 2}));
+    } 
 
     let dayFlag;
     let values = [];
     try {
-        const price = data[0].price;
-        const minPrice = data.reduce( function (a, b) { 
-            return a.price > b.price ? b : a;
-        }).price;
-        const zero = price - minPrice;
-        data.forEach(item => {
-            
-            let differenceIn;
-            switch (dataFromGroup) {
-                case 'M': differenceIn = differenceInMonths;
-                    break;
-                case 'W': differenceIn = differenceInWeeks;
-                    break;
-                case 'D': differenceIn = differenceInDays;
-                    break;
-                case 'm': differenceIn = differenceInMinutes;
-                    break;
-                default: differenceIn = differenceInDays;
-                    break;
-            }
-            if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
-                values[values.length-1].low = BigInt(values[values.length-1].low) < BigInt(item.low) ? values[values.length-1].low : item.low
-                values[values.length-1].price = item.price;
-                values[values.length-1].high = BigInt(values[values.length-1].high) > BigInt(item.high) ? values[values.length-1].high : item.high
-                values[values.length-1].chart = ((item.price - data[0].price + zero) / (data[0].price) * 100).toFixed(2);
-            } else {
+        
+        destinationData.forEach((item, index) => {
+            const destinationDataItem = destinationData[index] ? destinationData[index] : destinationData[destinationData.length-1];
+            const sourceDataItem = sourceData[index] ? sourceData[index] : sourceData[sourceData.length-1];
+            // if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
+            //     values[values.length-1].low = BigInt(values[values.length-1].low) < BigInt(sourceDataItem.low) ? values[values.length-1].low : sourceDataItem.low
+            //     values[values.length-1].price = sourceDataItem.price;
+            //     values[values.length-1].high = BigInt(values[values.length-1].high) > BigInt(sourceDataItem.high) ? values[values.length-1].high : sourceDataItem.high
+
+            //     values[values.length-1].low = BigInt(values[values.length-1].low) * 10n ** 18n / BigInt(destinationDataItem.low);
+            //     values[values.length-1].price = BigInt(values[values.length-1].price) * 10n ** 18n / BigInt(destinationDataItem.price);
+            //     values[values.length-1].high = BigInt(values[values.length-1].high) * 10n ** 18n / BigInt(destinationDataItem.high);
+                
+            // } else {
                 dayFlag = new Date(item.timestamp * 1000);
-                values.push({...item, chart: ((item.price - data[0].price + zero) / (data[0].price) * 100).toFixed(2)});
-            }
+                let low;
+                let price;
+                let high;
+                
+                low = BigInt(destinationDataItem.low) * 10n ** 18n / BigInt(sourceDataItem.low);
+                price = BigInt(destinationDataItem.price) * 10n ** 18n / BigInt(sourceDataItem.price);
+                high = BigInt(destinationDataItem.high) * 10n ** 18n / BigInt(sourceDataItem.high);
+
+                values.push({low,
+                    price,
+                    high,
+                    timestamp: dayFlag
+                });
+            // }
         });
-    } catch(e){}
+    } catch(e){
+        console.log(e);
+    }
     
-    return values;
+    return values.map(e => {return {
+        low: utils.formatEther(e.low),
+        price: utils.formatEther(e.price),
+        high: utils.formatEther(e.high),
+        timestamp: e.timestamp,
+        time: format(e.timestamp, 'MM/dd HH:mm')
+    }});
 }

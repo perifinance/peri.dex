@@ -10,11 +10,12 @@ const OrderHistories = ({}) => {
     const { address, isConnect, networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
     const [ history, setHistory ] = useState([]);
+    const [ page, setPage ] = useState(0);
 
     const init = useCallback(async () => {
-        const history = await getExchageHistories({address})
+        const history = await getExchageHistories({address, page})
         setHistory(history)
-    }, [address, getExchageHistories, setHistory])
+    }, [address, getExchageHistories, setHistory, page])
     
     useEffect(() => {
         if(address && !transaction.hash) {
@@ -25,7 +26,7 @@ const OrderHistories = ({}) => {
                 setHistory([]);
             }
         } 
-    }, [address, transaction, networkId])
+    }, [address, transaction, networkId, page])
 
     useEffect(() => {
         if(!isConnect) {
@@ -39,7 +40,7 @@ const OrderHistories = ({}) => {
             <div className="flex flex-col">
                 <div className="text-xl">Trade Order</div>
                 <div className="overflow-x-scroll">
-                    <table className="table-auto mt-10 mb-12 lg:w-full">
+                    <table className="table-auto mt-10 mb-2 lg:w-full">
                         <thead>
                             <tr className="text-lg border-b border-gray-500">
                                 <th className="font-medium">Pair</th>
@@ -63,6 +64,20 @@ const OrderHistories = ({}) => {
                         </tbody>
                     </table>
                 </div>
+                <ul className="flex list-reset rounded font-sans self-center">
+                        {/* <li><a className="block hover:text-white hover:bg-blue text-blue border-r border-grey-light px-3 py-2" href="#">Previous</a></li> */}
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 0 ? 'underline': 'none'} `} onClick={() => setPage(0)}>1</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 1 ? 'underline': 'none'} `} onClick={() => setPage(1)}>2</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 2 ? 'underline': 'none'} `} onClick={() => setPage(2)}>3</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 3 ? 'underline': 'none'} `} onClick={() => setPage(3)}>4</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 4 ? 'underline': 'none'} `} onClick={() => setPage(4)}>5</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 5 ? 'underline': 'none'} `} onClick={() => setPage(5)}>6</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 6 ? 'underline': 'none'} `} onClick={() => setPage(6)}>7</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 7 ? 'underline': 'none'} `} onClick={() => setPage(7)}>8</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 8 ? 'underline': 'none'} `} onClick={() => setPage(8)}>9</a></li>
+                        <li><a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${page === 9 ? 'underline': 'none'} `} onClick={() => setPage(9)}>10</a></li>
+                        {/* <li><a className="block hover:text-white hover:bg-blue text-blue px-3 py-2" href="#">Next</a></li> */}
+                    </ul>
             </div>
         </div>
     )

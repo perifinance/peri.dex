@@ -11,6 +11,7 @@ import { getNetworkFee } from 'lib/fee'
 import { getNetworkPrice } from 'lib/price';
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
 import { changeNetwork } from 'lib/network'
+import { NotificationManager } from 'react-notifications';
 
 const Order = ({openCoinList}) => {
     const dispatch = useDispatch()
@@ -146,9 +147,14 @@ const Order = ({openCoinList}) => {
     }
 
     const order = async () => {
-        if(networkId !== 1287) {
+        
+        if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+            NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+            changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
             return false;
         }
+        
+        
         const transactionSettings = {
             gasPrice: (gasPrice * 10n ** 9n).toString(),
             gasLimit: await getGasEstimate(),
@@ -187,6 +193,11 @@ const Order = ({openCoinList}) => {
     }
 
     const swapToCurrency = () => {
+        if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+            NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+            changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
+            return false;
+        }
         const {source, destination} = Object.assign({}, selectedCoins);
         dispatch(setSourceCoin(destination));
         dispatch(setDestinationCoin(source));
@@ -201,6 +212,10 @@ const Order = ({openCoinList}) => {
             
         }
         
+    }
+
+    const checkNetwork = (event) => {
+        console.log(event);
     }
 
     const setPerAmount = (per) => {
@@ -272,7 +287,7 @@ const Order = ({openCoinList}) => {
     
     return (
         
-        <div className="mb-6 card-width">
+        <div className="mb-6 card-width" onClick={(e) => checkNetwork(e)}>
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
                 <div className="flex space-x-8 py-2">
                     <div className="relative">
