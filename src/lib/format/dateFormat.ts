@@ -5,5 +5,6 @@ export const dateFormat = (timestamp) => {
     const day = ("0" + date.getDate()).slice(-2);
     const hour = date.getHours();
     const mint = date.getMinutes();
-    return `${year}/${month}/${day} ${hour < 10 ? `0${hour}`: hour}:${mint < 10 ? `0${mint}`: mint}`;
+    const second = date.getSeconds();
+    return `${year}/${month}/${day} - ${hour < 10 ? `0${hour}`: hour}:${mint < 10 ? `0${mint}`: mint}:${second < 10 ? `0${second}`: second}`;
 }

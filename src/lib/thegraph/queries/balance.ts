@@ -9,8 +9,9 @@ export const balance = ({currencyName, address, rate = 0n}) => {
         } catch (e){
             amount = 0n;
         }
+        console.log(data);
         return {
-            currencyName: data.pynthName || currencyName,
+            currencyName: currencyName,
             amount,
             balanceToUSD: amount * rate / (10n ** 18n)
         }

@@ -16,7 +16,7 @@ const NetworkList = ({networks, selectedNetwork, setSelectedNetwork, setIsNetwor
                     <div className="py-3 text-sm">
                         {networks.map((network, index) => {
                             return (
-                                <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-gray-900 rounded-md px-2 py-2 my-2 ${network?.id === selectedNetwork?.id && 'bg-gray-900'}`} onClick={ () => {setSelectedNetwork(network); setIsNetworkList(false)}}>
+                                <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2 ${network?.id === selectedNetwork?.id && 'bg-black-900'}`} onClick={ () => {setSelectedNetwork(network); setIsNetworkList(false)}}>
                                     <div className="flex-grow font-medium px-2">{network.name}</div>
                                     {/* <div className="text-sm font-normal text-gray-300 tracking-wide">
                                         {formatCurrency(network.balance, 4)}

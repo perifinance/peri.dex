@@ -35,9 +35,8 @@ const Order = ({openCoinList}) => {
     const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
     const [receiveAmount, setReceiveAmount] = useState(0n);
     const [balance, setBalance] = useState(0n);
-    const [isValidation, setIsValidation] = useState(true);
+    const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState('');
-    const [rate, setRate] = useState(0n);
 
     const getRate = useCallback(async () => {
         try {
@@ -56,7 +55,6 @@ const Order = ({openCoinList}) => {
             const exchangeRates = destinationRate * 10n ** 18n / sourceRate;
             setSourceRate(sourceRate);
             setExchangeRates(exchangeRates);
-            setRate( 10n ** 18n * 10n ** 18n / (exchangeRates));
         }catch (e) {
             console.log(e);
         }
@@ -77,19 +75,25 @@ const Order = ({openCoinList}) => {
     }
 
     const validationCheck = (value) => {
+        
         try {
-            if(isNaN(Number(value))) {
+            if(Number(value) === 0) {
+                setIsValidation(false);
+                setValidationMessage('Enter an amount to see more trading details.')
+            } else if(isNaN(Number(value))) {
                 setIsValidation(false);
                 setValidationMessage('Please enter pay input only with numbers')
             } else if(utils.parseEther(value).toBigInt() > balance) {
                 setIsValidation(false);
-                setValidationMessage('Not Greater Than Balance')
+                setValidationMessage('Insufficient balance')
             } else {
                 setIsValidation(true);
                 setValidationMessage('');
             }
         } catch(e) {
-
+            console.log(e);
+            setIsValidation(true);
+            setValidationMessage('');
         }
         
     }
@@ -103,7 +107,6 @@ const Order = ({openCoinList}) => {
             const feePrice = exchangeAmount * feeRate / (10n ** 18n);
             setReceiveAmount(exchangeAmount - feePrice);
         }catch(e) {
-            console.log(e);
             setPayAmountToUSD(0n);
             setReceiveAmount(0n);
         }
@@ -177,8 +180,7 @@ const Order = ({openCoinList}) => {
                     action: () => {
                         getSourceBalance()
                         setPayAmount('0');
-                        setIsValidation(true);
-                        setValidationMessage('');
+                        validationCheck('0');
                         setPer(0n);
                         setPayAmountToUSD(0n);
                         setReceiveAmount(0n);
@@ -212,10 +214,6 @@ const Order = ({openCoinList}) => {
             
         }
         
-    }
-
-    const checkNetwork = (event) => {
-        console.log(event);
     }
 
     const setPerAmount = (per) => {
@@ -253,21 +251,21 @@ const Order = ({openCoinList}) => {
     }, [isReady, networkId])
 
     useEffect(() => {
-        if(isReady && isConnect) {
+        if(isReady && isConnect && address) {
             if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
                 getSourceBalance();
             } else {
                 changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
                 setPayAmount('0');
+                validationCheck('0');
                 setPayAmountToUSD(0n);
                 setReceiveAmount(0n);
                 setBalance(0n);
-                setIsValidation(true);
-                setValidationMessage('');
+
                 setPer(0n);
             }
         } 
-    },[isReady, networkId, isConnect, selectedCoins]);
+    },[isReady, networkId, isConnect, address, selectedCoins]);
 
     useEffect(() => {
         getPrice();
@@ -276,65 +274,62 @@ const Order = ({openCoinList}) => {
     useEffect(() => {
         if(!isConnect || selectedCoins) {
             setPayAmount('0');
+            validationCheck('0');
             setPayAmountToUSD(0n);
             setReceiveAmount(0n);
             setBalance(0n);
-            setIsValidation(true);
-            setValidationMessage('');
             setPer(0n);
         }
     },[isConnect, selectedCoins])
     
     return (
         
-        <div className="mb-6 card-width" onClick={(e) => checkNetwork(e)}>
+        <div className="min-w-80 lg:max-w-xs mb-4">
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
-                <div className="flex space-x-8 py-2">
+                <div className="flex space-x-8 py-2 items-center">
                     <div className="relative">
                         <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
                         <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
                     </div>
-                    <div className="text-xl">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
+                    <div className="text-xl font-medium">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
                     
                 </div>
             </div>
             <div className="w-full bg-gray-700 rounded-b-lg p-4">    
                 <div className="flex py-1 justify-between w-full">
                     <div>Pay</div>
-                    {!isValidation && payAmount !== '' ? <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
-                        <span>{validationMessage}</span>
-                    </div> : <div>Available: {formatCurrency(balance, 4)}</div>}
+                    <div>Available: {formatCurrency(balance, 4)}</div>
                 </div>
                 {/* ${isError && 'border border-red-500'} */}
-                <div className="flex items-center rounded-md bg-black text-base">
-                    <div className="flex p-3 font-semibold cursor-pointer" onClick={() => openCoinList('source')}>
+                <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
+                    <div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList('source')}>
                         <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
-                        <div className="mx-1">{selectedCoins.source.symbol}</div>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <div className="m-1">{selectedCoins.source.symbol}</div>
+                        <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                     </div>    
-                    <input className="bg-black pr-3 outline-none text-right" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)}/>
+                    <input className="w-2/3 bg-black-900 outline-none text-right font-medium" type="text" value={payAmount} onChange={(e) => {changePayAmount(e.target.value); setPer(0n)}}/>
                 </div>
                 <div className="flex justify-end font-medium tracking-wide text-xs w-full text-blue-500 px-3 mt-1">
                     <span>${formatCurrency(payAmountToUSD, 2)}</span>
                 </div>
 
-                <div className="w-full"><img className="mx-auto w-9 h-9 cursor-pointer" src={'/images/icon/exchange.svg'} onClick={() => swapToCurrency()}></img></div>
+                <div className="flex w-9 h-9 bg-gray-500 rounded-full mx-auto cursor-pointer" onClick={() => swapToCurrency()}>
+                    <div className="m-auto">
+                        <img className="w-4 h-5 align-middle" src={'/images/icon/exchange.png'}></img>
+                    </div>
+                </div>
 
                 <div className="py-1 justify-between w-full">
                     <div>Receive(Estimated)</div>
                 </div>             
                 
-                <div className="flex items-center rounded-md bg-black text-base">
-                    <div className="flex p-3 font-semibold cursor-pointer" onClick={() => openCoinList('destination')}>
+                <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
+                    <div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList('destination')}>
                         <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
-                        <span className="mx-1">{selectedCoins.destination.symbol}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => openCoinList('destination')}>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <span className="m-1">{selectedCoins.destination.symbol}</span>
+                        <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                     </div>
-                    <input className="bg-black pr-3 outline-none text-right" type="text" value={formatCurrency(receiveAmount, 18)} disabled/>
+                    <input className="w-2/3 bg-black-900 outline-none text-right font-medium" type="text" value={formatCurrency(receiveAmount, 8)} disabled/>
                 </div>
 
                 <div className="py-2 w-full">
@@ -358,8 +353,8 @@ const Order = ({openCoinList}) => {
                         <div>${formatCurrency(networkFeePrice, 4)}</div>
                     </div>
                     <div className="flex py-2 justify-between w-full">
-                        <div>rate</div>
-                        <div>1 {selectedCoins.source.symbol} = {formatCurrency(rate, 8)} {selectedCoins.destination.symbol}</div>
+                        <div>Rate</div>
+                        <div>1 = {formatCurrency(exchangeRates, 8)}</div>
                     </div>
                     
                     {BigInt(receiveAmount) > 0n && isValidation && <> 
@@ -369,17 +364,24 @@ const Order = ({openCoinList}) => {
                         </div>
 
                         <div className="flex py-2 justify-between w-full">
-                            <div>Fee({utils.formatEther(feeRate)}%)</div>
+                            <div>Fee({utils.formatEther(feeRate * 100n)}%)</div>
                             <div>${formatCurrency(feePrice, 18)}</div>
                         </div>
                     </>}
                     
                     
                 </div>
-                <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => order()}>
+                <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-2xl font-medium disabled:opacity-75" onClick={ () => order()} disabled={!isConnect || !isValidation}>
                     Confirm
                 </button>
-                
+                {
+                    !isValidation || !isConnect ? 
+                    <div className="bg-black-900 w-full text-center text-gray-300 rounded-lg text-xs p-1">
+                        {!isConnect ? 'Connect your wallet' : validationMessage}
+                    </div>
+                    : 
+                    <></>
+                } 
             </div>
         </div>
     )

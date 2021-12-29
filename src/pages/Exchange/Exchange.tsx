@@ -47,7 +47,13 @@ const Exchange = () => {
     }, [isConnect, networkId])
 
     return (
-        <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
+        <div className="flex flex-col-reverse lg:flex-row lg:justify-between lg:space-x-4 xl:space-x-8">
+            
+            <div className={`lg:flex lg:grow lg:flex-col lg:w-full ${isCoinList && 'hidden lg: visible'} flex-1`}>
+                <Chart/>
+                <OrderHistories/>
+            </div>
+            
             {isCoinList ? 
                 (<CoinList coinListType={coinListType} selectedCoin={selectedCoin}/>) :
                 (<> 
@@ -56,10 +62,6 @@ const Exchange = () => {
                 </>
                 )
             }
-            <div className={`lg:flex lg:flex-col lg:w-full ${isCoinList && 'hidden lg: visible'}`}>
-                <Chart/>
-                <OrderHistories/>
-            </div>
         </div>
     )
 }

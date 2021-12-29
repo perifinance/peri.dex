@@ -27,7 +27,35 @@ let pynths = {
             categories: [],
             // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
             decimal: 18
-        },
+        }, {
+            id: 3,
+            favorite: false,
+            name: "Binance Coin",
+            symbol: "pBNB",
+            key: "BNB",
+            categories: [],
+            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
+            decimal: 18
+        }, {
+            id: 4,
+            favorite: false,
+            name: "Chainlink",
+            symbol: "pLINK",
+            key: "LINK",
+            categories: [],
+            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
+            decimal: 18
+        }, {
+            id: 5,
+            favorite: false,
+            name: "Polkadot",
+            symbol: "pDOT",
+            key: "DOT",
+            categories: [],
+            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
+            decimal: 18
+        }
+        
     ],
     80001: [
         {

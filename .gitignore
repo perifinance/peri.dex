@@ -16,7 +16,7 @@ cypress.json
 
 # production
 /build
-
+/src/lib/charting_library
 # misc
 .DS_Store
 .env.local

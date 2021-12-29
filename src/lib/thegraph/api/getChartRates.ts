@@ -8,7 +8,7 @@ import { differenceInMonths,
     sub
 } from 'date-fns';
 import { utils } from 'ethers'
-import { dateFormat } from 'lib'
+import { formatCurrency } from 'lib'
 
 type ChartRateParameter = {
     currencyNames: {
@@ -58,9 +58,9 @@ export const getChartRates = async({currencyNames, page = undefined, first = und
 
     let dayFlag;
     let values = [];
+    const datas = currencyNames.source === 'pUSD' ? destinationData : sourceData;
     try {
-        
-        destinationData.forEach((item, index) => {
+        datas.forEach((item, index) => {
             const destinationDataItem = destinationData[index] ? destinationData[index] : destinationData[destinationData.length-1];
             const sourceDataItem = sourceData[index] ? sourceData[index] : sourceData[sourceData.length-1];
             // if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
@@ -92,12 +92,16 @@ export const getChartRates = async({currencyNames, page = undefined, first = und
     } catch(e){
         console.log(e);
     }
-    
-    return values.map(e => {return {
-        low: utils.formatEther(e.low),
-        price: utils.formatEther(e.price),
-        high: utils.formatEther(e.high),
-        timestamp: e.timestamp,
-        time: format(e.timestamp, 'MM/dd HH:mm')
-    }});
+    return values.map(e => { 
+        return {
+            price: utils.formatEther(e.price),
+            low: utils.formatEther(e.low),
+            high: utils.formatEther(e.high),
+            formatPrice: formatCurrency(e.price, 8),
+            formatLow: formatCurrency(e.low, 8),
+            formatHigh: formatCurrency(e.high, 8),
+            timestamp: e.timestamp / 1000,
+            time: format(e.timestamp, 'MM/dd HH:mm')
+        }
+    });
 }

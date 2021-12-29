@@ -1,17 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch ,useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 import { contracts, formatCurrency } from 'lib'
 import { SUPPORTED_NETWORKS } from 'lib/network'
 import { getNetworkFee } from 'lib/fee'
 import { updateTransaction } from 'reducers/transaction'
+import { getNetworkPrice } from 'lib/price';
+import { changeNetwork } from 'lib/network'
 
-const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList}) => {
+import pynths from 'configure/coins/bridge'
+
+const Receive = ({}) => {
     const dispatch = useDispatch();
-    const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const { isReady } = useSelector((state: RootState) => state.app);
-    const [receiveDatas, setReceiveDatas] = useState([]);
+    const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
+    const [receiveDatas, setReceiveDatas] = useState({});
     const [totalAmount, setTotalAmount] = useState(0n);
+    const [networks, setNetworks] = useState([]);
+    const [isNetworkList, setIsNetworkList] = useState(false);
+    const [selectedNetwork, setSelectedNetwork] = useState<{name?: string, id?: Number}>({});
+    const [isCoinList, setIsCoinList] = useState(false);
+    const [selectedCoin, setSelectedCoin] = useState<{name?: string, id?:Number}>({});
+    const [networkFeePrice, setNetworkFeePrice] = useState<bigint>(0n);
+    const [gasPrice, setGasPrice] = useState(0n);
+
+    const setNetwork = async () => {
+        const networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+            return {name: SUPPORTED_NETWORKS[e], id: Number(e)}
+        });
+        setNetworks(networks);
+    }
 
     const getInboundings = async () => {
         const contractName = {
@@ -20,7 +38,7 @@ const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList
         }
         try {
             const ids = await contracts[contractName[selectedCoin.name]].applicableInboundIds(address);
-            const datas = [];
+            let datas = [];
             let totalAmount = 0n;
             ids.forEach((e) => {
                 datas.push(contracts[contractName[selectedCoin.name]].inboundings(e).then(e => {
@@ -29,15 +47,20 @@ const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList
                     return {amount, chainId: e.srcChainId.toString()}
                 }));
             });
-            const dd = await Promise.all(datas);
+            let promiseData = await Promise.all(datas);
+            let returnValue = {97: 0n, 1287: 0n, 80001: 0n}
+            promiseData.forEach(data => {
+                if(returnValue[data.chainId]) {
+                    returnValue[data.chainId] = returnValue[data.chainId].amount + data.amount;
+                } else {
+                    returnValue[data.chainId] = data.amount;
+                }
+            })
             setTotalAmount(totalAmount)
-            setReceiveDatas(dd);
+            setReceiveDatas(returnValue);
         } catch(e) {
             console.log(e);
         }
-      
-        // console.log(contracts.pUSD.claimAllBridgedAmounts());
-        //id 들을 
     }
 
     const getGasEstimate = async () => {
@@ -49,10 +72,20 @@ const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList
         try {
             gasLimit = BigInt((await contracts.signers[contractName[selectedCoin.name]].estimateGas.claimAllBridgedAmounts({value: (await getBridgeClaimGasCost()).toString()})));
         } catch(e) {
-            console.log(e);
-            return (gasLimit * 12n /10n).toString();
+            return (gasLimit * 12n /10n);
         }
         
+    }
+
+    const getGasPrice = async () => {
+        const gasPrice =  (await getNetworkFee(selectedNetwork.id));
+        const gasLimit =  await getGasEstimate();
+        const rate = await getNetworkPrice(networkId);
+
+        setGasPrice(gasPrice);
+        setNetworkFeePrice(
+            rate * gasPrice * gasLimit / 10n ** 9n
+        )
     }
 
     const getBridgeClaimGasCost = async () => {
@@ -66,7 +99,7 @@ const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList
         }
         const transactionSettings = {
             gasPrice: (await getNetworkFee(selectedNetwork.id) * 10n ** 9n).toString(),
-            gasLimit: await getGasEstimate(),
+            gasLimit: (await getGasEstimate()).toString(),
             value: (await getBridgeClaimGasCost()).toString()
         }
 
@@ -86,69 +119,131 @@ const Receive = ({selectedNetwork, setIsNetworkList, selectedCoin, setIsCoinList
         }
         
     }
-
-
+    const switchChain = async (selectedNetwork) => {
+        changeNetwork(selectedNetwork.id)
+    }
 
     useEffect(() => {
-        if(address && networkId && selectedCoin && isReady) {
-            getInboundings();
+        if(selectedNetwork && isReady) {
+            switchChain(selectedNetwork);
         }
-    },[isReady, address, networkId, selectedCoin])
+    }, [selectedNetwork, isReady])
+
+    useEffect(() => {
+        setNetwork();
+        setSelectedCoin({id: 0, name: 'pUSD'});
+        let returnValue = {97: 0n, 1287: 0n, 80001: 0n};
+        setReceiveDatas(returnValue);
+    }, [])
+
+    useEffect(() => {
+        let setIntervals;
+        
+        if(selectedNetwork?.id === networkId && selectedCoin?.id && isConnect) {
+            getInboundings();
+            setIntervals = setInterval(() => {getInboundings()}, 1000 * 60)
+        }
+        return () => {
+            clearInterval(setIntervals)
+        }
+    },[isConnect, selectedNetwork, selectedCoin, networkId])
+
+    useEffect(() => {
+        let timeout
+        if(selectedNetwork?.id && networkId && isConnect) {
+            timeout = setTimeout(()=> {
+                if (totalAmount === 0n) {
+                    getGasPrice();
+                }
+            }, 1000);
+        }
+        return () => {
+            clearTimeout(timeout);
+        }
+    }, [totalAmount, selectedNetwork, networkId, isConnect])
 
     return (
-        <div className="w-full bg-gray-700 rounded-b-lg p-4">   
-            <div className="flex py-1">
-                <div>Receive</div>
-                { !selectedNetwork?.id && 
-                    <div className="flex justify-end font-medium tracking-wide text-red-500 text-xs w-full">    
-                        <span>please select from network</span>
+        <div className="flex flex-col bg-gray-700 rounded-lg p-4">
+            <div className="w-full">
+                <div className="flex py-1">
+                    <div>Receive</div>
+                </div>
+            </div>
+            <div className="w-full">
+                <div className="flex flex-col lg:flex-row lg:space-x-2">
+                    <div className="py-1 relative w-full">
+                        <div className="flex p-3 font-semibold bg-black-900 rounded-md justify-between cursor-pointer" onClick={() => setIsNetworkList(!isNetworkList)}>
+                            <span className="mx-1">{selectedNetwork?.name}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isNetworkList ? 'block' : 'hidden'} z-10`}>
+                            <ul className="list-reset">
+                                {networks.map(network => 
+                                    (<li onClick={ () => {setSelectedNetwork(network); setIsNetworkList(false)}}><p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedNetwork?.name === network?.name && 'bg-black-900'}`}>
+                                        {network?.name}
+                                    </p></li>)
+                                )}
+                            </ul>
+                        </div>    
                     </div>
-                }
-            </div>
-            <div className="flex p-3 font-semibold cursor-pointer bg-gray-900 rounded-md justify-between" onClick={() => setIsNetworkList(true)}>
-                <span className="mx-1">{selectedNetwork?.name}</span>
-                {
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                }
-            </div>
-            <div className="flex w-full">
-                <table className="table-auto mt-10 mb-12 w-full">
-                    <thead>
-                        <tr className="text-lg border-b border-gray-500">
-                            <th className="font-medium">FromNetWork</th>
-                            <th className="font-medium">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody className="text-xs">
-                        {receiveDatas.length > 0 && receiveDatas.map(data => {
-                            return (
-                                <tr className="border-b border-gray-500 h-8">
-                                    <td className="text-center">{SUPPORTED_NETWORKS[data.chainId]}</td>
-                                    <td className="text-center">{formatCurrency(data.amount, 4)} pUSD</td>
-                                </tr>
-                            ) 
-                        }) }
-                        
-                    </tbody>
-                </table>
-            </div>
-            <div className="flex justify-between items-center rounded-md bg-black text-base">
-            
-                <div className="flex p-3 font-semibold cursor-pointer" onClick={() => setIsCoinList(true)}>
-                    <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
-                    <div className="mx-1">{selectedCoin?.name}</div>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>    
-                <input className="bg-black pr-3 outline-none" type="text" dir="rtl" value={formatCurrency(totalAmount, 4)} disabled/>
+                    <div className="py-1 relative w-full">
+                        <div className="flex justify-between items-center rounded-md bg-black-900 text-base">
+                            <div className="relative">
+                                <div className="flex p-3 font-semibold cursor-pointer" onClick={() => setIsCoinList(!isCoinList)}>
+                                    <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
+                                    <div className="mx-1">{selectedCoin?.name}</div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isCoinList ? 'block' : 'hidden'} z-10`}>
+                                        <ul className="list-reset">
+
+                                            {pynths.map(coin => 
+                                                (<li onClick={ () => {setSelectedCoin(coin); setIsCoinList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && 'bg-black-900'}`}>
+                                                    
+                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
+                                                    {coin?.name}
+                                                    
+                                                </p></li>)
+                                            )}
+                                        </ul>
+                                    </div>
+                            </div>
+                            <input className="bg-black-900 pr-3 outline-none text-right" type="text" value={formatCurrency(totalAmount, 4)} disabled/>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl" onClick={ () => confrim()} disabled={networkId !== selectedNetwork?.id || !selectedNetwork?.id || totalAmount === 0n}>
+            <div className="flex flex-col my-5 text-base overflow-y-scroll w-full text-center border-gray-300 border-b-2 border-t-2">
+                <div className="flex flex-row">
+                    <div className="font-medium bg-black-900 py-4 border-gray-300 min-w-52 w-full border-b">FromNetWork</div>
+                    {Object.keys(receiveDatas).map(e => (
+                        <div className="border-gray-300 py-4 min-w-52 w-full border border-r-0">{SUPPORTED_NETWORKS[e]} </div>
+                    ))}
+                </div>
+                <div className="flex flex-row">
+                    <div className="font-medium bg-black-900 py-4 border-gray-300 min-w-52 w-full">Amount</div>
+                    {Object.values(receiveDatas).map(amount => (
+                        <div className="border-gray-300 py-4 min-w-52 w-full border border-r-0 border-t-0">{formatCurrency(amount,4)} <span className="font-medium pl-1">{selectedCoin?.name}</span></div>
+                    ))}
+                </div>        
+            </div>
+            
+            <div className="pt-4">
+                <div className="flex py-2 justify-between w-full lg:justify-center">
+                    <div className="lg:text-lg">Network Fee({gasPrice.toString()}GWEI)</div>
+                    <div className="lg:text-lg lg:px-2 lg:font-semibold">${formatCurrency(networkFeePrice, 4)}</div>
+                </div>
+            </div>
+            
+            <button className="bg-blue-500 my-6 px-4 py-2 w-full rounded-lg text-center text-white text-2xl lg:w-80 lg:mx-auto" onClick={ () => confrim()} disabled={networkId !== selectedNetwork?.id || !selectedNetwork?.id || totalAmount === 0n}>
                 Confirm
             </button>
+    
             {!isConnect ? 
                 <div className="font-medium text-red-500 text-xs text-center">
                     <div className="">You are currently connecting in app</div>

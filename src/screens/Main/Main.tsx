@@ -14,9 +14,9 @@ import Bridge from 'pages/Bridge'
 
 const Main = () => {
     // const { isConnect } = useSelector((state: RootState) => state.wallet);
-    return <div className="text-sm dark:text-white dark:bg-gray-900">
+    return <div className="text-sm dark:text-white dark:bg-black-900 font-Montserrat font-normal">
         {/* <Loading></Loading> */}
-        <div className="container mx-auto px-5 pt-5 pb-6 min-h-screen">
+        <div className="container mx-auto p-5 min-h-screen space-y-7 lg:space-y-10">
             <Router>
                 <Header></Header>
                 <Switch>
@@ -29,9 +29,16 @@ const Main = () => {
                     <Route path="/futures">
                         <Futures/>
                     </Route>
-                    <Route path="/bridge">
+                    <Route exact path="/bridge">
+                        <Redirect to="/bridge/submit"></Redirect>
+                    </Route>
+                    <Route exact path="/bridge/submit">
                         <Bridge/>
                     </Route>
+                    <Route exact path="/bridge/receive">
+                        <Bridge/>
+                    </Route>
+
                     <Route path="/">
                         <Redirect to="/exchange"></Redirect>
                     </Route>

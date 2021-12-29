@@ -10,10 +10,10 @@ const api = {
 	5: mainnet,
 	42: mainnet,
 	56: bsc,
-	97: bsctest,
+	97: () => 13n,
 	137: polygon,
-	1287: polygon,
-	80001: polygon
+	1287: () => 3n,
+	80001: () => 3n
 }
 export const getNetworkFee = async (networkId): Promise<bigint> => {
 	const gasfee = await api[networkId]();

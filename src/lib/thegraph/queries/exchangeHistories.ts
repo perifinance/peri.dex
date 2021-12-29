@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client'
 import { utils } from 'ethers'
 import { dateFormat } from 'lib/format'
-export const exchangeHistories = ({currencyName = undefined, address, page = 0, first = 10}) => {
+export const exchangeHistories = ({currencyName = undefined, address, page = 0, first = 100}) => {
     const currencyKey = currencyName && utils.formatBytes32String(currencyName);
     const skip = page * first;
     const settledMap = (data) => {
@@ -10,7 +10,7 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
             src: utils.parseBytes32String(data.src),
             amount: BigInt(data.amount),
             dest: utils.parseBytes32String(data.dest),
-            txid: (data.id).replace(/-\d+/g, ''),
+            txid: data.txid,
             reclaim: BigInt(data.reclaim),
             rebate: BigInt(data.rebate),
             roundIdForSrc: data.roundIdForSrc,
@@ -20,6 +20,9 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
             srcRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
             destRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
             timestamp: dateFormat(data.timestamp),
+            state: data.state === 'settled' ? 'Success' : 'Proceeding',
+            appendedTxid: data.appendedTxid,
+            settledTxid: data.settledTxid
         }
     }
     
@@ -42,6 +45,9 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
                     srcRoundIdAtPeriodEnd
                     destRoundIdAtPeriodEnd
                     timestamp
+                    state
+                    appendedTxid
+                    settledTxid
                 }
             }
         ` : gql`
@@ -61,6 +67,9 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
                     srcRoundIdAtPeriodEnd
                     destRoundIdAtPeriodEnd
                     timestamp
+                    state
+                    appendedTxid
+                    settledTxid
             }
         }`,
         variables: {currencyKey, address, skip, first},

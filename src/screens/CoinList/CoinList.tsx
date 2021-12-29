@@ -54,7 +54,7 @@ const CoinList = ({coinListType, selectedCoin}) => {
 
     return (
         
-            <div className="flex mb-6 card-width bg-gray-700 rounded-lg p-4 min-h-full overflow-y-scroll">
+            <div className="flex mb-6 bg-gray-700 rounded-lg p-4 min-h-full overflow-y-scroll min-w-80">
                 <div className="w-full">
                     <div className="mb-4">
                         <div className="relative text-center mb-4 ml-4">
@@ -95,7 +95,7 @@ const CoinList = ({coinListType, selectedCoin}) => {
                         <div className="py-3 text-sm">
                             {filterCoinList && filterCoinList.length > 0 && filterCoinList.map((coin, index) => {
                                 return (
-                                    <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-gray-900 rounded-md px-2 py-2 my-2 ${selectedCoins[coinListType].id === coin.id && 'bg-gray-900'}`} onClick={ () => selectedCoins[coinListType].id !== coin.id && selectedCoin(coin)}>
+                                    <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2 ${selectedCoins[coinListType].id === coin.id && 'bg-black-900'}`} onClick={ () => selectedCoins[coinListType].id !== coin.id && selectedCoin(coin)}>
                                         <div onClick={ (e) => {setFavorite(coin); e.stopPropagation();}}>
                                             <img className="w-6 h-6" src={`images/icon/bookmark_${coin.favorite ? 'on': 'off'}.svg`} alt="favorite"></img>
                                         </div>

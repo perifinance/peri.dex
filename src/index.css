@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-.min-w-12 {
-	min-width: 3rem;
+body {
+	font-family: 'Montserrat';
 }
 
 .card-width {
@@ -25,24 +25,63 @@
   
 .notification-message .title{
 	font-weight: 700 !important;
-	font-size: 1.5rem !important;
+	font-size: 1.125 !important;
 }
 
 .notification-message .message{
 	font-weight: 500;
-	font-size: 1rem;
+	font-size: 0.875;
+}
+
+.notification-container {
+	width: 100%;
+	min-height: 130px;
+	
+	padding: 20px;
+	top: 40px;
 }
 
 .notification {
 	box-sizing: border-box;
-	padding: 25px 25px 25px 60px;
-	border-radius: 2px;
-	box-shadow: 0 0 12px #999;
+	padding: 40px 25px 40px 80px;
+	box-shadow: 0 0;
+	border-radius: 10px;
 	cursor: pointer;
 	line-height: 1.8em;
 	position: relative;
 	opacity: 1;
 	margin-top: 15px;
+}
+.notification:before {
+    position: absolute;
+    top: 50%;
+    left: 26px;
+    margin-top: -14px;
+    display: block;
+    font-family: 'Notification';
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+    text-align: center;
+    line-height: 28px;
+}
+.notification-container-empty {
+	width: 0px;
+	height: 0px;
+}
+
+@media (min-width: 1024px) {
+	.notification-container {
+		padding: 0 0 0 0;
+		top: 80px;
+		min-width: 0px;
+		max-width: 335px;
+	}
+
+	.notification {
+		border-radius: 10px 0px 0px 10px;
+	}
+
 }
 
 .swiper-container {
@@ -86,12 +125,19 @@
     opacity: 1;
 }
 
-button:disabled {
-	opacity: 0.2;
+button.bg-blue-500:disabled {
+	background-color: #333333;
+	color: #737373;
 }
 
+@font-face {
+	font-family: 'Montserrat';
+	font-style: normal;
+	font-weight: 400;
+	src: url(./fonts/Montserrat-Light.ttf) format('truetype');
+}
 
-/* @font-face {
+@font-face {
 	font-family: 'Montserrat';
 	font-style: normal;
 	font-weight: 500;
@@ -114,7 +160,7 @@ button:disabled {
 	font-style: normal;
 	font-weight: 800;
 	src: url(./fonts/Montserrat-ExtraBold.ttf) format('truetype');
-} */
+}
 
 ::-webkit-scrollbar {
 	display: none;

@@ -14,7 +14,7 @@ const BridgeCoinList = ({coinList, setSelectedCoin, setIsCoinList}) => {
                         <div className="py-3 text-sm">
                             {coinList.map((coin, index) => {
                                 return (
-                                    <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-gray-900 rounded-md px-2 py-2 my-2`} onClick={() =>{ setSelectedCoin(coin); setIsCoinList(false);}}>
+                                    <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2`} onClick={() =>{ setSelectedCoin(coin); setIsCoinList(false);}}>
                                         <img className="w-6 h-6 mx-2" src={`images/currencies/${coin.name}.svg`} alt="network"/>
                                         <div className="flex-grow font-medium px-2">{coin.name}</div>
                                         <div className="text-sm font-normal text-gray-300 tracking-wide">{coin.name}</div>

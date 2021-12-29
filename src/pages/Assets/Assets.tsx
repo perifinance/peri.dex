@@ -2,13 +2,16 @@ import { useEffect, useState, useCallback } from "react";
 import { useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 
-import { VictoryPie } from 'victory'
+import { VictoryPie, VictoryLabel} from 'victory'
 import { getLastRates } from "lib/thegraph/api";
 import { formatCurrency } from "lib";
 import { contracts } from 'lib/contract'
 import { getBalances } from 'lib/thegraph/api'
 import { changeNetwork } from 'lib/network'
 import { NotificationManager } from 'react-notifications';
+import { getExchageHistories } from 'lib/thegraph/api'
+
+
 
 const Assets = () => {
     const { isReady } = useSelector((state: RootState) => state.app);
@@ -20,6 +23,45 @@ const Assets = () => {
     
     const [ chartColors, setChartColors] = useState([]);
     
+    const transaction = useSelector((state: RootState) => state.transaction);
+    const [ histories, setHistories ] = useState([]);
+    const [ currentPage, setCurrentPage ] = useState(1);
+    const [ pages, setPages ] = useState([]);
+    
+    const getPages = (size: number) => {
+        let pageCount = Math.ceil(size / 10);
+        pageCount = pageCount === 0 ? 1 : pageCount;
+        let pages = [];
+        for(let a = 0; a < pageCount; a++) {
+            pages.push(a);
+        }
+        return pages;
+    }
+
+    const getHistory = useCallback(async () => {
+        const histories = await getExchageHistories({address, first: 1000})
+        setHistories(histories)
+        setPages(getPages(histories.length))
+    }, [address, getExchageHistories, setHistories])
+
+    useEffect(() => {
+        if(address && !transaction.hash) {
+            if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+                getHistory();
+            } else {
+                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+                setHistories([]);
+            }
+        } 
+    }, [address, transaction, networkId])
+
+
+    useEffect(() => {
+        if(!isConnect) {
+            setHistories([]);
+        }
+    },[isConnect])
+
     const getAddressColor = (address) => {
         return `#${address.substr(2, 6)}`;
     }
@@ -27,33 +69,27 @@ const Assets = () => {
     const init = useCallback(async () => {
         let colors = [];
         try {
-            coinList.forEach((e) => {
-                colors.push(getAddressColor(contracts[`ProxyERC20${e.symbol}`].address));
-            });
             let rates = await getLastRates({});
         
             let balances = (await getBalances({networkId, address, rates}));
-            
             setBalances(balances);
             const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
             setTotalAssets(totalAssets);
-            const pieChart = balances.filter((e)=> e.balanceToUSD > 0n).map(e => {
-                const value = formatCurrency((e.balanceToUSD * 100n * 10n**18n / totalAssets).toString(), 2);
+            const pieChart = balances.map(e => {
+                colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
+                const value = formatCurrency(e.balanceToUSD * 100n * 10n**18n / totalAssets, 2);
                 return {
                     x: `${value}%`,
                     y: Number(value)
                 }
             })
-            
+
             setChartDatas(pieChart.length > 0 ? pieChart : [{x: '0%', y: 1}]);
     
             setChartColors(colors);
         }catch(e) {
-
+            console.log(e);
         }
-        
-
-       
     }, [coinList, address, networkId])
     useEffect(() => {
         if(isReady && coinList && address && isConnect) {
@@ -68,21 +104,88 @@ const Assets = () => {
                 setChartColors([]);
             }
         }
+        if(!isConnect) {
+            setBalances([]);
+            setTotalAssets(0n);
+            setChartDatas([]);
+            setChartColors([]);
+        }
     },[init, isReady, coinList, address, networkId, isConnect])
-
+    
     return  (
         <>
-            {balances.length > 0 && <div className="lg:flex lg:flex-row lg:py-7 lg:justify-between lg:space-x-4 xl:space-x-20">
-                <div className="flex flex-col bg-gray-700 rounded-lg p-4 max-w-sm mb-4 lg:min-h-max lg:mb-0">
-                    <div className="flex py-2 justify-between text-lg">
-                        <div className="font-bold">Total Assests</div>
-                        <div>{formatCurrency(totalAssets, 4)} $</div>
+            <div className="flex flex-col-reverse lg:flex-row lg:py-7 lg:justify-between lg:space-x-8">
+                <div className="flex flex-col w-full">
+                    <div className="text-xl lg:pl-8 font-semibold w-full">Trade Order</div>
+                        {histories.length > 0 ? 
+                            <div className="overflow-x-scroll">
+                                <table className="talbe-auto mt-4 mb-2 w-full">
+                                    <thead>
+                                        <tr className="text-lg text-gray-300">
+                                            <th className="font-medium">Received</th>
+                                            <th className="font-medium">Date/Time</th>
+                                            <th className="font-medium">Paid</th>
+                                            {/* <th className="font-medium">Price</th> */}
+                                            <th className="font-medium">Action</th>
+                                            <th className="font-medium min-w-12"> </th>
+                                        </tr>
+                                    </thead>
+                                
+                                    <tbody>
+                                        {histories.slice((currentPage-1) * 10, currentPage*10).map((e) => (
+                                            <tr className="border-b border-gray-500 h-10" key={e.id}>
+                                                <td className="text-center">
+                                                    <div className="flex justify-center">
+                                                        <img className="w-6 h-6 pr-1" src={`/images/currencies/${e.dest}.svg`} alt="currencies"></img> 
+                                                        {formatCurrency(e.amountReceived, 8)} 
+                                                        <span className="pl-1 font-medium"> {e.dest}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="text-center"><span>{e.timestamp}</span></td>
+                                                <td className="text-center">{formatCurrency(e.amount, 8)} <span className="pl-1 font-medium"> {e.src}</span></td>
+                                                {/* <td className="text-center">{formatCurrency(e.amount * 10n ** 18n / e.amountReceived, 5)} <span className="pl-1 font-medium"> {e.src}</span></td> */}
+                                                <td className="text-center"><span className={`font-medium ${e.state === 'Success' ? 'text-skyblue-500' : 'text-yellow-500'}`}>{e.state}</span></td>
+                                                <td className="text-center">
+                                                    <img id="moonbeam" className="w-8 h-8 cursor-pointer mx-auto" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC4UlEQVR4Ae2WA6wcYRzE65hFXDeqbdu2bbdxatu2bdu2bdtupzOb913vtl1crZf8Vv//zM6Hd3eRAPxS/gf4H8CxkDdZxwrkGHmts+6djb5e62RQjsCOzehrtd4B8iXvfLxC5mlokHcLWhQ+gpakfp6NqJh52vVWRY7Hc3o5a5GLpO53pnymKeqXTnr6bEalLDNvsB7DK4BMYjfKt/0Dz3DhGelo03XVcw/dPvk7BZBJdLLLzaRgyp6aGV3fJokjdEk4ygeq8dqLnSSaU4DGXgZaz8Kp+qBx/p26f0eONM6/652eqaYeH9T7LIDWh1zyE0DkS9YJxdMOEbrWs3ACnCPR7AHqtSh8GLVzreKGmYVymSZZVMo6i89WQzUTwA31+PAR1QMBlIZreLN8pskom3HCF1GtYb6tnqNTj0+fkySKFaBWzhVDTEPD1jPQdcdSDH6wWljXDVrNMAYczUQUSzPI2gcFUnTnqDvpbN2XSDccPn1MiIqReBObU/ROD9uPmYfBT1agx+XZ6HxqitC1nqkWEOdL3gVF0wxE9RxLhK6tZ2UyjINfH81E80IHdylAF2KlW/PyMHbcP4HOJ6ag04nJBhpMlVijkjjwcn1YCRPC+Fx4exuP3jxDvzNz3HxEDwU4RKwpuvX6IfQ34OzcEKHQCNSjXo3UHqBU+lEwPg/ePsX7Dx8w7NwiNx9xRAFeEQy+vxpDLyzEhEsrrcYR55dg8NkFQemnqMcI339agsURox8P49P7zCwMPDvP0g09txALr29z8nkdEkBF03jk0XlsvXckVPggIHzGf7lH5Bo5r7MJYPdZdnMn7r9+7OTzNHgJND2m0WvqDtu+Q77ax2xCbQxtEG0UNXpuHluAr/aRMA55HMa/4WNpbAG+2seIy5IP1gjazLSmaPDD1ULXwYk/qFcaG1/tEywuR54QOPDE5eVf7WMXxyI9yFHyhjwjB0hX1Txe/lU+/3+W/w/wP8BHrC3DQabFPxAAAAAASUVORK5CYII="
+                                                        onClick={() => 
+                                                            window.open(`https://moonbase.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`, '_blank')
+                                                        }
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <ul className="flex rounded justify-center">
+                                {
+                                    pages.map((e) => {
+                                        return <li>
+                                            <a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${currentPage === e + 1 ? ' font-medium': 'none'} `} onClick={() => setCurrentPage(e+1)}>
+                                                {e + 1}
+                                            </a>
+                                        </li>
+                                    })
+                                }
+                            </ul>
+                        </div> 
+                        :
+                        <div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">
+                            No Trade History
+                        </div> 
+                        
+                        
+                    }
+                </div>
+                <div className="flex flex-col bg-gray-700 rounded-lg px-4 max-w-sm mb-4 min-w-80 lg:min-h-max lg:mb-0">
+                    <div className="flex py-6 justify-between text-lg">
+                        <div className="font-bold">Total Asset</div>
+                        <div className="font-bold">{formatCurrency(totalAssets, 4)} $</div>
                     </div>
                     {
                         balances.length > 0 && 
                         <>
-                            <div className="border border-gray-500 mx-2 my-8"></div>
-                            <div className="">
+                            <div className="border border-gray-500"></div>
+                            <div className="py-5">
                                 <div className="flex">
                                     <div className="flex py-2 justify-between w-full">
                                         <div className="text-lg font-bold">Portfolio</div>
@@ -95,7 +198,9 @@ const Assets = () => {
                                         colorScale={chartColors}
                                         labelRadius={() => 90 }
                                         innerRadius={60}
+                                        labels={({datum}) => datum.y >= 5 ? `${datum.y}%` : ''}
                                         style={{ labels: { fill: "white", fontSize: 20 } }}
+                                        
                                     />
                                 </div>
                                 <div className="text-base">
@@ -109,40 +214,47 @@ const Assets = () => {
                                                 <div className="">{chartDatas[index]?.y}%</div>
                                             </div>
                                         </div>
-                                        : null
+                                        : <></>
                                     )}
                                 </div>
                             </div>
                         </>
                     }
-                </div>
-                <div className="mb-14 flex-1 bg-gray-700 rounded-lg p-4 lg:mb-0">
-                    {balances.length > 0 && balances.map(({currencyName, amount, balanceToUSD}, index) => 
-                        <div className="text-base font-semibold" key={index}>
-                            <div className="border border-gray-500 mx-2 my-8"></div>
-                            <div className="flex justify-between">
-                                <div className="">{currencyName}</div>
-                                <div className="flex flex-col">
-                                    <div className="text-right">
-                                        <span>{formatCurrency(amount, 6)}</span>
-                                        <span className="ml-1">{currencyName}</span>
+                    <div className="mb-14 flex-1 bg-gray-700 rounded-lg max-w-sm">
+                        {balances.length > 0 && balances.map(({currencyName, amount, balanceToUSD}, index) => 
+                            amount > 0n ?
+                            <div className="font-semibold" key={index}>
+                                <div className="border border-gray-500 my-5"></div>
+                                <div className="flex justify-between">
+                                    <div className="flex">
+                                        <img className="w-6 h-6 pr-1" src={`/images/currencies/${currencyName}.svg`} alt="currencies"></img>     
+                                        <span className="pl-1 text-base font-medium"> {currencyName}</span>
                                     </div>
-                                    <div className="text-gray-600 text-right font-light">
-                                        Holding Quantity
-                                    </div>
-                                    <div className="text-right pt-4">
-                                        <span>{formatCurrency(balanceToUSD, 4)}</span>
-                                        <span className="ml-1">$</span>
-                                    </div>
-                                    <div className="text-gray-600 text-right font-light">
-                                        Evaluation Amount
+                                    
+                                    <div className="flex flex-col leading-none">
+                                        <div className="font-medium text-gray-300 text-right">
+                                            Holding Quantity
+                                        </div>
+                                        <div className="text-right text-base mt-1">
+                                            <span>{formatCurrency(amount, 6)}</span>
+                                            <span className="ml-1">{currencyName}</span>
+                                        </div>
+                                        <div className="font-medium text-gray-300 text-right pt-5">
+                                            Evaluation Amount
+                                        </div>
+                                        <div className="text-right text-base mt-1">
+                                            <span>{formatCurrency(balanceToUSD, 4)}</span>
+                                            <span className="ml-1">$</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                            :
+                            <></>
+                        )}
+                    </div>
                 </div>
-            </div>}
+            </div>
         </>
     )
 }

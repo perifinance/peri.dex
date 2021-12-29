@@ -4,22 +4,47 @@ import { RootState } from 'reducers';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartRates } from 'lib/thegraph/api'
-
+import { dateFormat, formatCurrency } from 'lib'
+import { utils } from 'ethers'
 const Chart = () => {
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [chartTime, setChartTime] = useState('24H');
     const [data, setData] = useState([]);
     const [currencyNames, setCurrencyNames] = useState<{source: String, destination: String}>();
-    
+    const [prices, setPrices] = useState<{
+        price?: string;
+        low?: string;
+        high?: string;
+        formatPrice?: string;
+        formatLow?: string;
+        formatHigh?: string;
+        timestamp?: number;
+        time?: string;
+    }>({});
+
     const init = useCallback(async() => {    
         const chartRate = await getChartRates(
             {
                 currencyNames,
                 chartTime,
             }); 
-            console.log(chartRate[0])
         setData(chartRate);
+        setPrices({...chartRate[chartRate.length - 1]})
     },[currencyNames, chartTime]);
+
+    const formatPrice = (e) => {
+        if(!isFinite(e)) {
+            return '0';
+        }
+        
+        return formatCurrency(utils.parseEther((e).toString()).toBigInt(), 8); 
+    }
+
+    const setPrice = (payload) => {
+        if(payload && payload[0] && payload[0].payload) {
+            setPrices(payload[0].payload)
+        }
+    } 
 
     useEffect(() => {
         if(selectedCoins.source.symbol && selectedCoins.destination.symbol) {
@@ -46,33 +71,61 @@ const Chart = () => {
     
     return (
         
-        <div className="w-full bg-gray-700 rounded-lg p-4 lg:h-96 lg:px-6 lg:py-7">
+        // 
+        <div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
             <div className="flex flex-col lg:justify-end">
-                <div className="flex space-x-8">
-                    <div className="relative">
-                        <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`} alt="currencies"></img>
-                        <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`} alt="currencies"></img>
+                <div className="flex space-x-5">
+                    <div className="relative mt-1">
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`} alt="currencies"></img>
+                        <img className="w-6 h-6 absolute bottom-1 left-4" src={`/images/currencies/${selectedCoins.source.symbol}.svg`} alt="currencies"></img>
                     </div>
-                    <div className="text-xl">
-                        {selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
+                    <div className="flex justify-between w-full">
+                        <div className="text-xl font-medium">
+                            {selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
+                        </div>
+
+                        <div className="flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
+                            <span className={chartTime === '24H' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('24H')}>24H</span>
+                            <span className={chartTime === '3D' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('3D')}>3D</span>
+                            <span className={chartTime === '1W' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('1W')}>1W</span>
+                            <span className={chartTime === '1M' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('1M')}>1M</span>
+                        </div>     
                     </div>
                 </div>
+
+                <div className="text-xl font-medium text-skyblue-500">
+                    {prices?.formatPrice} {selectedCoins.source.symbol}
+                </div>
                 {/* <div>{ formatCurrency(exchangeRates, 8)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div> */}
-                <div className="lg:h-60 h-60 mt-8">
-                <ResponsiveContainer>
+                <div className="text-xs">
+                <ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={'15rem'}>
                     <AreaChart data={data}
-                        margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.5}/>
                                 <stop offset="95%" stopColor="#FFFFFF" stopOpacity={1}/>
-                                
                             </linearGradient>
                         </defs>
-                        <Tooltip labelStyle={{color: "transparent"}} contentStyle={{background: "transparent", borderColor: "transparent", color: "#151515"}} itemStyle={{color: "#000000"}}>
+                        <Tooltip labelStyle={{color: "transparent"}} 
+                            contentStyle={{background: "transparent", borderColor: "transparent", color: "#151515"}} itemStyle={{color: "#000000"}}
+                            position={{y: 0}}
+                            content={({ active, payload, label }) => { setPrice(payload); return payload && 
+                                <div className="bg-gray-300 p-2">
+                                    <div><span className="">high</span>: {payload[0]?.payload?.formatHigh}</div>
+                                    <div><span className="">price</span>: {payload[0]?.payload?.formatPrice}</div>
+                                    <div><span className="">low</span>: {payload[0]?.payload?.formatLow}</div>
+                                    <div>{dateFormat(payload[0]?.payload?.timestamp)}</div>
+                                </div>
+                            }
+                            
+                        }
+                        >
+                        
                         </Tooltip>
+                        
                         <XAxis dataKey="time"/>
-                        <YAxis type="number" domain={[dataMin => dataMin, dataMax => dataMax]} hide={true}/>
+                        <YAxis dataKey="price" domain={['dataMin', 'dataMax']} tickFormatter={(e)=>formatPrice(e)} hide={true}/>
 
                         {/* 라인 */}
                         
@@ -81,12 +134,12 @@ const Chart = () => {
                     </AreaChart>
                 </ResponsiveContainer>
                 </div>
-                <div className="flex justify-between text-lg text-gray-300 font-extrabold lg:justify-end lg:space-x-4">
-                    <button className={chartTime === '24H' && `text-white`} onClick={() => setChartTime('24H')}>24H</button>
-                    <button className={chartTime === '3D' && `text-white`} onClick={() => setChartTime('3D')}>3D</button>
-                    <button className={chartTime === '1W' && `text-white`} onClick={() => setChartTime('1W')}>1W</button>
-                    <button className={chartTime === '1M' && `text-white`} onClick={() => setChartTime('1M')}>1M</button>
-                </div>     
+                <div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
+                    <span className={chartTime === '24H' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('24H')}>24H</span>
+                    <span className={chartTime === '3D' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('3D')}>3D</span>
+                    <span className={chartTime === '1W' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('1W')}>1W</span>
+                    <span className={chartTime === '1M' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('1M')}>1M</span>
+                </div> 
             </div>
         </div>
         

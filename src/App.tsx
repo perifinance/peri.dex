@@ -48,37 +48,34 @@ const App = () => {
                     if (wallet.provider) {
                         contracts.wallet = wallet;
                         localStorage.setItem('selectedWallet', wallet.name);
+                    } else {
+                        contracts.clear();
                     }
                 },
                 address:async (newAddress) => {
                     if(newAddress) {
-                        if(SUPPORTED_NETWORKS[onboard.getState().network]) {
-                            contracts.connect(newAddress);
-                            dispatch(clearBalances());
-                            dispatch(updateAddress({address: newAddress}));                    
-                            dispatch(updateIsConnect(true));
-                        } else {
-                            onboard.walletReset();
-                        }
+                        contracts.connect(newAddress);
+                        dispatch(updateIsConnect(true));
+                        dispatch(updateAddress({address: newAddress}));
                     }
                 },
                 network: async (network) => {
                         if(network) {
+                            contracts.init(network);
+                            onboard.config({ networkId: network });
+                            
+                            dispatch(updateNetwork({networkId: network}));
                             if(SUPPORTED_NETWORKS[network]) {
-                                contracts.init(network);                    
-                                onboard.config({ networkId: network });
-                                dispatch(updateNetwork({networkId: network}));
                                 contracts.connect(address);
                             } else {
-                                NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
-                                onboard.walletReset();
-                                onboard.config({ networkId: network });
+                                // NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+                                // onboard.walletReset();
+                                // onboard.config({ networkId: network });
                                 dispatch(updateNetwork({networkId: network}));
-                                dispatch(updateIsConnect(false));
-                                localStorage.removeItem('selectedWallet');
-                                dispatch(clearWallet());
-                                dispatch(clearBalances());
-                                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
+                                // dispatch(updateIsConnect(false));
+                                // localStorage.removeItem('selectedWallet');
+                                // dispatch(clearWallet());
+                                // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
                             }
                         }
                     },
@@ -121,7 +118,7 @@ const App = () => {
         if(transaction.hash) {
             
             getState();
-            NotificationManager.info(transaction.message, 'In progress', 0);
+            NotificationManager.info(transaction.message, 'In progress', 1000000);
         }
     }, [getState, transaction])
 
