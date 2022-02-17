@@ -47,11 +47,11 @@ const Chart = () => {
     } 
 
     useEffect(() => {
-        if(selectedCoins.source.symbol && selectedCoins.destination.symbol) {
+        if(selectedCoins.source.name && selectedCoins.destination.name) {
             setCurrencyNames ( 
                 {
-                    source: selectedCoins.source.symbol,
-                    destination: selectedCoins.destination.symbol
+                    source: selectedCoins.source.name,
+                    destination: selectedCoins.destination.name
                 }
             )
         } 
@@ -76,8 +76,8 @@ const Chart = () => {
             <div className="flex flex-col lg:justify-end">
                 <div className="flex space-x-5">
                     <div className="relative mt-1">
-                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`} alt="currencies"></img>
-                        <img className="w-6 h-6 absolute bottom-1 left-4" src={`/images/currencies/${selectedCoins.source.symbol}.svg`} alt="currencies"></img>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.png`} alt="currencies"></img>
+                        <img className="w-6 h-6 absolute bottom-1 left-4" src={`/images/currencies/${selectedCoins.source.symbol}.png`} alt="currencies"></img>
                     </div>
                     <div className="flex justify-between w-full">
                         <div className="text-xl font-medium">
@@ -126,7 +126,7 @@ const Chart = () => {
                         </Tooltip>
                         
                         <XAxis dataKey="time"/>
-                        <YAxis dataKey="price" domain={['dataMin', 'dataMax']} tickFormatter={(e)=>formatPrice(e)} hide={true}/>
+                        <YAxis dataKey="price" domain={['datamin', 'dataMax']} tickFormatter={(e)=>formatPrice(e)} hide={true}/>
 
                         {/* 라인 */}
                         

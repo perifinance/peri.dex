@@ -11,6 +11,7 @@ import { getNetworkPrice } from 'lib/price';
 
 import { utils } from 'ethers';
 import pynths from 'configure/coins/bridge'
+const ableNetworks = JSON.parse(process.env.REACT_APP_BRIDGE_NETWORKS);
 
 const Submit = ({}) => {
     const dispatch = useDispatch();
@@ -46,9 +47,10 @@ const Submit = ({}) => {
             PERI: 'PeriFinance',
             pUSD: 'pUSD'
         }
+        const signMessage = await contracts.signer.signMessage(utils.parseEther(payAmount).toString());
         try {
             gasLimit = BigInt((await contracts.signers[contractName[selectedCoin.name]].estimateGas.overchainTransfer(
-                utils.parseEther(payAmount), selectedToNetwork.id,
+                utils.parseEther(payAmount), selectedToNetwork.id, signMessage,
                 {value: (await getBridgeTransferGasCost()).toString()}
             )));
         } catch(e) {
@@ -114,8 +116,8 @@ const Submit = ({}) => {
         const PERIbalances = await (getBalancesNetworks(networks, address, 'ProxyERC20'));
         const networksAddBalances = networks.map((e, i) => {
             return {...e, balance: {
-                pUSD: BigInt(pUSDBalances[i]),
-                PERI: BigInt(PERIbalances[i]),
+                pUSD: BigInt(pUSDBalances[i] ? pUSDBalances[i] : 0n),
+                PERI: BigInt(PERIbalances[i] ? PERIbalances[i] : 0n),
             }}
         });
         setNetworks(networksAddBalances);
@@ -139,7 +141,8 @@ const Submit = ({}) => {
             setSelectedCoin(pynths[0]);
             initBalances();
         } else {
-            let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+            
+            let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => ableNetworks.includes(Number(e))).map(e => {
                 return {name: SUPPORTED_NETWORKS[e], id: Number(e), balance: {
                     pUSD: BigInt(0),
                     PERI: BigInt(0),
@@ -152,7 +155,7 @@ const Submit = ({}) => {
     }, [isConnect, initBridge, address]);
 
     useEffect(() => {
-        let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+        let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => ableNetworks.includes(Number(e))).map(e => {
             return {name: SUPPORTED_NETWORKS[e], id: Number(e), balance: {
                 pUSD: BigInt(0),
                 PERI: BigInt(0),
@@ -225,7 +228,7 @@ const Submit = ({}) => {
                         </div>
                         <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isToNetworkList ? 'block' : 'hidden'} z-10`}>
                             <ul className="list-reset">
-                                {networks.filter(e=> selectedFromNetwork?.id !== 1287 ? e.id === 1287 : e.id !== 1287).map(network => 
+                                {networks.filter(e=> selectedFromNetwork?.id !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID) ? e.id === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID) : e.id !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)).map(network => 
                                     (<li onClick={ () => {setSelectedToNetwork(network); setIsToNetworkList(false)}}><p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedToNetwork?.name === network?.name && 'bg-black-900'}`}>
                                         {network?.name}
                                     </p></li>)
@@ -244,7 +247,7 @@ const Submit = ({}) => {
                 <div className="flex rounded-l-md rounded-r-none lg:rounded-md bg-black-900 text-base p-2 space-x-4 justify-between lg:w-5/12">
                     <div className="relative">
                         <div className="flex font-medium cursor-pointer items-center" onClick={() => setIsCoinList(!isCoinList)}>
-                            <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
+                            <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.png`}></img>
                             <div className="m-1">{selectedCoin?.name}</div>
                             <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                         </div>
@@ -254,7 +257,7 @@ const Submit = ({}) => {
                                 {pynths.map(coin => 
                                     (<li onClick={ () => {setSelectedCoin(coin); setIsCoinList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && 'bg-black-900'}`}>
                                         
-                                        <img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
+                                        <img className="w-6 h-6" src={`/images/currencies/${coin?.name}.png`}></img>
                                         {coin?.name}
                                         
                                     </p></li>)

@@ -72,7 +72,7 @@ const OrderHistories = ({}) => {
                                             <td className="text-center"><span>{e.date}</span></td>
                                             <td className="text-center">
                                                 <div className="flex justify-end left">
-                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.svg`} alt="currencies"></img> 
+                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.png`} alt="currencies"></img> 
                                                     {formatCurrency(e.amountReceived, 8)} 
                                                     <span className="pl-1 font-medium"> {e.dest}</span>
                                                 </div>
@@ -80,7 +80,7 @@ const OrderHistories = ({}) => {
                                             
                                             <td className="text-center">
                                                 <div className="flex justify-end left">
-                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.svg`} alt="currencies"></img> 
+                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.png`} alt="currencies"></img> 
                                                     {formatCurrency(e.amount, 8)} 
                                                     <span className="pl-1 font-medium"> {e.src}</span>
                                                 </div>

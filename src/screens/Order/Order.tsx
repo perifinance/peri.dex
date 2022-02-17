@@ -43,15 +43,17 @@ const Order = ({openCoinList}) => {
             const rates = await (async() => {
                 const rates = await Promise.all(
                     [
-                        getLastRates({currencyName: selectedCoins.source.symbol}), 
-                        getLastRates({currencyName: selectedCoins.destination.symbol})
+                        getLastRates({currencyName: selectedCoins.source.name}), 
+                        getLastRates({currencyName: selectedCoins.destination.name})
                     ]);
                     
                 return Object.assign(...rates);
             })()
-            const sourceRate = rates[selectedCoins.source.symbol]
-            const destinationRate = rates[selectedCoins.destination.symbol]
-
+            const sourceRate = rates[selectedCoins.source.name]
+            console.log(sourceRate)
+            const destinationRate = rates[selectedCoins.destination.name]
+            console.log(destinationRate)
+            
             const exchangeRates = destinationRate * 10n ** 18n / sourceRate;
             setSourceRate(sourceRate);
             setExchangeRates(exchangeRates);
@@ -288,8 +290,8 @@ const Order = ({openCoinList}) => {
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
                 <div className="flex space-x-8 py-2 items-center">
                     <div className="relative">
-                        <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
-                        <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
+                        <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.png`}></img>
+                        <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.png`}></img>
                     </div>
                     <div className="text-xl font-medium">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
                     
@@ -303,7 +305,7 @@ const Order = ({openCoinList}) => {
                 {/* ${isError && 'border border-red-500'} */}
                 <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
                     <div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList('source')}>
-                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.png`}></img>
                         <div className="m-1">{selectedCoins.source.symbol}</div>
                         <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                     </div>    
@@ -325,7 +327,7 @@ const Order = ({openCoinList}) => {
                 
                 <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
                     <div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList('destination')}>
-                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.png`}></img>
                         <span className="m-1">{selectedCoins.destination.symbol}</span>
                         <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                     </div>

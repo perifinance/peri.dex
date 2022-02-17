@@ -59,7 +59,7 @@ const CoinList = ({coinListType, selectedCoin}) => {
                     <div className="mb-4">
                         <div className="relative text-center mb-4 ml-4">
                             <button type="button" className="absolute top-0 bottom-0 block" onClick={() => selectedCoin()}>
-                                <img src="images/icon/left_arrow.svg" alt="left_arrow"></img>
+                                <img src="/images/icon/left_arrow.svg" alt="left_arrow"></img>
                             </button>
                             <div className="text-lg">
                                 Select a token
@@ -89,7 +89,7 @@ const CoinList = ({coinListType, selectedCoin}) => {
                                     )
                                 })}                                    
                             </div>
-                            <img className="w-4 h-4 my-auto cursor-pointer" onClick={() => setIsFavoriteFilter(!isFavoriteFilter)} src={`images/icon/bookmark_${isFavoriteFilter ? 'on': 'off'}.svg`} alt="bookmark"></img>
+                            <img className="w-4 h-4 my-auto cursor-pointer" onClick={() => setIsFavoriteFilter(!isFavoriteFilter)} src={`/images/icon/bookmark_${isFavoriteFilter ? 'on': 'off'}.svg`} alt="bookmark"></img>
                         </div>
 
                         <div className="py-3 text-sm">
@@ -97,9 +97,9 @@ const CoinList = ({coinListType, selectedCoin}) => {
                                 return (
                                     <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2 ${selectedCoins[coinListType].id === coin.id && 'bg-black-900'}`} onClick={ () => selectedCoins[coinListType].id !== coin.id && selectedCoin(coin)}>
                                         <div onClick={ (e) => {setFavorite(coin); e.stopPropagation();}}>
-                                            <img className="w-6 h-6" src={`images/icon/bookmark_${coin.favorite ? 'on': 'off'}.svg`} alt="favorite"></img>
+                                            <img className="w-6 h-6" src={`/images/icon/bookmark_${coin.favorite ? 'on': 'off'}.svg`} alt="favorite"></img>
                                         </div>
-                                        <img className="w-6 h-6 mx-2" src={`images/currencies/${coin.symbol}.svg`} alt="network"/>
+                                        <img className="w-6 h-6 mx-2" src={`/images/currencies/${coin.symbol}.png`} alt="network"/>
                                         <div className="flex-grow font-medium px-2">{coin.symbol}</div>
                                         <div className="text-sm font-normal text-gray-300 tracking-wide">{coin.name}</div>
                                     </div>

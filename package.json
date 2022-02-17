@@ -27,6 +27,7 @@
     "bnc-onboard": "^1.34.2",
     "chart.js": "^3.5.1",
     "date-fns": "^2.21.1",
+    "env-cmd": "^10.1.0",
     "ethers": "^5.4.1",
     "graphql": "^16.0.1",
     "graphql-request": "^3.6.1",
@@ -55,15 +56,15 @@
     "webpack": "^4.46.0"
   },
   "scripts": {
-    "start": "craco start max-old-space-size=4096",
-    "build": "craco build",
+    "start": "env-cmd -f .env.development craco start max-old-space-size=4096",
+    "build": "env-cmd -f .env.production craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "e2e": "cypress open",
-    "deploy": "npm run build && npm run deploy-s3 && npm run invalidate",
+    "deploy": "env-cmd -f .env.production npm run build && npm run deploy-s3 && npm run invalidate",
     "deploy-s3": "aws s3 sync ./build s3://peri.dex --profile=peri.dex-deploy-s3",
     "invalidate": "aws cloudfront create-invalidation --profile=peri.dex-deploy-s3 --distribution-id E3ARBWK49O8ACV --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico",
-    "test-deploy": "npm run build && npm run test-deploy-s3 && npm run test-invalidate",
+    "test-deploy": "env-cmd -f .env.development npm run build && npm run test-deploy-s3 && npm run test-invalidate",
     "test-deploy-s3": "aws s3 sync ./build s3://test.peri.dex --profile=test.peri.dex-deploy-s3",
     "test-invalidate": "aws cloudfront create-invalidation --profile=test.peri.dex-deploy-s3 --distribution-id E1J301CCQZX4DX --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico"
   },

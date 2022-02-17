@@ -3,7 +3,6 @@ import { ethers, providers } from 'ethers'
 import ERC20 from '../contract/abi/ERC20.json'
 import { RPC_URLS } from '../rpcUrl'
 import perifinance from '@perifinance/peri-finance'
-import { clear } from 'console'
 
 const naming = {
     ExchangeRates: 'ExchangeRates',
@@ -44,6 +43,7 @@ type Contracts = {
     init: (networkId: number) => void
     connect: (address:string) => void
     clear: () => void
+    signer?: any
     signers?: {
         Exchanger?: any
         ExchangeRates?: any
@@ -58,6 +58,7 @@ export const contracts: Contracts = {
     networkId: null,
     wallet: null,
     signers: {},
+    signer: {},
     init(networkId) {
         try{
             if(networkId) {
@@ -91,7 +92,6 @@ export const contracts: Contracts = {
     connect(address) {
         try{
             this.signer = new providers.Web3Provider(this.wallet.provider).getSigner(address);
-            
             Object.keys(this.addressList).forEach(name => {
                 if(naming[name]) {
                     const source = typeof naming[name] === 'string' ? this.sources[naming[name]] : this.sources[naming[name][this.networkId]]

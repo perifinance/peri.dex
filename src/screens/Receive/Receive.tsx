@@ -9,7 +9,7 @@ import { getNetworkPrice } from 'lib/price';
 import { changeNetwork } from 'lib/network'
 
 import pynths from 'configure/coins/bridge'
-
+const ableNetworks = JSON.parse(process.env.REACT_APP_BRIDGE_NETWORKS);
 const Receive = ({}) => {
     const dispatch = useDispatch();
     const { isReady } = useSelector((state: RootState) => state.app);
@@ -25,7 +25,8 @@ const Receive = ({}) => {
     const [gasPrice, setGasPrice] = useState(0n);
 
     const setNetwork = async () => {
-        const networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+        
+        const networks = Object.keys(SUPPORTED_NETWORKS).filter(e => ableNetworks.includes(Number(e))).map(e => {
             return {name: SUPPORTED_NETWORKS[e], id: Number(e)}
         });
         setNetworks(networks);
@@ -48,7 +49,10 @@ const Receive = ({}) => {
                 }));
             });
             let promiseData = await Promise.all(datas);
-            let returnValue = {97: 0n, 1287: 0n, 80001: 0n}
+            let returnValue = {};
+            ableNetworks.forEach(e => {
+                returnValue[e] = 0n
+            });
             
             promiseData.forEach(data => {
                 if(returnValue[data.chainId]) {
@@ -137,7 +141,10 @@ const Receive = ({}) => {
     useEffect(() => {
         setNetwork();
         setSelectedCoin({id: 0, name: 'pUSD'});
-        let returnValue = {97: 0n, 1287: 0n, 80001: 0n};
+        let returnValue = {};
+        ableNetworks.forEach(e => {
+            returnValue[e] = 0n
+        });
         setReceiveDatas(returnValue);
     }, [])
 
@@ -196,7 +203,7 @@ const Receive = ({}) => {
                         <div className="flex justify-between items-center rounded-md bg-black-900 text-base">
                             <div className="relative">
                                 <div className="flex p-3 font-semibold cursor-pointer" onClick={() => setIsCoinList(!isCoinList)}>
-                                    <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
+                                    <img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.png`}></img>
                                     <div className="mx-1">{selectedCoin?.name}</div>
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -206,7 +213,7 @@ const Receive = ({}) => {
                                         <ul className="list-reset">
                                             {pynths.map(coin => 
                                                 (<li onClick={ () => {setSelectedCoin(coin); setIsCoinList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && 'bg-black-900'}`}>
-                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
+                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.name}.png`}></img>
                                                     {coin?.name}
                                                 </p></li>)
                                             )}

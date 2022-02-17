@@ -30,11 +30,17 @@ export default {
         rpcUrls: 'https://rpc-mainnet.maticvigil.com',
         blockExplorerUrls: 'https://explorer.matic.network/',
     },
+    1285: {
+        chainId: '0x505',
+        chainName: 'Moonriver',
+        rpcUrls: 'https://rpc.moonriver.moonbeam.network',
+        blockExplorerUrls: 'https://moonbase-blockscout.testnet.moonbeam.network/',
+    },
     1287: {
         chainId: '0x507',
         chainName: 'moonbase-alphanet',
         rpcUrls: 'https://rpc.testnet.moonbeam.network',
-        blockExplorerUrls: 'https://moonbase-blockscout.testnet.moonbeam.network/',
+        blockExplorerUrls: 'https://moonriver.moonscan.io/',
     },
     80001: {
         chainId: '0x13881',

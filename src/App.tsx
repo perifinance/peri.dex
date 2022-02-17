@@ -1,17 +1,14 @@
 import { useEffect, useCallback } from 'react'
 import { useSelector, useDispatch } from "react-redux"
 import { NotificationContainer, NotificationManager } from 'react-notifications';
-import { getLastRates, getBalances } from 'lib/thegraph/api'
 import { RootState } from 'reducers'
 import detectEthereumProvider from '@metamask/detect-provider';
 
 import { updateAddress, updateNetwork, updateIsConnect } from 'reducers/wallet'
-import { clearWallet, clearBalances } from 'reducers/wallet'
 import { resetTransaction } from 'reducers/transaction'
 import { initCoinList } from 'reducers/coin/coinList'
 import { setSourceCoin, setDestinationCoin } from 'reducers/coin/selectedCoin'
 import { setAppReady } from 'reducers/app'
-import { changeNetwork } from 'lib/network'
 
 import { SUPPORTED_NETWORKS } from 'lib/network'
 import { InitOnboard, onboard } from 'lib/onboard/onboard'
@@ -135,7 +132,7 @@ const App = () => {
                 const coinList = getCoinList(networkId);
                 dispatch(initCoinList(coinList));
                 dispatch(setSourceCoin(coinList[0]));
-                dispatch(setDestinationCoin(coinList[1]));
+                dispatch(setDestinationCoin(coinList.find(e=>e.symbol === 'pBTC')));
             } catch(e) {
         }
                 

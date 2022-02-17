@@ -216,7 +216,7 @@ const Assets = () => {
                                         <div className="flex">
                                             {searchOptions?.dest ?
                                                 <>
-                                                    <img className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.svg`}></img>
+                                                    <img className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.png`}></img>
                                                     <div className="m-1">{searchOptions?.dest}</div>
                                                 </> :
                                                 <div className="text-gray-300">Received</div>
@@ -232,7 +232,7 @@ const Assets = () => {
                                             {pynths[networkId]?.map(coin => 
                                                 (<li onClick={ () => {setSearchOptions({...searchOptions, dest: coin.symbol}); setIsSrcCoinList(false)}}>
                                                     <p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.dest === coin?.symbol && 'bg-black-900'}`}>
-                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
+                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.png`}></img>
                                                     <div className="m-1">{coin?.symbol}</div>
                                                 </p></li>)
                                             )}
@@ -245,7 +245,7 @@ const Assets = () => {
                                         <div className="flex">
                                             {searchOptions?.src ?
                                                 <>
-                                                    <img className="w-6 h-6" src={`/images/currencies/${searchOptions?.src}.svg`}></img>
+                                                    <img className="w-6 h-6" src={`/images/currencies/${searchOptions?.src}.png`}></img>
                                                     <div className="m-1">{searchOptions?.src}</div>
                                                 </> : 
                                                 <div className="text-gray-300">Paid</div>
@@ -262,7 +262,7 @@ const Assets = () => {
                                                 (<li onClick={ () => {setSearchOptions({...searchOptions, src: coin.symbol}); setIsDestCoinList(false)}}>
                                                     <p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.src === coin?.symbol && 'bg-black-900'}`}>
                                                     
-                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
+                                                    <img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.png`}></img>
                                                     <div className="m-1">{coin?.symbol}</div>
                                                 </p></li>)
                                             )}
@@ -322,7 +322,7 @@ const Assets = () => {
                                                 <td className="text-center"><span>{e.date}</span></td>
                                                 <td className="text-center">
                                                     <div className="flex justify-end left">
-                                                        <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.svg`} alt="currencies"></img> 
+                                                        <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.png`} alt="currencies"></img> 
                                                         {formatCurrency(e.amountReceived, 8)} 
                                                         <span className="pl-1 font-medium"> {e.dest}</span>
                                                     </div>
@@ -330,7 +330,7 @@ const Assets = () => {
                                                 
                                                 <td className="text-center">
                                                     <div className="flex justify-end left">
-                                                        <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.svg`} alt="currencies"></img> 
+                                                        <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.png`} alt="currencies"></img> 
                                                         {formatCurrency(e.amount, 8)} 
                                                         <span className="pl-1 font-medium"> {e.src}</span>
                                                     </div>
@@ -419,7 +419,7 @@ const Assets = () => {
                                 <div className="border border-gray-500 my-5"></div>
                                 <div className="flex justify-between">
                                     <div className="flex">
-                                        <img className="w-6 h-6 pr-1" src={`/images/currencies/${currencyName}.svg`} alt="currencies"></img>     
+                                        <img className="w-6 h-6 pr-1" src={`/images/currencies/${currencyName}.png`} alt="currencies"></img>     
                                         <span className="pl-1 text-base font-medium"> {currencyName}</span>
                                     </div>
                                     

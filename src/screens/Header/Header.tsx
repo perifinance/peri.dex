@@ -27,12 +27,13 @@ const Header = () => {
 
     const getNetworkName = (networkId) => {
         let returnValue;
+        console.log()
         switch (networkId) {
             case 97: returnValue = 'BSCTEST'
                 break;
             case 80001: returnValue = 'MUMBAI'
                 break;
-            case 1287: returnValue = 'Mbase'
+            case Number(process.env.REACT_APP_DEFAULT_NETWORK_ID) : returnValue = process.env.REACT_APP_DEFAULT_NETWORK_ID === '1287' ? 'Mbase' : SUPPORTED_NETWORKS[process.env.REACT_APP_DEFAULT_NETWORK_ID]
                 break;
             default: returnValue = 'Wrong Network'
                 break;

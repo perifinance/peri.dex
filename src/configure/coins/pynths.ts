@@ -7,7 +7,6 @@ let pynths = {
             symbol: "pUSD",
             key: "USD",
             categories: [],
-            decimal: 18
         },
         {
             id: 1,
@@ -16,8 +15,6 @@ let pynths = {
             symbol: "pBTC",
             key: "BTC",
             categories: [],
-            priceFeedcContract: '0xD6B013A65C22C372F995864CcdAE202D0194f9bf',
-            decimal: 18
         }, {
             id: 2,
             favorite: false,
@@ -25,8 +22,6 @@ let pynths = {
             symbol: "pETH",
             key: "ETH",
             categories: [],
-            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
-            decimal: 18
         }, {
             id: 3,
             favorite: false,
@@ -34,8 +29,6 @@ let pynths = {
             symbol: "pBNB",
             key: "BNB",
             categories: [],
-            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
-            decimal: 18
         }, {
             id: 4,
             favorite: false,
@@ -43,8 +36,6 @@ let pynths = {
             symbol: "pLINK",
             key: "LINK",
             categories: [],
-            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
-            decimal: 18
         }, {
             id: 5,
             favorite: false,
@@ -52,10 +43,7 @@ let pynths = {
             symbol: "pDOT",
             key: "DOT",
             categories: [],
-            // priceFeedcContract: '0xE33691Ba3cF532D4025cF0f47679eFe430d4A618',
-            decimal: 18
         }
-        
     ],
     80001: [
         {
@@ -64,8 +52,7 @@ let pynths = {
             name: "USD",
             symbol: "pUSD",
             key: "USD",
-            categories: [],
-            decimal: 18
+            categories: [],  
         },
         {
             id: 1,
@@ -74,7 +61,6 @@ let pynths = {
             symbol: "pBTC",
             key: "BTC",
             categories: [],
-            decimal: 18
         }, {
             id: 2,
             favorite: false,
@@ -82,73 +68,193 @@ let pynths = {
             symbol: "pETH",
             key: "ETH",
             categories: [],
-            decimal: 18
         },
-        // {
-        //     id: 3,
-        //     favorite: false,
-        //     name: "Cardano",
-        //     symbol: "pADA",
-        // key: "ADA",
-        //     categories: [],
-        //     decimal: 18
-        // }, {
-        //     id: 4,
-        //     favorite: false,
-        //     name: "Binance Coin",
-        //     symbol: "pBNB",
-        // key: "BNB",
-        //     categories: [],
-        //     decimal: 18
-        // }, {
-        //     id: 5,
-        //     favorite: false,
-        //     name: "XRP",
-        //     symbol: "pXRP",
-        // key: "XRP",
-        //     categories: [],
-        //     decimal: 18
-        // }, {
-        //     id: 6,
-        //     favorite: false,
-        //     name: "Solana",
-        //     symbol: "pSOL",
-        // key: "SOL",
-        //     categories: ['Solana'],
-        //     decimal: 18
-        // }, {
-        //     id: 7,
-        //     favorite: false,
-        //     name: "Dogecoin",
-        //     symbol: "pDOGE",
-        // key: "DOGE",
-        //     categories: [],
-        //     decimal: 18
-        // }, {
-        //     id: 8,
-        //     favorite: false,
-        //     name: "Polkadot",
-        //     symbol: "pDOT",
-        // key: "DOT",
-        //     categories: ['Polkadot'],
-        //     decimal: 18
-        // }, {
-        //     id: 9,
-        //     favorite: false,
-        //     name: "Uniswap",
-        //     symbol: "pUNI",
-        // key: "UNI",
-        //     categories: ['DeFi'],
-        //     decimal: 18
-        // }, {
-        //     id: 10,
-        //     favorite: false,
-        //     name: "Chainlink",
-        //     symbol: "pLINK",
-        // key: "LINK",
-        //     categories: ['Polkadot'],
-        //     decimal: 18
-        // },
+    ],
+    1285: [
+        {
+            id: 0,
+            favorite: false,
+            name: "USD",
+            symbol: "pUSD",
+            key: "USD",
+            categories: [],  
+        },
+        {
+            id: 1,
+            favorite: false,
+            name: "1INCH",
+            symbol: "p1INCH",
+            key: "1INCH",
+            categories: [],  
+        },
+        {
+            id: 2,
+            favorite: false,
+            name: "AAVE",
+            symbol: "pAAVE",
+            key: "AAVE",
+            categories: [],  
+        },
+        {
+            id: 3,
+            favorite: false,
+            name: "ANKR",
+            symbol: "pANKR",
+            key: "ANKR",
+            categories: [],  
+        },
+        {
+            id: 4,
+            favorite: false,
+            name: "AVAX",
+            symbol: "pAVAX",
+            key: "AVAX",
+            categories: [],  
+        },
+        {
+            id: 5,
+            favorite: false,
+            name: "AXS",
+            symbol: "pAXS",
+            key: "AXS",
+            categories: [],  
+        },
+        {
+            id: 6,
+            favorite: false,
+            name: "BTC",
+            symbol: "pBTC",
+            key: "BTC",
+            categories: [],  
+        },
+        {
+            id: 7,
+            favorite: false,
+            name: "CAKE",
+            symbol: "pCAKE",
+            key: "CAKE",
+            categories: [],  
+        },
+        {
+            id: 8,
+            favorite: false,
+            name: "COMP",
+            symbol: "pCOMP",
+            key: "COMP",
+            categories: [],  
+        },
+        {
+            id: 9,
+            favorite: false,
+            name: "CRV",
+            symbol: "pCRV",
+            key: "CRV",
+            categories: [],  
+        },
+        {
+            id: 10,
+            favorite: false,
+            name: "DOGE",
+            symbol: "pDOGE",
+            key: "DOGE",
+            categories: [],  
+        },
+        {
+            id: 11,
+            favorite: false,
+            name: "DOT",
+            symbol: "pDOT",
+            key: "DOT",
+            categories: [],  
+        },
+        {
+            id: 12,
+            favorite: false,
+            name: "ETH",
+            symbol: "pETH",
+            key: "ETH",
+            categories: [],  
+        },
+        {
+            id: 13,
+            favorite: false,
+            name: "EUR",
+            symbol: "pEUR",
+            key: "EUR",
+            categories: [],  
+        },
+        {
+            id: 14,
+            favorite: false,
+            name: "LINK",
+            symbol: "pLINK",
+            key: "LINK",
+            categories: [],  
+        },
+        {
+            id: 15,
+            favorite: false,
+            name: "LUNA",
+            symbol: "pLUNA",
+            key: "LUNA",
+            categories: [],  
+        },
+        {
+            id: 16,
+            favorite: false,
+            name: "MKR",
+            symbol: "pMKR",
+            key: "MKR",
+            categories: [],  
+        },
+        {
+            id: 17,
+            favorite: false,
+            name: "SAND",
+            symbol: "pSAND",
+            key: "SAND",
+            categories: [],  
+        },
+        {
+            id: 18,
+            favorite: false,
+            name: "SNX",
+            symbol: "pSNX",
+            key: "SNX",
+            categories: [],  
+        },
+        {
+            id: 19,
+            favorite: false,
+            name: "SUSHI",
+            symbol: "pSUSHI",
+            key: "SUSHI",
+            categories: [],  
+        },
+        {
+            id: 20,
+            favorite: false,
+            name: "UNI",
+            symbol: "pUNI",
+            key: "UNI",
+            categories: [],  
+        },
+        {
+            id: 21,
+            favorite: false,
+            name: "XRP",
+            symbol: "pXRP",
+            key: "XRP",
+            categories: [],  
+        },
+        {
+            id: 22,
+            favorite: false,
+            name: "YFI",
+            symbol: "pYFI",
+            key: "YFI",
+            categories: [],  
+        },
     ]
 }
 
