@@ -12,7 +12,7 @@ const Bridge = () => {
     return (
         <div className="flex lg:space-x-4">
             {/* max-w-sm */}
-            <div className="hidden min-w-52 max-w-sm lg:block bg-black-500 py-10 pl-9 pr-4 rounded-lg">
+            <div className="hidden min-w-80 w-80 md:block lg:block bg-black-500 py-10 pl-9 pr-4 rounded-lg">
                 <div className="flex flex-col p-0 justify-items-start">
                     <div className="text-5xl" style={{'margin': '0 0 0 -4px'}}>BRIDGE</div>
                     <div className="text-base text-gray-300 py-4">Transfer your PERI assets to various chains with PERI Bridge. </div>

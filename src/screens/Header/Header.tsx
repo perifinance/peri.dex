@@ -37,7 +37,6 @@ const Header = () => {
             default: returnValue = 'Wrong Network'
                 break;
         }
-        console.log(returnValue);
         return returnValue;
     }
     
@@ -78,7 +77,7 @@ const Header = () => {
                             <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/futures' && 'text-blue-500'}`} to="/futures">PERPETUAL</Link>
                         </li> */}
                         <li className="text-xl font-bold inline m-4">
-                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/assets' && 'text-blue-500'} ${!isConnect && 'text-gray-500' }`} to="/assets">ASSETS</Link>
+                            <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === '/assets' && 'text-blue-500'}`} to="/assets">ASSETS</Link>
                         </li>
                         <li className="text-xl font-bold inline m-4">
                             <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname.includes('/bridge') && 'text-blue-500'}`} to="/bridge/submit">BRIDGE</Link>
@@ -135,7 +134,7 @@ const Header = () => {
                 {/* <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Futures
                 </Link> */}
-                <Link to="/assets" className={`block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white ${!isConnect && 'text-gray-500'}`}>
+                <Link to="/assets" className={`block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white`}>
                     Assets
                 </Link>
                 <Link to="/bridge" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">

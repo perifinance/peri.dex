@@ -266,8 +266,8 @@ const Submit = ({}) => {
                     <input className="w-2/3 bg-black-900 outline-none text-right font-medium" type="text" value={payAmount} onChange={(e) => changePayAmount(e.target.value)}/>
                     
                 </div>
-                <button className="bg-red-500 rounded-r-md px-2 lg:hidden" onClick={() => amountMax()}>M</button>
-                <button className="ml-4 bg-red-500 rounded-md px-2 hidden lg:block" onClick={() => amountMax()}>Max</button>
+                <button className="bg-blue-500 rounded-r-md px-2 lg:hidden" onClick={() => amountMax()}>M</button>
+                <button className="ml-4 bg-blue-500 rounded-md px-2 hidden lg:block" onClick={() => amountMax()}>Max</button>
             </div>
             
             <div className="pt-4">

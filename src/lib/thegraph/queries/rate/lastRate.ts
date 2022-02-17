@@ -17,7 +17,7 @@ export const lastRate = ({currencyName = undefined, skip = 0, first = 1}) => {
         }
     }
     return {
-        url: `ExchangeRates-Dev`,
+        url: `AccessControlledAggregator`,
         query: currencyName ? gql`
             query GetLastRates($currencyKey: String!, $skip: Int!, $first: Int!) {
                 lastRates(skip: $skip, first: $first, where: {currencyKey: $currencyKey}) {

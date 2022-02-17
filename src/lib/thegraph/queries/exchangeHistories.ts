@@ -1,9 +1,15 @@
 import { gql } from '@apollo/client'
 import { utils } from 'ethers'
-import { dateFormat } from 'lib/format'
-export const exchangeHistories = ({currencyName = undefined, address, page = 0, first = 100}) => {
-    const currencyKey = currencyName && utils.formatBytes32String(currencyName);
-    const skip = page * first;
+import { formatDate, formatTimestamp } from 'lib/format'
+export const exchangeHistories = ({address, page = 0, first = 100,
+}) => {
+    const variables = {
+        address, 
+        skip: page * first, 
+        first,
+    };
+
+
     const settledMap = (data) => {
         return {
             id: data.id,
@@ -19,8 +25,9 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
             exchangeFeeRate: BigInt(data.exchangeFeeRate),
             srcRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
             destRoundIdAtPeriodEnd: data.srcRoundIdAtPeriodEnd,
-            timestamp: dateFormat(data.timestamp),
-            state: data.state === 'settled' ? 'Success' : 'Proceeding',
+            timestamp: data.timestamp,
+            date: formatDate(data.timestamp),
+            state: data.state === 'settled' ? 'Settled' : 'Appended',
             appendedTxid: data.appendedTxid,
             settledTxid: data.settledTxid
         }
@@ -28,31 +35,21 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
     
     return {
         url: `Exchanger-Dev`,
-        query: currencyName ? gql`
-            query GetExchangeHistories($skip: Int!, $first: Int!, $address: String!) {
-                exchangeHistories(skip: $skip, first: $first, where: {account: $address}, orderBy: timestamp, orderDirection: desc) {
-                    id
-                    account
-                    src
-                    amount
-                    dest
-                    amountReceived
-                    exchangeFeeRate
-                    roundIdForSrc
-                    roundIdForDest
-                    reclaim
-                    rebate
-                    srcRoundIdAtPeriodEnd
-                    destRoundIdAtPeriodEnd
-                    timestamp
-                    state
-                    appendedTxid
-                    settledTxid
-                }
-            }
-        ` : gql`
-            query GetExchangeEntrySettleds($skip: Int!, $first: Int!, $address: String!) {
-                exchangeHistories(skip: $skip, first: $first, where: {account: $address}, orderBy: timestamp, orderDirection: desc) {
+        query: gql`
+            query GetExchangeEntrySettleds(
+                $skip: Int!
+                $first: Int!
+                $address: String!
+            ) {
+                exchangeHistories(
+                    
+                    skip: $skip, 
+                    first: $first, 
+                    where: {
+                        account: $address,
+                    }, 
+                    orderBy: timestamp, 
+                    orderDirection: desc) {
                     id
                     account
                     src
@@ -72,7 +69,7 @@ export const exchangeHistories = ({currencyName = undefined, address, page = 0, 
                     settledTxid
             }
         }`,
-        variables: {currencyKey, address, skip, first},
+        variables,
         mapping: ({data}) => {    
             return data.exchangeHistories.map((item) => {
                 return settledMap(item);

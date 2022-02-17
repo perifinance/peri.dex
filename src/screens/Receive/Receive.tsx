@@ -49,9 +49,10 @@ const Receive = ({}) => {
             });
             let promiseData = await Promise.all(datas);
             let returnValue = {97: 0n, 1287: 0n, 80001: 0n}
+            
             promiseData.forEach(data => {
                 if(returnValue[data.chainId]) {
-                    returnValue[data.chainId] = returnValue[data.chainId].amount + data.amount;
+                    returnValue[data.chainId] = returnValue[data.chainId] + data.amount;
                 } else {
                     returnValue[data.chainId] = data.amount;
                 }
@@ -71,6 +72,9 @@ const Receive = ({}) => {
         let gasLimit = 600000n;
         try {
             gasLimit = BigInt((await contracts.signers[contractName[selectedCoin.name]].estimateGas.claimAllBridgedAmounts({value: (await getBridgeClaimGasCost()).toString()})));
+            if(gasLimit) {
+                return 600000n;
+            }
         } catch(e) {
             return (gasLimit * 12n /10n);
         }
@@ -83,6 +87,7 @@ const Receive = ({}) => {
         const rate = await getNetworkPrice(networkId);
 
         setGasPrice(gasPrice);
+        
         setNetworkFeePrice(
             rate * gasPrice * gasLimit / 10n ** 9n
         )
@@ -138,10 +143,9 @@ const Receive = ({}) => {
 
     useEffect(() => {
         let setIntervals;
-        
-        if(selectedNetwork?.id === networkId && selectedCoin?.id && isConnect) {
+        if(selectedNetwork?.id === networkId && selectedCoin?.name && isConnect) {
             getInboundings();
-            setIntervals = setInterval(() => {getInboundings()}, 1000 * 60)
+            setIntervals = setInterval(() => {getInboundings()}, 1000 * 60);
         }
         return () => {
             clearInterval(setIntervals)
@@ -163,10 +167,10 @@ const Receive = ({}) => {
     }, [totalAmount, selectedNetwork, networkId, isConnect])
 
     return (
-        <div className="flex flex-col bg-gray-700 rounded-lg p-4">
+        <div className="flex flex-col bg-gray-700 rounded-lg p-4 overflow-hidden">
             <div className="w-full">
                 <div className="flex py-1">
-                    <div>Receive</div>
+                    <div>To</div>
                 </div>
             </div>
             <div className="w-full">
@@ -200,13 +204,10 @@ const Receive = ({}) => {
                                 </div>
                                 <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isCoinList ? 'block' : 'hidden'} z-10`}>
                                         <ul className="list-reset">
-
                                             {pynths.map(coin => 
                                                 (<li onClick={ () => {setSelectedCoin(coin); setIsCoinList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && 'bg-black-900'}`}>
-                                                    
                                                     <img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
                                                     {coin?.name}
-                                                    
                                                 </p></li>)
                                             )}
                                         </ul>
@@ -218,17 +219,17 @@ const Receive = ({}) => {
                 </div>
             </div>
             
-            <div className="flex flex-col my-5 text-base overflow-y-scroll w-full text-center border-gray-300 border-b-2 border-t-2">
+            <div className="flex flex-col my-5 text-base overflow-y-scroll text-center border-gray-300 border-b-2 border-t-2">
                 <div className="flex flex-row">
-                    <div className="font-medium bg-black-900 py-4 border-gray-300 min-w-52 w-full border-b">FromNetWork</div>
+                    <div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full border-b">From</div>
                     {Object.keys(receiveDatas).map(e => (
-                        <div className="border-gray-300 py-4 min-w-52 w-full border border-r-0">{SUPPORTED_NETWORKS[e]} </div>
+                        <div className="border-gray-300 py-4 min-w-36 w-full border border-r-0">{SUPPORTED_NETWORKS[e]} </div>
                     ))}
                 </div>
                 <div className="flex flex-row">
-                    <div className="font-medium bg-black-900 py-4 border-gray-300 min-w-52 w-full">Amount</div>
+                    <div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full">Amount</div>
                     {Object.values(receiveDatas).map(amount => (
-                        <div className="border-gray-300 py-4 min-w-52 w-full border border-r-0 border-t-0">{formatCurrency(amount,4)} <span className="font-medium pl-1">{selectedCoin?.name}</span></div>
+                        <div className="border-gray-300 py-4 min-w-36 w-full border border-r-0 border-t-0">{formatCurrency(amount,4)} <span className="font-medium pl-1">{selectedCoin?.name}</span></div>
                     ))}
                 </div>        
             </div>

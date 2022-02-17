@@ -1,5 +1,5 @@
 export const SUPPORTED_NETWORKS = {
-	// 1: 'MAINNET',
+	1: 'MAINNET',
 	// 3: 'ROPSTEN',
 	// 4: 'RINKEBY',
 	// 5: 'GOERLI',
@@ -8,5 +8,6 @@ export const SUPPORTED_NETWORKS = {
 	97: 'BSCTEST',
 	// 137: 'POLYGON',
 	1287: 'moonbase-alphanet',
-	80001: 'MUMBAI'
+	80001: 'MUMBAI',
+	1285: 'MOONRIVER'
 };

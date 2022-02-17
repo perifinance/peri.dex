@@ -5,6 +5,7 @@ export const get = ({url, query, mapping, variables, errorCallback}) => {
     const client = new ApolloClient({
         uri: API_URL + url,
         cache: new InMemoryCache(),
+        connectToDevTools: true
     });
     return client
     .query({

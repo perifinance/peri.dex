@@ -6,6 +6,16 @@ body {
 	font-family: 'Montserrat';
 }
 
+.left {
+	padding-right: 0;
+}
+
+@media (min-width: 1280px) {
+	.left {
+		padding-right: 25%;
+	}
+}
+
 .card-width {
 	width: 335px;
 	min-width: 335px;

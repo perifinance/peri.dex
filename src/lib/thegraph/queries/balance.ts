@@ -9,7 +9,7 @@ export const balance = ({currencyName, address, rate = 0n}) => {
         } catch (e){
             amount = 0n;
         }
-        console.log(data);
+        
         return {
             currencyName: currencyName,
             amount,

@@ -11,7 +11,7 @@ export const chartRate = ({currencyName, page = 0, first = 1000, searchDate = 0}
         }
     }
     return {
-        url: `ExchangeRates-Dev`,
+        url: `AccessControlledAggregator`,
         query: gql`
             query GetChartRates($currencyKey: String!, $skip: Int!, $first: Int!, $searchDate: Int!) {
                 chartRates(skip: $skip, first: $first, where: {currencyKey: $currencyKey, timestamp_gt: $searchDate}, orderBy: timestamp, orderDirection: asc) {

@@ -4,7 +4,7 @@ import { RootState } from 'reducers';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartRates } from 'lib/thegraph/api'
-import { dateFormat, formatCurrency } from 'lib'
+import { formatDate, formatCurrency } from 'lib'
 import { utils } from 'ethers'
 const Chart = () => {
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
@@ -84,7 +84,7 @@ const Chart = () => {
                             {selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
                         </div>
 
-                        <div className="flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
+                        <div className="hidden lg:flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
                             <span className={chartTime === '24H' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('24H')}>24H</span>
                             <span className={chartTime === '3D' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('3D')}>3D</span>
                             <span className={chartTime === '1W' ? `text-white cursor-pointer`: 'cursor-pointer'} onClick={() => setChartTime('1W')}>1W</span>
@@ -103,8 +103,8 @@ const Chart = () => {
                         margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.5}/>
-                                <stop offset="95%" stopColor="#FFFFFF" stopOpacity={1}/>
+                                <stop offset="5%" stopColor="#13DFFF" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#13DFFF" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
                         <Tooltip labelStyle={{color: "transparent"}} 
@@ -112,12 +112,13 @@ const Chart = () => {
                             position={{y: 0}}
                             content={({ active, payload, label }) => { setPrice(payload); return payload && 
                                 <div className="bg-gray-300 p-2">
-                                    <div><span className="">high</span>: {payload[0]?.payload?.formatHigh}</div>
-                                    <div><span className="">price</span>: {payload[0]?.payload?.formatPrice}</div>
-                                    <div><span className="">low</span>: {payload[0]?.payload?.formatLow}</div>
-                                    <div>{dateFormat(payload[0]?.payload?.timestamp)}</div>
+                                    <div><span className="">High</span>: {payload[0]?.payload?.formatHigh}</div>
+                                    <div><span className="">Price</span>: {payload[0]?.payload?.formatPrice}</div>
+                                    <div><span className="">Low</span>: {payload[0]?.payload?.formatLow}</div>
+                                    <div>{formatDate(payload[0]?.payload?.timestamp)}</div>
                                 </div>
                             }
+                            
                             
                         }
                         >
@@ -129,7 +130,7 @@ const Chart = () => {
 
                         {/* 라인 */}
                         
-                        <Area type="monotone" dataKey="price" stroke="#00F0FF" fill="#00F0FF"/>
+                        <Area type="monotone" dataKey="price" fillOpacity={1} stroke="#13DFFF" fill="url(#colorUv)"/>
                         
                     </AreaChart>
                 </ResponsiveContainer>
