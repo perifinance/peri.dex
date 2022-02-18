@@ -1,22 +1,26 @@
-# PERI.Staking
+# PERI.dex
 [![Discord](https://img.shields.io/discord/818411536900030486.svg?color=768AD4&label=discord&logo=https%3A%2F%2Fdiscordapp.com%2Fassets%2F8c9701b98ad4372b58f13fd9f65f966e.svg)](https://discord.com/channels/818411536900030486/)
 [![Twitter Follow](https://img.shields.io/twitter/follow/PERIFinance.svg?label=PERIfinance&style=social)](https://twitter.com/PERIfinance)
 [![Chat on Telegram](https://img.shields.io/badge/Join-Telegram-brightgreen.svg)](https://t.me/peri_global)  
-This is the code for the `PERI.Staking` dApp: "http://staking.peri.finance/"
-The dApp communicates with the [Peri Finance contracts](https://docs.peri.finance), allowing users to perform the following actions:
-- Mint (aka Issue) `pUSD` by locking `PERI` or `USDC`
-- Claim rewards of both `PERI` (inflation) 
-- Burn `pUSD` to unlock `PERI` and `USDC`
-- Transfer `PERI` to other accounts
+## Features of PERI Exchange
+
+PERI Exchange is a Pynths(PERI Synthetic Assets) derivative Decentralized Exchange(DEX) where users can trade a variety of financial assets. PERI Exchange offers spot trading as well as perpetual contract exchange, and users can invest Pynths for long or short positions with up to 20x leverage. PERI Finance will provide wide range of synthetic asset products over the traditional finance’s barrier. Users can participate trading various kinds of financial synthetic assets by staking PERI tokens on dApp.
+
+## Trading Pynths(PERI Synthetic assets)
+
+Various kinds of Pynths will be included such as a synthesized blockchain asset (pBTC, pETH, pBNB, etc), stocks(pTSLA, pGOOGL, pAMZN, etc), commodities (pXAU, pXAG, pWTI, etc.), inverse products(piBTC, piETH, piTSLA, piXAU, etc). Wide range of financial assets will provide to users by trade with the minted pUSD, and users don’t need to buy or hold the original assets.
+Zero-slippage with vAMM(Virtual Automated Market Maker)
+PERI Exchange doesn’t need any kind of bid/ask sheets, liquidity provider on trading perpetual futures swap. The vAMM determines Pynths’ trade price on the PERI Exchange based on fixed formula. Since PERI Exchange Pynths are not the real asset, so it doesn’t need any liquidity of vAMM, and amounts of collateral is stored on the smart contract vault. Collaterals are issued through the staking, so the total valued locked(TVL) on PERI Finance is the essential asset of trading pynths.
+
 ## In the future
 - Can claim rewards of `pUSD` (exchange fees) every week
 - Deposit (or withdrawl) `pUSD` into the `Depot` contract, to go in the queue for exchanging with `ETH` at current market price
-`PERI.Staking` supports the following wallet providers:
+`PERI.dex` supports the following wallet providers:
 - Metamask
-- Trezor (Coming soon)
-- Ledger (Coming soon)
-- Coinbase Wallet (Coming soon)
-![PERI.Staking](http://test.peri.finance/file/staking.png)
+- Trezor 
+- Ledger 
+- Coinbase Wallet 
+
 ## Available Scripts
 In the project directory, you can run:
 ### `npm start`
