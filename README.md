@@ -12,15 +12,6 @@ Various kinds of Pynths will be included such as a synthesized blockchain asset 
 Zero-slippage with vAMM(Virtual Automated Market Maker)
 PERI Exchange doesn’t need any kind of bid/ask sheets, liquidity provider on trading perpetual futures swap. The vAMM determines Pynths’ trade price on the PERI Exchange based on fixed formula. Since PERI Exchange Pynths are not the real asset, so it doesn’t need any liquidity of vAMM, and amounts of collateral is stored on the smart contract vault. Collaterals are issued through the staking, so the total valued locked(TVL) on PERI Finance is the essential asset of trading pynths.
 
-## In the future
-- Can claim rewards of `pUSD` (exchange fees) every week
-- Deposit (or withdrawl) `pUSD` into the `Depot` contract, to go in the queue for exchanging with `ETH` at current market price
-`PERI.dex` supports the following wallet providers:
-- Metamask
-- Trezor 
-- Ledger 
-- Coinbase Wallet 
-
 ## Available Scripts
 In the project directory, you can run:
 ### `npm start`
