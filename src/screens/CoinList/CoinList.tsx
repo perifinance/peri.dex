@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'reducers';
 import pynthsCategories from 'configure/coins/pynthsCategories'
@@ -7,7 +7,7 @@ import { updateCoin } from 'reducers/coin/coinList'
 const CoinList = ({coinListType, selectedCoin}) => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
-    const [seletedCategory, setSeletedCategory] = useState('All');
+    const [selectedCategory, setSelectedCategory] = useState('All');
     const [isFavoriteFilter, setIsFavoriteFilter] = useState(null);
     const [ filterCoinList, setFilterCoinList] = useState([]);
     const [ searchValue, setSearchValue] = useState('');
@@ -27,10 +27,10 @@ const CoinList = ({coinListType, selectedCoin}) => {
 
     useEffect(() => {
         let filterResult = coinList.slice();
-        if(seletedCategory === 'My List') {
+        if(selectedCategory === 'My List') {
             filterResult = filterResult.filter(e => e.favorite === true);
-        } else if(seletedCategory !== 'All') {
-            filterResult = filterResult.filter(e => e.categories.includes(seletedCategory))
+        } else if(selectedCategory !== 'All') {
+            filterResult = filterResult.filter(e => e.categories.includes(selectedCategory))
         }
 
         if( !(searchValue === '' && searchValue === null)) {
@@ -43,14 +43,14 @@ const CoinList = ({coinListType, selectedCoin}) => {
 
         setFilterCoinList(filterResult);
         
-    },[seletedCategory, isFavoriteFilter, searchValue, coinList])
+    },[selectedCategory, isFavoriteFilter, searchValue, coinList])
 
     useEffect(() => {
         if(coinList.length > 0) {
-            setSeletedCategory(pynthsCategories[0]);
+            setSelectedCategory(pynthsCategories[0]);
             setFilterCoinList(coinList.slice());
         }
-    }, [setSeletedCategory, setFilterCoinList, coinList])
+    }, [setSelectedCategory, setFilterCoinList, coinList])
 
     return (
         
@@ -59,7 +59,7 @@ const CoinList = ({coinListType, selectedCoin}) => {
                     <div className="mb-4">
                         <div className="relative text-center mb-4 ml-4">
                             <button type="button" className="absolute top-0 bottom-0 block" onClick={() => selectedCoin()}>
-                                <img src="/images/icon/left_arrow.svg" alt="left_arrow"></img>
+                                <img src="images/icon/left_arrow.svg" alt="left_arrow"></img>
                             </button>
                             <div className="text-lg">
                                 Select a token
@@ -81,15 +81,15 @@ const CoinList = ({coinListType, selectedCoin}) => {
                             <div className="flex overflow-hidden py-4">
                                 {pynthsCategories && pynthsCategories.length > 0 && pynthsCategories.map((category, index) => {
                                     return (
-                                        <button key={index} className={`block mx-1 px-2 focus:outline-none font-bold border rounded-md border-gray-300 ${seletedCategory === category && 'border-blue-500 text-blue-500 bg-gray-700'}`}
-                                                onClick={() => setSeletedCategory(category)}
+                                        <button key={index} className={`block mx-1 px-2 focus:outline-none font-bold border rounded-md border-gray-300 ${selectedCategory === category && 'border-blue-500 text-blue-500 bg-gray-700'}`}
+                                                onClick={() => setSelectedCategory(category)}
                                         >
                                             {category}
                                         </button>    
                                     )
                                 })}                                    
                             </div>
-                            <img className="w-4 h-4 my-auto cursor-pointer" onClick={() => setIsFavoriteFilter(!isFavoriteFilter)} src={`/images/icon/bookmark_${isFavoriteFilter ? 'on': 'off'}.svg`} alt="bookmark"></img>
+                            <img className="w-4 h-4 my-auto cursor-pointer" onClick={() => setIsFavoriteFilter(!isFavoriteFilter)} src={`images/icon/bookmark_${isFavoriteFilter ? 'on': 'off'}.svg`} alt="bookmark"></img>
                         </div>
 
                         <div className="py-3 text-sm">
@@ -97,9 +97,9 @@ const CoinList = ({coinListType, selectedCoin}) => {
                                 return (
                                     <div key={index} className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2 ${selectedCoins[coinListType].id === coin.id && 'bg-black-900'}`} onClick={ () => selectedCoins[coinListType].id !== coin.id && selectedCoin(coin)}>
                                         <div onClick={ (e) => {setFavorite(coin); e.stopPropagation();}}>
-                                            <img className="w-6 h-6" src={`/images/icon/bookmark_${coin.favorite ? 'on': 'off'}.svg`} alt="favorite"></img>
+                                            <img className="w-6 h-6" src={`images/icon/bookmark_${coin.favorite ? 'on': 'off'}.svg`} alt="favorite"></img>
                                         </div>
-                                        <img className="w-6 h-6 mx-2" src={`/images/currencies/${coin.symbol}.png`} alt="network"/>
+                                        <img className="w-6 h-6 mx-2" src={`images/currencies/${coin.symbol}.svg`} alt="network"/>
                                         <div className="flex-grow font-medium px-2">{coin.symbol}</div>
                                         <div className="text-sm font-normal text-gray-300 tracking-wide">{coin.name}</div>
                                     </div>

@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     BrowserRouter as Router,
     Switch,
@@ -27,13 +26,18 @@ const Header = () => {
 
     const getNetworkName = (networkId) => {
         let returnValue;
-        console.log()
         switch (networkId) {
+            case 56: returnValue = 'BSC'
+                break;
+            case 137: returnValue = 'Polygon'
+                break;
+            case 1285: returnValue = 'Moonriver'
+                break;
             case 97: returnValue = 'BSCTEST'
                 break;
             case 80001: returnValue = 'MUMBAI'
                 break;
-            case Number(process.env.REACT_APP_DEFAULT_NETWORK_ID) : returnValue = process.env.REACT_APP_DEFAULT_NETWORK_ID === '1287' ? 'Mbase' : SUPPORTED_NETWORKS[process.env.REACT_APP_DEFAULT_NETWORK_ID]
+            case 1287: returnValue = 'Mbase'
                 break;
             default: returnValue = 'Wrong Network'
                 break;

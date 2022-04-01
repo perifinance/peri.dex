@@ -18,9 +18,15 @@ export default {
         rpcUrls: 'https://bsc-dataseed1.defibit.io',
         blockExplorerUrls: 'https://bscscan.com/',
     },
+    1285: {
+        chainId: '0x505',
+        chainName: 'moonriver',
+        rpcUrls: 'https://rpc.moonriver.moonbeam.network',
+        blockExplorerUrls: 'https://blockscout.moonriver.moonbeam.network/',
+    },
     97: {
         chainId: '0x61',
-        chainName: 'Binance Smart Chain textnet',
+        chainName: 'Binance Smart Chain testnet',
         rpcUrls: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
         blockExplorerUrls: 'https://testnet.bscscan.com',
     },
@@ -30,17 +36,11 @@ export default {
         rpcUrls: 'https://rpc-mainnet.maticvigil.com',
         blockExplorerUrls: 'https://explorer.matic.network/',
     },
-    1285: {
-        chainId: '0x505',
-        chainName: 'Moonriver',
-        rpcUrls: 'https://rpc.moonriver.moonbeam.network',
-        blockExplorerUrls: 'https://moonbase-blockscout.testnet.moonbeam.network/',
-    },
     1287: {
         chainId: '0x507',
         chainName: 'moonbase-alphanet',
         rpcUrls: 'https://rpc.testnet.moonbeam.network',
-        blockExplorerUrls: 'https://moonriver.moonscan.io/',
+        blockExplorerUrls: 'https://moonbase-blockscout.testnet.moonbeam.network/',
     },
     80001: {
         chainId: '0x13881',

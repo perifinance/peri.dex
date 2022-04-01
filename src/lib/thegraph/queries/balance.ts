@@ -17,7 +17,7 @@ export const balance = ({currencyName, address, rate = 0n}) => {
         }
     }
     return {
-        url: `ProxyERC20${currencyName}-Dev`,
+        url: process.env.NODE_ENV==="production"?`ProxyERC20${currencyName}-Real`:`ProxyERC20${currencyName}-Dev`,
         query: gql`
             query GetExchangeRates($address: String!) {
                 lastPynthBalances(skip: 0, first:1, where: {account: $address}) {

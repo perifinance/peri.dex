@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client'
 import { utils } from 'ethers'
 export const lastRate = ({currencyName = undefined, skip = 0, first = 1}) => {
+    const currencyKey = currencyName && utils.formatBytes32String(currencyName);
     
     const RateMapping = (data) => {
         let price = 0n
@@ -12,33 +13,33 @@ export const lastRate = ({currencyName = undefined, skip = 0, first = 1}) => {
 
         return {
             price,
-            currencyName: data.currencyName
+            currencyName: data.currencyKey && utils.parseBytes32String(data.currencyKey)
         }
     }
     return {
-        url: `AccessControlledAggregator`,
+        url: process.env.NODE_ENV==="production"?`ExchangeRates-Real`:`ExchangeRates-Dev`,
         query: currencyName ? gql`
-            query GetLastRates($currencyName: String!, $skip: Int!, $first: Int!) {
-                lastRates(skip: $skip, first: $first, where: {currencyName: $currencyName}) {
+            query GetLastRates($currencyKey: String!, $skip: Int!, $first: Int!) {
+                lastRates(skip: $skip, first: $first, where: {currencyKey: $currencyKey}) {
                     price
-                    currencyName
+                    currencyKey
                 }
             }
         ` : gql`
             query GetLastRates {
                 lastRates(skip: 0, first:1000) {
                     price
-                    currencyName
+                    currencyKey
             }
         }`,
-        variables: {currencyName, skip, first},
+        variables: {currencyKey, skip, first},
         mapping: ({data}) => {    
             let value = {};
             data.lastRates.forEach(element => {
                 const item = RateMapping(element);
                 value[item.currencyName] = item.price;
             });
-            value['USD'] = 10n ** 18n
+            value['pUSD'] = 10n ** 18n
             return value;
         },
         errorCallback: () => {

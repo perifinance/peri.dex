@@ -12,23 +12,19 @@ export const getBalancesNetworks = async (networks, currentWallet, name) => {
         56: 'PeriFinanceToBSC',
         97: 'PeriFinanceToBSC',
         137: 'PeriFinanceToPolygon',
-        1285: 'PeriFinance',
         1287: 'PeriFinance',
         80001: 'PeriFinanceToPolygon'
     };
     networks.forEach(network => {
-        try {
-            const sources = perifinance.getSource({network: SUPPORTED_NETWORKS[network.id].toLowerCase()})[name === 'ProxyERC20'? ProxyERC20[network.id] : name];
-            const provider = new providers.JsonRpcProvider(RPC_URLS[network.id], network.id);
-            const Address = perifinance.getTarget({network: SUPPORTED_NETWORKS[network.id || network].toLowerCase()})[name].address;
+        const sources = perifinance.getSource({network: SUPPORTED_NETWORKS[network.id].toLowerCase()})[name === 'ProxyERC20'? ProxyERC20[network.id] : name];
+        const provider = new providers.JsonRpcProvider(RPC_URLS[network.id], network.id);
+        const Address = perifinance.getTarget({network: SUPPORTED_NETWORKS[network.id || network].toLowerCase()})[name].address;
+        
+        const contract = new ethers.Contract(Address, sources ? sources.abi : ERC20.abi, provider);
+        apis.push(
+            contract.transferablePeriFinance ? contract.transferablePeriFinance(currentWallet) : contract.balanceOf(currentWallet)
             
-            const contract = new ethers.Contract(Address, sources ? sources.abi : ERC20.abi, provider);
-            apis.push(
-                contract.transferablePeriFinance ? contract.transferablePeriFinance(currentWallet) : contract.balanceOf(currentWallet)
-            );
-        } catch(e) {
-            
-        }
+        );
     });
 
 

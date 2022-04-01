@@ -1,6 +1,6 @@
 import { mainnet } from './networks/mainnet'
 import { bsc } from './networks/bsc'
-import { bsctest } from './networks/bsctest'
+// import { bsctest } from './networks/bsctest'
 import { polygon } from './networks/polygon'
 
 const api = {
@@ -16,6 +16,6 @@ const api = {
 	80001: () => 3n
 }
 export const getNetworkFee = async (networkId): Promise<bigint> => {
-	const gasfee = await api[networkId]();
-    return BigInt(gasfee);
+	const gasFee = await api[networkId]();
+    return BigInt(gasFee);
 }
