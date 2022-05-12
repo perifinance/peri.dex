@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     BrowserRouter as Router,
     Switch,
@@ -27,13 +26,22 @@ const Header = () => {
 
     const getNetworkName = (networkId) => {
         let returnValue;
-        console.log()
         switch (networkId) {
+            case 1: returnValue = "Ethereum"
+                break;
+            case 42: returnValue = "Kovan"
+                break;
+            case 56: returnValue = 'BSC'
+                break;
             case 97: returnValue = 'BSCTEST'
+                break;
+            case 137: returnValue = 'Polygon'
                 break;
             case 80001: returnValue = 'MUMBAI'
                 break;
-            case Number(process.env.REACT_APP_DEFAULT_NETWORK_ID) : returnValue = process.env.REACT_APP_DEFAULT_NETWORK_ID === '1287' ? 'Mbase' : SUPPORTED_NETWORKS[process.env.REACT_APP_DEFAULT_NETWORK_ID]
+            case 1285: returnValue = 'Moonriver'
+                break;
+            case 1287: returnValue = 'Mbase'
                 break;
             default: returnValue = 'Wrong Network'
                 break;
@@ -82,6 +90,9 @@ const Header = () => {
                         </li>
                         <li className="text-xl font-bold inline m-4">
                             <Link className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname.includes('/bridge') && 'text-blue-500'}`} to="/bridge/submit">BRIDGE</Link>
+                        </li>
+                        <li className="text-xl font-bold inline m-4">
+                            <a className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname.includes('/bridge') && 'text-blue-500'}`} href="https://dashboard.peri.finance/" target="_blank">DASHBOARD</a>
                         </li>
                     </ul>
                 </nav>

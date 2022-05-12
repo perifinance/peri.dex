@@ -17,10 +17,11 @@ export const balance = ({currencyName, address, rate = 0n}) => {
         }
     }
     return {
-        url: `ProxyERC20${currencyName}-Dev`,
+        url: `ProxyERC20${currencyName}-Real`, // process.env.NODE_ENV==="production"?`ProxyERC20${currencyName}-Real`:`ProxyERC20${currencyName}-Dev`,
+        // url: `ProxyERC20${currencyName}-Dev`,
         query: gql`
-            query GetExchangeRates($address: String!) {
-                lastPynthBalances(skip: 0, first:1, where: {account: $address}) {
+            query GetLastPynthBalances($account: String!) {
+                lastPynthBalances(skip: 0, first:1, where: {account: $account}) {
                     id
                     address
                     account
@@ -30,7 +31,7 @@ export const balance = ({currencyName, address, rate = 0n}) => {
                 }
             }
         `,
-        variables: {address},
+        variables: {account:address},
         mapping: ({data}) => {    
             return data.lastPynthBalances.length > 0 ? data.lastPynthBalances.map((e) => {
                 return balanceMapping(e)

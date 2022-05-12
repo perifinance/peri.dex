@@ -1,2 +1,2 @@
-export { SUPPORTED_NETWORKS } from './supportedNetWorks';
+export { SUPPORTED_NETWORKS, MAINNET, TESTNET } from './supportedNetWorks';
 export { changeNetwork } from './changeNetwork'

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'reducers';
 import { getLastRates, getBalances } from 'lib/thegraph/api'
@@ -43,17 +43,16 @@ const Order = ({openCoinList}) => {
             const rates = await (async() => {
                 const rates = await Promise.all(
                     [
-                        getLastRates({currencyName: selectedCoins.source.name}), 
-                        getLastRates({currencyName: selectedCoins.destination.name})
+                        getLastRates({currencyName: selectedCoins.source.symbol}), 
+                        getLastRates({currencyName: selectedCoins.destination.symbol})
                     ]);
                     
                 return Object.assign(...rates);
             })()
-            const sourceRate = rates[selectedCoins.source.name]
-            console.log(sourceRate)
-            const destinationRate = rates[selectedCoins.destination.name]
-            console.log(destinationRate)
-            
+
+            const sourceRate = rates[selectedCoins.source.symbol]
+            const destinationRate = rates[selectedCoins.destination.symbol]
+
             const exchangeRates = destinationRate * 10n ** 18n / sourceRate;
             setSourceRate(sourceRate);
             setExchangeRates(exchangeRates);
@@ -71,7 +70,8 @@ const Order = ({openCoinList}) => {
     }
 
     const getSourceBalance = async () => {
-        const balance = await getBalances({address, currencyName: selectedCoins.source.symbol});
+        const balance = await getBalances({address, networkId, currencyName: selectedCoins.source.symbol});
+        // console.log(balance);
 
         setBalance(balance?.amount || 0n);
     }
@@ -88,6 +88,9 @@ const Order = ({openCoinList}) => {
             } else if(utils.parseEther(value).toBigInt() > balance) {
                 setIsValidation(false);
                 setValidationMessage('Insufficient balance')
+            } else if(selectedCoins.source.symbol === selectedCoins.destination.symbol) {
+                setIsValidation(false);
+                setValidationMessage('Cannot convert to same currency')
             } else {
                 setIsValidation(true);
                 setValidationMessage('');
@@ -116,13 +119,13 @@ const Order = ({openCoinList}) => {
 
     const getNetworkFeePrice = () => {
         try {
-            getGasEstimate();
-            const feePrice = (gasLimit * gasPrice) * networkRate;
-            setNetworkFeePrice(feePrice);
+            getGasEstimate().then(() => {
+                // gasLimit: unit, gasPrice: gWei, networkRate: *10^18
+                const feePrice = (gasLimit * gasPrice) * networkRate;
+                setNetworkFeePrice(feePrice/10n**9n);
+            });
         } catch (e) {
-
         }
-        
     }
 
     const getPrice = useCallback( () => {
@@ -154,7 +157,7 @@ const Order = ({openCoinList}) => {
     const order = async () => {
         
         if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-            NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+            NotificationManager.warning(`This network is not supported. Please change to moonriver network`, 'ERROR');
             changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
             return false;
         }
@@ -189,8 +192,6 @@ const Order = ({openCoinList}) => {
                     }
                 }
             ));
-            
-            
         } catch(e) {
             console.log(e);
         }  
@@ -198,7 +199,7 @@ const Order = ({openCoinList}) => {
 
     const swapToCurrency = () => {
         if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-            NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+            NotificationManager.warning(`This network is not supported. Please change to moonriver network`, 'ERROR');
             changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
             return false;
         }
@@ -212,16 +213,15 @@ const Order = ({openCoinList}) => {
             const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
             setGasPrice(fee);
             setNetworkRate(rate);
+            return rate;
         } catch(e) {
-            
         }
-        
     }
 
     const setPerAmount = (per) => {
         setPer(per);
-        const converPer = per > 0n ? 100n * 10n / per : 0n;
-        const perBalance = converPer > 0n ? balance * 10n / converPer : 0n;
+        const convertPer = per > 0n ? 100n * 10n / per : 0n;
+        const perBalance = convertPer > 0n ? balance * 10n / convertPer : 0n;
         changePayAmount(utils.formatEther(perBalance));
     }
 
@@ -241,16 +241,16 @@ const Order = ({openCoinList}) => {
 
     useEffect(() => {
         if(isReady && networkId) {
-            getFeeRate();
-            getNetworkFeePrice();
+            setNetworkFee();
         }
     },[isReady, networkId, selectedCoins]);
 
     useEffect(() => {
         if(isReady && networkId) {
-            setNetworkFee();
+            getFeeRate();
+            getNetworkFeePrice();
         }
-    }, [isReady, networkId])
+    }, [isReady, networkId, gasLimit, gasPrice, networkRate])
 
     useEffect(() => {
         if(isReady && isConnect && address) {
@@ -290,8 +290,8 @@ const Order = ({openCoinList}) => {
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
                 <div className="flex space-x-8 py-2 items-center">
                     <div className="relative">
-                        <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.png`}></img>
-                        <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.png`}></img>
+                        <img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
+                        <img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
                     </div>
                     <div className="text-xl font-medium">{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}</div>
                     
@@ -305,7 +305,7 @@ const Order = ({openCoinList}) => {
                 {/* ${isError && 'border border-red-500'} */}
                 <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
                     <div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList('source')}>
-                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.png`}></img>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
                         <div className="m-1">{selectedCoins.source.symbol}</div>
                         <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                     </div>    
@@ -327,7 +327,7 @@ const Order = ({openCoinList}) => {
                 
                 <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
                     <div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList('destination')}>
-                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.png`}></img>
+                        <img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
                         <span className="m-1">{selectedCoins.destination.symbol}</span>
                         <img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
                     </div>
@@ -352,7 +352,7 @@ const Order = ({openCoinList}) => {
                 <div className="pt-4">
                     <div className="flex py-2 justify-between w-full">
                         <div>Network Fee({gasPrice.toString()}GWEI)</div>
-                        <div>${formatCurrency(networkFeePrice, 4)}</div>
+                        <div>${formatCurrency(networkFeePrice, 5)}</div>
                     </div>
                     <div className="flex py-2 justify-between w-full">
                         <div>Rate</div>

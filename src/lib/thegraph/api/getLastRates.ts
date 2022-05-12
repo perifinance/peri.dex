@@ -2,5 +2,6 @@ import { lastRate } from '../queries'
 import { get } from '../service'
 
 export const getLastRates = ({currencyName = null}) => {
-    return get(lastRate({currencyName}))
+  // console.log("currencyName", currencyName);
+  return get(lastRate({currencyName}))
 }
