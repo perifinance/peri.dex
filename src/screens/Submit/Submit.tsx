@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch ,useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 import { contracts, formatCurrency } from 'lib'
-import { SUPPORTED_NETWORKS } from 'lib/network'
+import { SUPPORTED_NETWORKS, MAINNET, TESTNET } from 'lib/network'
 import { getBalancesNetworks } from 'lib/balance'
 import { getNetworkFee } from 'lib/fee'
 import { updateTransaction } from 'reducers/transaction'
@@ -27,7 +27,7 @@ const Submit = ({}) => {
   const [isFromNetworkList, setIsFromNetworkList] = useState(false);
   const [isToNetworkList, setIsToNetworkList] = useState(false);
   const [isCoinList, setIsCoinList] = useState(false);
-  const [selectedCoin, setSelectedCoin] = useState<{name?: string, id?:Number}>({});
+  const [selectedCoin, setSelectedCoin] = useState<{name?: string, id?:Number, contract?: string}>({});
   const [initBridge, setInitBridge] = useState(false);
   const [networkFeePrice, setNetworkFeePrice] = useState(0n);
   const [gasPrice, setGasPrice] = useState(0n);
@@ -53,7 +53,9 @@ const Submit = ({}) => {
     try {
       let rsv = utils.splitSignature(signature);
       let cost = (await getBridgeTransferGasCost()).toString();
-      gasLimit = BigInt((await contracts.signers[contractName[selectedCoin.name]].estimateGas.overchainTransfer(utils.parseEther(payAmount), selectedToNetwork.id, [rsv.r, rsv.s, rsv.v], {value: cost})));
+      // let limit = (await contracts.signers[contractName[selectedCoin.name]].estimateGas.overchainTransfer(utils.parseEther(payAmount), selectedToNetwork.id, [rsv.r, rsv.s, rsv.v], {value: cost}));
+      // console.log(limit);
+      // gasLimit = BigInt(limit);
     } catch(e) {
       console.log(e);
     }
@@ -147,13 +149,14 @@ const Submit = ({}) => {
 
   useEffect(() => {
     if(isConnect && initBridge && address) {
-      if(networkId === 1)
+      if(networkId === 1 || networkId === 42)
         setSelectedCoin(pynths[1]);
       else
         setSelectedCoin(pynths[0]);
       initBalances();
     } else {
-      let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+      const network = Object.keys(MAINNET).includes(networkId.toString())?MAINNET:TESTNET;
+      let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => Object.keys(network).includes(e)).map(e => {
         return {name: SUPPORTED_NETWORKS[e], id: Number(e), balance: {
           pUSD: BigInt(0),
           PERI: BigInt(0),
@@ -166,13 +169,14 @@ const Submit = ({}) => {
   }, [isConnect, initBridge, address]);
 
   useEffect(() => {
-    let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+    const network = Object.keys(MAINNET).includes(networkId.toString())?MAINNET:TESTNET;
+    let networks = Object.keys(SUPPORTED_NETWORKS).filter(e => Object.keys(network).includes(e)).map(e => {
       return {name: SUPPORTED_NETWORKS[e], id: Number(e), balance: {
         pUSD: BigInt(0),
         PERI: BigInt(0),
       }}
     })
-    if(networkId === 1)
+    if(networkId === 1 || networkId === 42)
       setSelectedCoin(pynths[1]);
     else
       setSelectedCoin(pynths[0]);
@@ -212,7 +216,7 @@ const Submit = ({}) => {
             <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isFromNetworkList ? 'block' : 'hidden'} z-10`}>
               <ul className="list-reset">
                 {networks.map((network, index) => 
-                  (<li key={index} onClick={ () => {setSelectedFromNetwork(network); setIsFromNetworkList(false)}}><p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedFromNetwork?.name === network?.name && 'bg-black-900'}`}>
+                  (<li key={index} onClick={ () => {setSelectedFromNetwork(network);setSelectedToNetwork({});if(network?.name==="KOVAN")setSelectedCoin({name: 'PERI', id:1, contract:'periFinance'}); setIsFromNetworkList(false)}}><p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedFromNetwork?.name === network?.name && 'bg-black-900'}`}>
                     {network?.name}
                   </p></li>)
                 )}
@@ -242,7 +246,8 @@ const Submit = ({}) => {
             </div>
             <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isToNetworkList ? 'block' : 'hidden'} z-10`}>
               <ul className="list-reset">
-                {networks.filter(e=> selectedFromNetwork?.id !== 1287 ? e.id === 1287 : e.id !== 1287).map((network, index) => 
+                {networks.filter(e => {
+                  return (selectedFromNetwork?.id !== e.id && !(selectedCoin?.name === 'pUSD' && (e.id === 42 || e.id === 1)) )}).map((network, index) => 
                   (<li key={index} onClick={ () => {setSelectedToNetwork(network); setIsToNetworkList(false)}}><p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedToNetwork?.name === network?.name && 'bg-black-900'}`}>
                     {network?.name}
                   </p></li>)
@@ -268,7 +273,7 @@ const Submit = ({}) => {
             <div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isCoinList ? 'block' : 'hidden'} z-10`}>
               <ul className="list-reset">
                 {pynths.map(coin => {
-                  if(networkId === 1 && coin.name === 'pUSD')
+                  if((networkId === 1 || networkId === 42) && coin.name === 'pUSD')
                     return <></>;
                   else
                     return (<li key={coin.id} onClick={ () => {setSelectedCoin(coin); setIsCoinList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && 'bg-black-900'}`}>

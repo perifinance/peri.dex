@@ -31,13 +31,15 @@ const App = () => {
   
   const setOnboard = async () => {
     
-    let networkId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+    let networkId = 1285;//Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
     try {
       // @ts-ignore
       networkId = Number((await detectEthereumProvider()).networkVersion);
     } catch(e) {
 
     }
+
+    // console.log('networkId', networkId);
     
     contracts.init(networkId);
     dispatch(setAppReady());
@@ -147,14 +149,12 @@ const App = () => {
     }
   }, [init, networkId]);
   
-  
   return (
     <div>
       {/* <Loading></Loading> */}
       <Main></Main>
       <NotificationContainer/>
     </div>
-
   );
 }
 

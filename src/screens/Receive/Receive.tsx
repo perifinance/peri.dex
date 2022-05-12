@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch ,useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 import { contracts, formatCurrency } from 'lib'
-import { SUPPORTED_NETWORKS } from 'lib/network'
+import { SUPPORTED_NETWORKS, MAINNET, TESTNET } from 'lib/network'
 import { getNetworkFee } from 'lib/fee'
 import { updateTransaction } from 'reducers/transaction'
 import { getNetworkPrice } from 'lib/price';
 import { changeNetwork } from 'lib/network'
 
 import pynths from 'configure/coins/bridge'
+import { logger } from 'ethers';
 
 const Receive = ({}) => {
   const dispatch = useDispatch();
@@ -25,7 +26,8 @@ const Receive = ({}) => {
   const [gasPrice, setGasPrice] = useState(0n);
 
   const setNetwork = async () => {
-    const networks = Object.keys(SUPPORTED_NETWORKS).filter(e => [97, 1287, 80001].includes(Number(e))).map(e => {
+    const network = Object.keys(MAINNET).includes(networkId.toString())?MAINNET:TESTNET;
+    const networks = Object.keys(SUPPORTED_NETWORKS).filter(e => Object.keys(network).includes(e)).map(e => {
       return {name: SUPPORTED_NETWORKS[e], id: Number(e)}
     });
     setNetworks(networks);
@@ -47,7 +49,8 @@ const Receive = ({}) => {
         datas.push({amount, chainId: inbounding.srcChainId.toString()});
       }
       let promiseData = await Promise.all(datas);
-      let returnValue = {97: 0n, 1287: 0n, 80001: 0n}
+      const network = Object.keys(MAINNET).includes(networkId.toString())?MAINNET:TESTNET;
+      let returnValue = Object.keys(network).reduce((a,b) => (a[b]=0n, a), {});
       
       promiseData.forEach(data => {
         if(returnValue[data.chainId]) {
@@ -93,7 +96,9 @@ const Receive = ({}) => {
   }
 
   const getBridgeClaimGasCost = async () => {
-    return await contracts.SystemSettings.bridgeClaimGasCost();
+    let cost = await contracts.SystemSettings.bridgeClaimGasCost();
+    console.log('bridge claim gas cost', cost);
+    return cost;
   }
 
   const confirm = async () => {
@@ -107,19 +112,21 @@ const Receive = ({}) => {
       value: (await getBridgeClaimGasCost()).toString()
     }
 
+    console.log(contractName[selectedCoin.name], selectedCoin.name, transactionSettings);
+
     try {
       let transaction;
       transaction = await contracts.signers[contractName[selectedCoin.name]].claimAllBridgedAmounts(transactionSettings)
       dispatch(updateTransaction(
         {
           hash: transaction.hash,
-          message: `overchainTransfer`,
+          message: `claimAllBridgedAmounts`,
           type: 'overchainTransfer',
           action: getInboundings,
         }
       ));
     } catch(e) {
-
+      console.error(e);
     }
     
   }
@@ -136,7 +143,8 @@ const Receive = ({}) => {
   useEffect(() => {
     setNetwork();
     setSelectedCoin({id: 0, name: 'pUSD'});
-    let returnValue = {97: 0n, 1287: 0n, 80001: 0n};
+    const network = Object.keys(MAINNET).includes(networkId.toString())?MAINNET:TESTNET;
+    let returnValue = Object.keys(network).reduce((a,b) => (a[b]=0n, a), {});
     setReceiveDatas(returnValue);
   }, [])
 

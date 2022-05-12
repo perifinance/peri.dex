@@ -8,13 +8,15 @@
   "directories": {
     "example": "example"
   },
+  "overrides": {
+    "react-error-overlay": "6.0.9"
+  },
   "dependencies": {
     "@apollo/client": "^3.5.10",
     "@chainlink/contracts": "^0.0.10",
-    "@craco/craco": "^6.4.3",
     "@egjs/react-flicking": "^4.5.3",
     "@metamask/detect-provider": "^1.2.0",
-    "@perifinance/peri-finance": "^0.3.39",
+    "@perifinance/peri-finance": "^0.4.12",
     "@reach/router": "^1.3.4",
     "@reduxjs/toolkit": "^1.8.0",
     "@types/react-datepicker": "^4.3.4",
@@ -71,7 +73,7 @@
     "deploy": "npm run build && npm run deploy-s3 && npm run invalidate",
     "deploy-s3": "aws s3 sync ./build s3://peri.dex --profile=peri.dex-deploy-s3",
     "invalidate": "aws cloudfront create-invalidation --profile=peri.dex-deploy-s3 --distribution-id E3ARBWK49O8ACV --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico",
-    "test-deploy": "env-cmd -f .env.development npm run build && npm run test-deploy-s3 && npm run test-invalidate",
+    "test-deploy": "env-cmd -f .env.production npm run build && npm run test-deploy-s3 && npm run test-invalidate",
     "test-deploy-s3": "aws s3 sync ./build s3://test.peri.dex --profile=test.peri.dex-deploy-s3",
     "test-invalidate": "aws cloudfront create-invalidation --profile=test.peri.dex-deploy-s3 --distribution-id E1J301CCQZX4DX --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico"
   },
@@ -96,6 +98,7 @@
   },
   "devDependencies": {
     "@babel/plugin-syntax-bigint": "^7.8.3",
+    "@craco/craco": "^6.4.3",
     "@rollup/plugin-commonjs": "^19.0.2",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.1.3",

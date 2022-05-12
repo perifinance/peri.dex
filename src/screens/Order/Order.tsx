@@ -49,6 +49,7 @@ const Order = ({openCoinList}) => {
                     
                 return Object.assign(...rates);
             })()
+
             const sourceRate = rates[selectedCoins.source.symbol]
             const destinationRate = rates[selectedCoins.destination.symbol]
 
@@ -69,7 +70,8 @@ const Order = ({openCoinList}) => {
     }
 
     const getSourceBalance = async () => {
-        const balance = await getBalances({address, currencyName: selectedCoins.source.symbol});
+        const balance = await getBalances({address, networkId, currencyName: selectedCoins.source.symbol});
+        // console.log(balance);
 
         setBalance(balance?.amount || 0n);
     }
@@ -86,6 +88,9 @@ const Order = ({openCoinList}) => {
             } else if(utils.parseEther(value).toBigInt() > balance) {
                 setIsValidation(false);
                 setValidationMessage('Insufficient balance')
+            } else if(selectedCoins.source.symbol === selectedCoins.destination.symbol) {
+                setIsValidation(false);
+                setValidationMessage('Cannot convert to same currency')
             } else {
                 setIsValidation(true);
                 setValidationMessage('');
@@ -114,13 +119,13 @@ const Order = ({openCoinList}) => {
 
     const getNetworkFeePrice = () => {
         try {
-            getGasEstimate();
-            const feePrice = (gasLimit * gasPrice) * networkRate;
-            setNetworkFeePrice(feePrice);
+            getGasEstimate().then(() => {
+                // gasLimit: unit, gasPrice: gWei, networkRate: *10^18
+                const feePrice = (gasLimit * gasPrice) * networkRate;
+                setNetworkFeePrice(feePrice/10n**9n);
+            });
         } catch (e) {
-
         }
-        
     }
 
     const getPrice = useCallback( () => {
@@ -152,7 +157,7 @@ const Order = ({openCoinList}) => {
     const order = async () => {
         
         if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-            NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+            NotificationManager.warning(`This network is not supported. Please change to moonriver network`, 'ERROR');
             changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
             return false;
         }
@@ -187,8 +192,6 @@ const Order = ({openCoinList}) => {
                     }
                 }
             ));
-            
-            
         } catch(e) {
             console.log(e);
         }  
@@ -196,7 +199,7 @@ const Order = ({openCoinList}) => {
 
     const swapToCurrency = () => {
         if(networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-            NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+            NotificationManager.warning(`This network is not supported. Please change to moonriver network`, 'ERROR');
             changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
             return false;
         }
@@ -210,10 +213,9 @@ const Order = ({openCoinList}) => {
             const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
             setGasPrice(fee);
             setNetworkRate(rate);
+            return rate;
         } catch(e) {
-            
         }
-        
     }
 
     const setPerAmount = (per) => {
@@ -239,16 +241,16 @@ const Order = ({openCoinList}) => {
 
     useEffect(() => {
         if(isReady && networkId) {
-            getFeeRate();
-            getNetworkFeePrice();
+            setNetworkFee();
         }
     },[isReady, networkId, selectedCoins]);
 
     useEffect(() => {
         if(isReady && networkId) {
-            setNetworkFee();
+            getFeeRate();
+            getNetworkFeePrice();
         }
-    }, [isReady, networkId])
+    }, [isReady, networkId, gasLimit, gasPrice, networkRate])
 
     useEffect(() => {
         if(isReady && isConnect && address) {
@@ -350,7 +352,7 @@ const Order = ({openCoinList}) => {
                 <div className="pt-4">
                     <div className="flex py-2 justify-between w-full">
                         <div>Network Fee({gasPrice.toString()}GWEI)</div>
-                        <div>${formatCurrency(networkFeePrice, 4)}</div>
+                        <div>${formatCurrency(networkFeePrice, 5)}</div>
                     </div>
                     <div className="flex py-2 justify-between w-full">
                         <div>Rate</div>

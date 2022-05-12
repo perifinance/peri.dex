@@ -139,6 +139,7 @@ const Assets = () => {
       setBalances(balances);
       const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
       setTotalAssets(totalAssets);
+
       const pieChart = balances.map(e => {
         colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
         const value = formatCurrency(e.balanceToUSD * 100n * 10n**18n / totalAssets, 2);
@@ -161,7 +162,7 @@ const Assets = () => {
       if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
         init();
       } else {
-        NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
+        NotificationManager.warning(`This network is not supported. Please change to moonriver network`, 'ERROR');
         changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
         setBalances([]);
         setTotalAssets(0n);
@@ -216,7 +217,7 @@ const Assets = () => {
                     <div className="flex">
                       {searchOptions?.dest ?
                         <>
-                          <img className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.svg`}></img>
+                          <img alt={"${searchOptions?.dest}"} className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.svg`}></img>
                           <div className="m-1">{searchOptions?.dest}</div>
                         </> :
                         <div className="text-gray-300">Received</div>
@@ -230,11 +231,11 @@ const Assets = () => {
                     <ul className="list-reset">
 
                       {pynths[networkId]?.map(coin => 
-                        (<li onClick={ () => {setSearchOptions({...searchOptions, dest: coin.symbol}); setIsSrcCoinList(false)}}>
-                          <p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.dest === coin?.symbol && 'bg-black-900'}`}>
+                        (<li key={coin.symbol} onClick={ () => {setSearchOptions({...searchOptions, dest: coin.symbol}); setIsSrcCoinList(false)}}>
+                          <span className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.dest === coin?.symbol && 'bg-black-900'}`}>
                           <img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
                           <div className="m-1">{coin?.symbol}</div>
-                        </p></li>)
+                        </span></li>)
                       )}
                     </ul>
                   </div>
@@ -257,12 +258,12 @@ const Assets = () => {
                     <ul className="list-reset">
 
                       {pynths[networkId]?.map(coin => 
-                        (<li onClick={ () => {setSearchOptions({...searchOptions, src: coin.symbol}); setIsDestCoinList(false)}}>
-                          <p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.src === coin?.symbol && 'bg-black-900'}`}>
+                        (<li key={coin.symbol} onClick={ () => {setSearchOptions({...searchOptions, src: coin.symbol}); setIsDestCoinList(false)}}>
+                          <span className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.src === coin?.symbol && 'bg-black-900'}`}>
                           
                           <img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
                           <div className="m-1">{coin?.symbol}</div>
-                        </p></li>)
+                        </span></li>)
                       )}
                     </ul>
                   </div>
@@ -280,7 +281,7 @@ const Assets = () => {
                     <ul className="list-reset">
 
                       {['Appended', 'Settled'].map(action => 
-                        (<li onClick={ () => {setSearchOptions({...searchOptions, action}); setIsActionList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.action === action && 'bg-black-900'}`}>
+                        (<li key={action} onClick={ () => {setSearchOptions({...searchOptions, action}); setIsActionList(false)}}><p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.action === action && 'bg-black-900'}`}>
                           {action}
                         </p></li>)
                       )}
@@ -348,7 +349,7 @@ const Assets = () => {
                 <ul className="flex rounded justify-center">
                 {
                   pages.map((e) => {
-                    return <li>
+                    return <li key={e}>
                       <a className={`block hover:text-white hover:underline text-blue px-3 py-2 cursor-pointer ${currentPage === e + 1 ? ' font-bold': 'none'} `} onClick={() => setCurrentPage(e+1)}>
                         {e + 1}
                       </a>

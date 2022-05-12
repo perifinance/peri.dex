@@ -21,7 +21,7 @@ export default {
     1285: {
         chainId: '0x505',
         chainName: 'moonriver',
-        rpcUrls: 'https://rpc.moonriver.moonbeam.network',
+        rpcUrls: 'https://rpc.api.moonriver.moonbeam.network',
         blockExplorerUrls: 'https://blockscout.moonriver.moonbeam.network/',
     },
     97: {

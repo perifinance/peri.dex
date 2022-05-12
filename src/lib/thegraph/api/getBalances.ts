@@ -4,8 +4,9 @@ import { get } from '../service'
 import pynths from 'configure/coins/pynths'
 
 export const getBalances = ({currencyName = undefined, networkId = undefined, address, rates = undefined}) => {
+  // console.log(currencyName, networkId, address, rates);
   if(currencyName) {
-    return get(balance({currencyName: currencyName, address: address}))
+    return get(balance({currencyName: currencyName, address: address}));
   } else {
     const promises = [];
     pynths[networkId].forEach(element => {

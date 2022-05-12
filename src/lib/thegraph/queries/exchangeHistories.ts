@@ -37,7 +37,8 @@ export const exchangeHistories = ({address, page = 0, first = 100,
     }
     
     return {
-        url: process.env.NODE_ENV==="production"?`Exchanger-Real`:`Exchanger-Dev`,
+        url: `Exchanger-Real`, // process.env.NODE_ENV==="production"?`Exchanger-Real`:`Exchanger-Dev`,
+        // url: `Exchanger-Dev`,
         query: gql`
             query GetExchangeEntrySettleds(
                 $skip: Int!

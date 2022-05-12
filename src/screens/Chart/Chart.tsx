@@ -29,6 +29,7 @@ const Chart = () => {
         chartTime,
       }); 
     setData(chartRate);
+    // console.log('chartRate', chartRate);
     setPrices({...chartRate[chartRate.length - 1]})
   },[currencyNames, chartTime]);
 
@@ -41,6 +42,7 @@ const Chart = () => {
   }
 
   const setPrice = (payload) => {
+    // console.log('payload', payload);
     if(payload && payload[0] && payload[0].payload) {
       setPrices(payload[0].payload)
     }
@@ -108,7 +110,10 @@ const Chart = () => {
                 <Tooltip labelStyle={{color: "transparent"}} 
                     contentStyle={{background: "transparent", borderColor: "transparent", color: "#151515"}} itemStyle={{color: "#000000"}}
                     position={{y: 0}}
-                    content={({ active, payload, label }) => { setPrice(payload); return payload && 
+                    content={({ active, payload, label }) => { 
+                      // console.log('payload', payload);
+                      setPrice(payload);
+                      return payload && 
                         <div className="bg-gray-300 p-2">
                             <div><span className="">High</span>: {payload[0]?.payload?.formatHigh}</div>
                             <div><span className="">Price</span>: {payload[0]?.payload?.formatPrice}</div>
