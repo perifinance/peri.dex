@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './loading.css'
 
 const loading = () => {
@@ -11,7 +11,6 @@ const loading = () => {
 
     return (
         <div>
-            
             <div className="fixed top-0 left-0 z-50 w-screen h-screen flex items-center justify-center">
                 <div className="bg-gray-700 py-2 px-5 rounded-lg flex items-center flex-col">
                     <div className="absolute a w-10 h-14 mt-2">

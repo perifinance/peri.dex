@@ -26,6 +26,9 @@ cypress.json
 .env.development
 .env.production
 
+.env.production
+.env.development
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

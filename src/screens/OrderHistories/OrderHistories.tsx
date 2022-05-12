@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'reducers';
-import { getExchageHistories } from 'lib/thegraph/api'
+import { getExchangeHistories } from 'lib/thegraph/api'
 import { formatCurrency } from 'lib'
 import { changeNetwork } from 'lib/network'
 
@@ -24,10 +24,10 @@ const OrderHistories = ({}) => {
     }
 
     const init = useCallback(async () => {
-        const histories = await getExchageHistories({address, first: 3})
+        const histories = await getExchangeHistories({address, first: 3})
         setHistories(histories)
         setPages(getPages(histories.length))
-    }, [address, getExchageHistories, setHistories])
+    }, [address, getExchangeHistories, setHistories])
 
     useEffect(() => {
         if(address && !transaction.hash) {
@@ -54,7 +54,7 @@ const OrderHistories = ({}) => {
                 <div className="text-xl lg:pl-8 font-semibold w-full">Trade Order</div>
                     {histories.length > 0 ? 
                         <div className="overflow-x-scroll">
-                            <table className="talbe-auto mt-4 mb-2 w-full">
+                            <table className="table-auto mt-4 mb-2 w-full">
                                 <thead>
                                     <tr className="text-lg text-gray-300">
                                         <th className="font-medium">Date/Time</th>
@@ -72,7 +72,7 @@ const OrderHistories = ({}) => {
                                             <td className="text-center"><span>{e.date}</span></td>
                                             <td className="text-center">
                                                 <div className="flex justify-end left">
-                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.png`} alt="currencies"></img> 
+                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.svg`} alt="currencies"></img> 
                                                     {formatCurrency(e.amountReceived, 8)} 
                                                     <span className="pl-1 font-medium"> {e.dest}</span>
                                                 </div>
@@ -80,7 +80,7 @@ const OrderHistories = ({}) => {
                                             
                                             <td className="text-center">
                                                 <div className="flex justify-end left">
-                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.png`} alt="currencies"></img> 
+                                                    <img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.svg`} alt="currencies"></img> 
                                                     {formatCurrency(e.amount, 8)} 
                                                     <span className="pl-1 font-medium"> {e.src}</span>
                                                 </div>

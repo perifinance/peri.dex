@@ -1,3 +1,4 @@
+import React from 'react';
 import {
     BrowserRouter as Router,
     Switch,
@@ -9,6 +10,7 @@ import {
 import Header from '../Header'
 import Assets from 'pages/Assets'
 import Exchange from 'pages/Exchange'
+import Futures from 'pages/Futures'
 import Bridge from 'pages/Bridge'
 
 const Main = () => {
@@ -24,6 +26,9 @@ const Main = () => {
                     </Route>
                     <Route path="/exchange">
                         <Exchange />
+                    </Route>
+                    <Route path="/futures">
+                        <Futures/>
                     </Route>
                     <Route exact path="/bridge">
                         <Redirect to="/bridge/submit"></Redirect>
