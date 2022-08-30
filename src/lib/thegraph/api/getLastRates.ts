@@ -1,7 +1,5 @@
-import { lastRate } from '../queries'
-import { get } from '../service'
+import { lastRate } from "../queries";
 
-export const getLastRates = ({currencyName = null}) => {
-  // console.log("currencyName", currencyName);
-  return get(lastRate({currencyName}))
-}
+export const getLastRates = ({ currencyName = null }) => {
+	return lastRate(currencyName);
+};
