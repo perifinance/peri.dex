@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
+import React, { useEffect, useState, useCallback } from "react";
 
 import { VictoryPie } from "victory";
 import { getLastRates } from "lib/thegraph/api";
@@ -14,8 +14,10 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 import pynths from "configure/coins/pynths";
+import { setLoading } from "reducers/loading";
 
 const Assets = () => {
+	const dispatch = useDispatch();
 	const { isReady } = useSelector((state: RootState) => state.app);
 	const { coinList } = useSelector((state: RootState) => state.coinList);
 	const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
@@ -130,13 +132,9 @@ const Assets = () => {
 		return `#${address.substr(2, 6)}`;
 	};
 
-	const totalSum = (balances) => {
-		console.log("balances", balances);
-		return balances.reduce((a: any, c: any) => a + c.balanceToUSD, 0n);
-	};
-
 	const init = useCallback(async () => {
-		console.time("init");
+		dispatch(setLoading({ name: "balance", value: true }));
+
 		let colors = [];
 
 		try {
@@ -144,7 +142,10 @@ const Assets = () => {
 			let balances: any = await getBalances({ networkId, address, rates });
 			setBalances(balances);
 
-			const totalAssets = balances.reduce((a, b) => a + b.balanceToUSD, 0n);
+			console.log("Assets balances", balances);
+
+			const totalAssets = balances.reduce((a, c) => a + c.balanceToUSD, 0n);
+			setTotalAssets(totalAssets);
 
 			const pieChart = balances.map((e) => {
 				colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
@@ -156,14 +157,14 @@ const Assets = () => {
 				};
 			});
 
-			setTotalAssets(totalAssets);
 			setChartDatas(pieChart.length > 0 ? pieChart : [{ x: "0%", y: 1 }]);
 			setChartColors(colors);
+			dispatch(setLoading({ name: "balance", value: false }));
 		} catch (e) {
 			console.error("init error", e);
 		}
 
-		console.timeEnd("init");
+		dispatch(setLoading({ name: "balance", value: false }));
 	}, [coinList, address, networkId]);
 
 	useEffect(() => {

@@ -1,31 +1,31 @@
-import { ethers } from "ethers";
-import { contracts } from "lib/contract";
+import {ethers} from "ethers";
+import {contracts} from "lib/contract";
 
 export const lastRate = async (currencyName = undefined) => {
 	const aggregatorV3InterfaceABI = [
 		{
 			inputs: [],
 			name: "decimals",
-			outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
+			outputs: [{internalType: "uint8", name: "", type: "uint8"}],
 			stateMutability: "view",
 			type: "function",
 		},
 		{
 			inputs: [],
 			name: "description",
-			outputs: [{ internalType: "string", name: "", type: "string" }],
+			outputs: [{internalType: "string", name: "", type: "string"}],
 			stateMutability: "view",
 			type: "function",
 		},
 		{
-			inputs: [{ internalType: "uint80", name: "_roundId", type: "uint80" }],
+			inputs: [{internalType: "uint80", name: "_roundId", type: "uint80"}],
 			name: "getRoundData",
 			outputs: [
-				{ internalType: "uint80", name: "roundId", type: "uint80" },
-				{ internalType: "int256", name: "answer", type: "int256" },
-				{ internalType: "uint256", name: "startedAt", type: "uint256" },
-				{ internalType: "uint256", name: "updatedAt", type: "uint256" },
-				{ internalType: "uint80", name: "answeredInRound", type: "uint80" },
+				{internalType: "uint80", name: "roundId", type: "uint80"},
+				{internalType: "int256", name: "answer", type: "int256"},
+				{internalType: "uint256", name: "startedAt", type: "uint256"},
+				{internalType: "uint256", name: "updatedAt", type: "uint256"},
+				{internalType: "uint80", name: "answeredInRound", type: "uint80"},
 			],
 			stateMutability: "view",
 			type: "function",
@@ -34,11 +34,11 @@ export const lastRate = async (currencyName = undefined) => {
 			inputs: [],
 			name: "latestRoundData",
 			outputs: [
-				{ internalType: "uint80", name: "roundId", type: "uint80" },
-				{ internalType: "int256", name: "answer", type: "int256" },
-				{ internalType: "uint256", name: "startedAt", type: "uint256" },
-				{ internalType: "uint256", name: "updatedAt", type: "uint256" },
-				{ internalType: "uint80", name: "answeredInRound", type: "uint80" },
+				{internalType: "uint80", name: "roundId", type: "uint80"},
+				{internalType: "int256", name: "answer", type: "int256"},
+				{internalType: "uint256", name: "startedAt", type: "uint256"},
+				{internalType: "uint256", name: "updatedAt", type: "uint256"},
+				{internalType: "uint80", name: "answeredInRound", type: "uint80"},
 			],
 			stateMutability: "view",
 			type: "function",
@@ -46,15 +46,16 @@ export const lastRate = async (currencyName = undefined) => {
 		{
 			inputs: [],
 			name: "version",
-			outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+			outputs: [{internalType: "uint256", name: "", type: "uint256"}],
 			stateMutability: "view",
 			type: "function",
 		},
 	];
 	const address = {
+		pUSD: "0x3f8BFbDc1e79777511c00Ad8591cef888C2113C1",
 		pBTC: "0x1B5C6cF9Df1CBF30387C24CC7DB1787CCf65C797",
 		pETH: "0xc3cF399566220dc5Ed6C8CFbf8247214Af103C72",
-		pBNB: "0x3f8BFbDc1e79777511c00Ad8591cef888C2113C1",
+		pBNB: "0xD6B013A65C22C372F995864CcdAE202D0194f9bf",
 		pAVAX: "0x992F9B8Aa09B8e084acf4e3213d8b2da5D366D6a",
 		pUNI: "0x05Ec3Fb5B7CB3bE9D7150FBA1Fb0749407e5Aa8a",
 		pMKR: "0xD8542f327FaD60b80D8C19025147E6b9d857bb99",
@@ -76,35 +77,6 @@ export const lastRate = async (currencyName = undefined) => {
 		pMANA: "0x424807fA7B16f747CbD30963fAe25fB8Db0b97bF",
 	};
 
-	// const RateMapping = (data) => {
-	// 	let price = 0n;
-	// 	try {
-	// 		price = BigInt(data.price);
-	// 	} catch (e) {}
-
-	// 	currencyName =
-	// 		data.currencyName[0] !== "p"
-	// 			? "p" + data.currencyName
-	// 			: data.currencyName === "pUSD"
-	// 			? "USD"
-	// 			: data.currencyName;
-
-	// 	return {
-	// 		price,
-	// 		currencyName,
-	// 	};
-	// };
-
-	// const mapping = ({ data }) => {
-	// 	let value = {};
-	// 	data.lastRates.forEach((element) => {
-	// 		const item = RateMapping(element);
-	// 		value[item.currencyName] = item.price;
-	// 	});
-	// 	value["pUSD"] = 10n ** 18n;
-	// 	return value;
-	// };
-
 	if (address[currencyName]) {
 		try {
 			const contract = new ethers.Contract(
@@ -121,5 +93,4 @@ export const lastRate = async (currencyName = undefined) => {
 	}
 
 	return 10n ** 18n;
-	// return 0n;
 };

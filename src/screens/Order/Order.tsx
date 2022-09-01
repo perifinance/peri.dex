@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
 import { getLastRates, getBalances } from "lib/thegraph/api";
@@ -12,6 +12,7 @@ import { getNetworkPrice } from "lib/price";
 import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
 import { changeNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
+import { setLoading } from "reducers/loading";
 
 const Order = ({ openCoinList }) => {
 	const dispatch = useDispatch();
@@ -45,7 +46,7 @@ const Order = ({ openCoinList }) => {
 					getLastRates({ currencyName: selectedCoins.source.symbol }),
 					getLastRates({ currencyName: selectedCoins.destination.symbol }),
 				]);
-				console.log("rates", rates);
+
 				return rates;
 			})();
 
@@ -74,6 +75,8 @@ const Order = ({ openCoinList }) => {
 			networkId,
 			currencyName: selectedCoins.source.symbol ?? "pUSD",
 		});
+
+		console.log("Order balance", balance);
 
 		setBalance(balance || 0n);
 	};
@@ -154,6 +157,8 @@ const Order = ({ openCoinList }) => {
 	};
 
 	const order = async () => {
+		dispatch(setLoading({ name: "balance", value: true }));
+
 		if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
 			NotificationManager.warning(
 				`This network is not supported. Please change to moonriver network`,
@@ -192,9 +197,12 @@ const Order = ({ openCoinList }) => {
 					},
 				})
 			);
+
+			dispatch(setLoading({ name: "balance", value: false }));
 		} catch (e) {
 			console.log(e);
 		}
+		dispatch(setLoading({ name: "balance", value: false }));
 	};
 
 	const swapToCurrency = () => {
@@ -242,9 +250,13 @@ const Order = ({ openCoinList }) => {
 	}, [selectedCoins]);
 
 	useEffect(() => {
+		dispatch(setLoading({ name: "balance", value: true }));
+
 		if (isReady && networkId) {
 			setNetworkFee();
 		}
+
+		dispatch(setLoading({ name: "balance", value: false }));
 	}, [isReady, networkId, selectedCoins]);
 
 	useEffect(() => {
@@ -265,7 +277,6 @@ const Order = ({ openCoinList }) => {
 				setPayAmountToUSD(0n);
 				setReceiveAmount(0n);
 				setBalance(0n);
-
 				setPer(0n);
 			}
 		}

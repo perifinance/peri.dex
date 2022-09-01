@@ -21,15 +21,16 @@ const Chart = () => {
 		time?: string;
 	}>({});
 
-	// const init = useCallback(async () => {
-	// 	const chartRate = await getChartRates({
-	// 		currencyNames,
-	// 		chartTime,
-	// 	});
-	// 	setData(chartRate);
-	// 	// console.log('chartRate', chartRate);
-	// 	setPrices({ ...chartRate[chartRate.length - 1] });
-	// }, [currencyNames, chartTime]);
+	// ! 임시 주석 처리
+	const init = useCallback(async () => {
+		const chartRate = await getChartRates({
+			currencyNames,
+			chartTime,
+		});
+		setData(chartRate);
+		console.log("chartRate", currencyNames, chartTime, chartRate);
+		setPrices({ ...chartRate[chartRate.length - 1] });
+	}, [currencyNames, chartTime]);
 
 	const formatPrice = (e) => {
 		if (!isFinite(e)) {
@@ -42,7 +43,7 @@ const Chart = () => {
 	const setPrice = (payload) => {
 		// console.log('payload', payload);
 		if (payload && payload[0] && payload[0].payload) {
-			// setPrices(payload[0].payload); // ! 임시 주석처리
+			setPrices(payload[0].payload); // ! 임시 주석처리
 		}
 	};
 
@@ -58,16 +59,16 @@ const Chart = () => {
 	useEffect(() => {
 		if (currencyNames) {
 			setData([]);
-			// init(); // ! 임시 주석처리
+			init(); // ! 임시 주석처리
+
 			// const timeout = setInterval(() => {
-			//     init();
+			// 	init();
 			// }, 1000 * 60);
-			// return () => clearInterval(timeout)
+			// return () => clearInterval(timeout);
 		}
 	}, [currencyNames, chartTime]);
 
 	return (
-		//
 		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
 			<div className="flex flex-col lg:justify-end">
 				<div className="flex space-x-5">

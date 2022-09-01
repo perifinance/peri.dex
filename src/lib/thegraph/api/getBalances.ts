@@ -1,5 +1,5 @@
-import { balance } from "../queries";
-import { get } from "../service";
+// import {balance} from "../queries";
+// import {get} from "../service";
 
 import pynths from "configure/coins/pynths";
 import { contracts } from "lib/contract";
@@ -19,6 +19,8 @@ export const getBalance = async (
 		} catch (e) {
 			amount = 0n;
 		}
+
+		console.log("rate", coinName, rate);
 
 		return {
 			currencyName: coinName,
@@ -55,20 +57,20 @@ export const getBalances = async ({
 	address,
 	rates = undefined,
 }) => {
+	console.log("BALANCES", currencyName, networkId, address);
+
 	if (currencyName) {
 		return getBalance(address, currencyName);
 	} else {
 		const promises = [];
 
 		await Promise.all(
-			pynths[networkId].map(async (pynth: any) =>
-				getLastRates({ currencyName: pynth.symbol }).then(async (rate) =>
-					promises.push(await getBalance(address, pynth.symbol, 18, true, rate))
+			pynths[networkId].map(async (pynth: any, idx: number) =>
+				getLastRates({ currencyName: pynth.symbol }).then(
+					async (rate) => (promises[idx] = await getBalance(address, pynth.symbol, 18, true, rate))
 				)
 			)
 		);
-
-		console.log("promises", promises, typeof promises, Array.isArray(promises), promises[0]);
 
 		return promises;
 	}
