@@ -9,6 +9,7 @@ import Chart from "screens/Chart";
 import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
 import { NotificationManager } from "react-notifications";
 import { changeNetwork } from "lib/network";
+import { setLoading } from "reducers/loading";
 
 const Exchange = () => {
 	const dispatch = useDispatch();
@@ -30,6 +31,8 @@ const Exchange = () => {
 	};
 
 	const selectedCoin = (coin) => {
+		dispatch(setLoading({ name: "balance", value: true }));
+
 		if (coin) {
 			if (coinListType === "source") {
 				dispatch(setSourceCoin(coin));
@@ -38,6 +41,7 @@ const Exchange = () => {
 			}
 		}
 		setIsCoinList(false);
+		dispatch(setLoading({ name: "balance", value: false }));
 	};
 
 	useEffect(() => {

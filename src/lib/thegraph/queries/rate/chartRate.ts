@@ -12,36 +12,26 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 			...data,
 		};
 	};
+	console.log("query parameters:", currencyName, skip, first, searchDate);
+
 	return {
 		url: "",
-		// query: gql`
-		// 	query {
-		// 		aggregatorChartRates(
-		// 			skip: $skip
-		// 			first: $first
-		// 			where: { currencyName: $currencyName, timestamp: $searchDate }
-		// 		) {
-		// 			currencyName
-		// 			price
-		// 			low
-		// 			high
-		// 			timestamp
-		// 		}
-		// 	}
-		// `,
 		query: gql`
 			query {
-				aggregatorChartRates(currencyName: "BTC") {
+				aggregatorChartRates(currencyName: "${currencyName}") {
 					currencyName
+                    price
 					id
 					low
 					high
+                    timestamp
 				}
 			}
 		`,
 		variables: { currencyName, skip, first, searchDate },
 		mapping: ({ data }) => {
-			return data.chartRates.map((item) => RateMapping(item));
+			const aggregatorChartRates = data.aggregatorChartRates;
+			return aggregatorChartRates.map((item) => RateMapping(item));
 		},
 		errorCallback: () => {
 			return [

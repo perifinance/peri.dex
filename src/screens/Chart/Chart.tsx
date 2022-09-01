@@ -1,10 +1,11 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis, YAxis } from "recharts";
 import { getChartRates } from "lib/thegraph/api";
 import { formatDate, formatCurrency } from "lib";
 import { utils } from "ethers";
+import { setLoading } from "reducers/loading";
 const Chart = () => {
 	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
 	const [chartTime, setChartTime] = useState("24H");
@@ -21,14 +22,23 @@ const Chart = () => {
 		time?: string;
 	}>({});
 
+	const dispatch = useDispatch();
+
+	const loadingHandler = (toggle: boolean) => {
+		toggle
+			? dispatch(setLoading({ name: "balance", value: true }))
+			: dispatch(setLoading({ name: "balance", value: false }));
+	};
+
 	// ! 임시 주석 처리
 	const init = useCallback(async () => {
 		const chartRate = await getChartRates({
 			currencyNames,
 			chartTime,
+			loadingHandler,
 		});
+		console.log("chartRate", chartRate);
 		setData(chartRate);
-		console.log("chartRate", currencyNames, chartTime, chartRate);
 		setPrices({ ...chartRate[chartRate.length - 1] });
 	}, [currencyNames, chartTime]);
 

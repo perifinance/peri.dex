@@ -1,13 +1,6 @@
 import { chartRate } from "../queries";
 import { get } from "../service";
-import {
-	// differenceInMonths,
-	// differenceInWeeks,
-	// differenceInDays,
-	// differenceInMinutes,
-	format,
-	// sub
-} from "date-fns";
+import { format } from "date-fns";
 import { utils } from "ethers";
 import { formatCurrency } from "lib";
 
@@ -19,13 +12,16 @@ type ChartRateParameter = {
 	page?: number;
 	first?: number;
 	chartTime?: String;
+	loadingHandler?: any;
 };
 export const getChartRates = async ({
 	currencyNames,
 	page = undefined,
 	first = undefined,
 	chartTime = "24H",
+	loadingHandler,
 }: ChartRateParameter) => {
+	await loadingHandler(true);
 	let searchDate;
 
 	switch (chartTime) {
@@ -57,6 +53,9 @@ export const getChartRates = async ({
 		currencyNames.source === "pUSD"
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
 			: await get(chartRate({ currencyName: currencyNames.source, page, first, searchDate }));
+	// let sourceData = await get(
+	// 	chartRate({ currencyName: currencyNames.source, page, first, searchDate })
+	// );
 
 	if (currencyNames.source !== "pUSD" && sourceData.length <= 1) {
 		sourceData = await get(chartRate({ currencyName: currencyNames.source, page: 0, first: 2 }));
@@ -67,6 +66,10 @@ export const getChartRates = async ({
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
 			: await get(chartRate({ currencyName: currencyNames.destination, page, first, searchDate }));
 
+	// let destinationData = await get(
+	// 	chartRate({ currencyName: currencyNames.destination, page, first, searchDate })
+	// );
+
 	if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
 		destinationData = await get(
 			chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 })
@@ -76,6 +79,7 @@ export const getChartRates = async ({
 	let dayFlag;
 	let values = [];
 	const datas = currencyNames.source === "pUSD" ? destinationData : sourceData;
+
 	try {
 		datas.forEach((item, index) => {
 			const destinationDataItem = destinationData[index]
@@ -84,16 +88,7 @@ export const getChartRates = async ({
 			const sourceDataItem = sourceData[index]
 				? sourceData[index]
 				: sourceData[sourceData.length - 1];
-			// if(dayFlag && differenceIn(new Date(item.timestamp * 1000), dayFlag) < Number(dataFromNum) ) {
-			//     values[values.length-1].low = BigInt(values[values.length-1].low) < BigInt(sourceDataItem.low) ? values[values.length-1].low : sourceDataItem.low
-			//     values[values.length-1].price = sourceDataItem.price;
-			//     values[values.length-1].high = BigInt(values[values.length-1].high) > BigInt(sourceDataItem.high) ? values[values.length-1].high : sourceDataItem.high
 
-			//     values[values.length-1].low = BigInt(values[values.length-1].low) * 10n ** 18n / BigInt(destinationDataItem.low);
-			//     values[values.length-1].price = BigInt(values[values.length-1].price) * 10n ** 18n / BigInt(destinationDataItem.price);
-			//     values[values.length-1].high = BigInt(values[values.length-1].high) * 10n ** 18n / BigInt(destinationDataItem.high);
-
-			// } else {
 			dayFlag = new Date(item.timestamp * 1000);
 			let low;
 			let price;
@@ -104,11 +99,13 @@ export const getChartRates = async ({
 			high = (BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high);
 
 			values.push({ low, price, high, timestamp: dayFlag });
-			// }
 		});
 	} catch (e) {
 		console.log(e);
 	}
+
+	await loadingHandler(false);
+
 	return values.map((e) => {
 		return {
 			price: utils.formatEther(e.price),
