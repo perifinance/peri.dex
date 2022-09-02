@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from 'react-redux';
 import { RootState } from 'reducers';
 
-import { VictoryPie} from 'victory'
+import { VictoryPie } from 'victory'
 import { getLastRates } from "lib/thegraph/api";
 import { formatCurrency, formatTimestamp } from "lib";
 import { contracts } from 'lib/contract'
@@ -390,8 +390,7 @@ const Assets = () => {
                     innerRadius={60}
                     labels={({datum}) => datum.y >= 5 ? `${datum.y}%` : ''}
                     style={{ labels: { fill: "white", fontSize: 20 } }}
-                    
-                  />
+                  ></VictoryPie>
                 </div>
                 <div className="text-base">
                   {balances.map(({amount}, index) => amount > 0n ? 
