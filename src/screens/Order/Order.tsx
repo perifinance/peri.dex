@@ -71,7 +71,7 @@ const Order = ({openCoinList}) => {
 
     const getSourceBalance = async () => {
         const balance = await getBalances({address, networkId, currencyName: selectedCoins.source.symbol});
-        // console.log(balance);
+        console.log(balance);
 
         setBalance(balance?.amount || 0n);
     }
@@ -256,6 +256,7 @@ const Order = ({openCoinList}) => {
         if(isReady && isConnect && address) {
             if(networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
                 getSourceBalance();
+                console.log("gkgkgkgkgk")
             } else {
                 changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
                 setPayAmount('0');
@@ -265,6 +266,7 @@ const Order = ({openCoinList}) => {
                 setBalance(0n);
 
                 setPer(0n);
+                console.log("asdasdasd")
             }
         } 
     },[isReady, networkId, isConnect, address, selectedCoins]);
