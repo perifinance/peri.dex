@@ -49,36 +49,38 @@ export const getChartRates = async ({
 		timestamp: new Date(),
 	};
 
-	let sourceData =
-		currencyNames.source === "pUSD"
-			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
-			: await get(chartRate({ currencyName: currencyNames.source, page, first, searchDate }));
-	// let sourceData = await get(
-	// 	chartRate({ currencyName: currencyNames.source, page, first, searchDate })
-	// );
+	// let sourceData =
+	// 	currencyNames.source === "pUSD"
+	// 		? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
+	// 		: await get(chartRate({ currencyName: currencyNames.source, page, first, searchDate }));
+	let sourceData = await get(
+		chartRate({ currencyName: currencyNames.source, page, first, searchDate })
+	);
 
-	if (currencyNames.source !== "pUSD" && sourceData.length <= 1) {
-		sourceData = await get(chartRate({ currencyName: currencyNames.source, page: 0, first: 2 }));
-	}
+	// if (currencyNames.source !== "pUSD" && sourceData.length <= 1) {
+	// 	sourceData = await get(chartRate({ currencyName: currencyNames.source, page: 0, first: 2 }));
+	// }
 
-	let destinationData =
-		currencyNames.destination === "pUSD"
-			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
-			: await get(chartRate({ currencyName: currencyNames.destination, page, first, searchDate }));
+	// let destinationData =
+	// 	currencyNames.destination === "pUSD"
+	// 		? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
+	// 		: await get(chartRate({ currencyName: currencyNames.destination, page, first, searchDate }));
 
-	// let destinationData = await get(
-	// 	chartRate({ currencyName: currencyNames.destination, page, first, searchDate })
-	// );
+	let destinationData = await get(
+		chartRate({ currencyName: currencyNames.destination, page, first, searchDate })
+	);
 
-	if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
-		destinationData = await get(
-			chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 })
-		);
-	}
+	// if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
+	// 	destinationData = await get(
+	// 		chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 })
+	// 	);
+	// }
 
 	let dayFlag;
 	let values = [];
 	const datas = currencyNames.source === "pUSD" ? destinationData : sourceData;
+
+	console.log("args", sourceData, destinationData);
 
 	try {
 		datas.forEach((item, index) => {

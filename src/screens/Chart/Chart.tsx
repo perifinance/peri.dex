@@ -30,7 +30,6 @@ const Chart = () => {
 			: dispatch(setLoading({ name: "balance", value: false }));
 	};
 
-	// ! 임시 주석 처리
 	const init = useCallback(async () => {
 		const chartRate = await getChartRates({
 			currencyNames,
@@ -53,7 +52,7 @@ const Chart = () => {
 	const setPrice = (payload) => {
 		// console.log('payload', payload);
 		if (payload && payload[0] && payload[0].payload) {
-			setPrices(payload[0].payload); // ! 임시 주석처리
+			setPrices(payload[0].payload);
 		}
 	};
 

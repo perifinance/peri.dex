@@ -13,12 +13,13 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 		};
 	};
 	console.log("query parameters:", currencyName, skip, first, searchDate);
+	// , skip: ${skip}, first: ${first}, timestamp: ${searchDate}
 
 	return {
 		url: "",
 		query: gql`
 			query {
-				aggregatorChartRates(currencyName: "${currencyName}") {
+				aggregatorChartRates(currencyName: "${currencyName}", timestamp: ${searchDate}, skip: ${skip}, take: ${first}) {
 					currencyName
                     price
 					id
