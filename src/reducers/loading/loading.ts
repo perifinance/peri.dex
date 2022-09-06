@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 export type Loading = {
 	loadings: object;
@@ -6,19 +6,19 @@ export type Loading = {
 
 const initialState: Loading = {
 	loadings: {
-        balance: false,
-        apy: false,
-        burnAble: false,
-        gasEstimate: false,
+		balance: false,
+		apy: false,
+		burnAble: false,
+		gasEstimate: false,
 		closeCurrentFeePeriod: false,
 		rewardData: false,
 		vestingData: false,
-		amountsToFitClaimable: false
-    },
+		amountsToFitClaimable: false,
+	},
 };
 
 export const loadingSlice = createSlice({
-	name: 'loading',
+	name: "loading",
 	initialState,
 	reducers: {
 		setLoading: (state, actions) => {
@@ -27,8 +27,6 @@ export const loadingSlice = createSlice({
 	},
 });
 
-export const {
-	setLoading,
-} = loadingSlice.actions;
+export const { setLoading } = loadingSlice.actions;
 
 export default loadingSlice.reducer;
