@@ -68,7 +68,7 @@ const Chart = () => {
 	useEffect(() => {
 		if (currencyNames) {
 			setData([]);
-			init(); // ! 임시 주석처리
+			init();
 
 			// const timeout = setInterval(() => {
 			// 	init();

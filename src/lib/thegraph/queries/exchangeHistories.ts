@@ -34,17 +34,18 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 		};
 	};
 
+	console.log("variables", variables);
+
 	return {
-		url: ``, // process.env.NODE_ENV==="production"?`Exchanger-Real`:`Exchanger-Dev`,
-		// url: `Exchanger-Dev`,
+		url: `exchangeHistory`,
 		query: gql`
-			query GetExchangeEntrySettleds($skip: Int!, $first: Int!, $address: String!) {
-				exchangeHistories(
-					skip: $skip
-					first: $first
-					where: { account: $address }
-					orderBy: timestamp
-					orderDirection: desc
+			query {
+				exchangeHistory(
+					skip: ${variables.skip},
+					first: ${variables.first},
+					account: "${variables.address}",
+					orderBy: timestamp,
+					orderDirection: desc,
 				) {
 					id
 					account
@@ -66,6 +67,35 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 				}
 			}
 		`,
+		// query: gql`
+		// 	query GetExchangeEntrySettleds($skip: Int!, $first: Int!, $address: String!) {
+		// 		exchangeHistories(
+		// 			skip: $skip
+		// 			first: $first
+		// 			where: { account: $address }
+		// 			orderBy: timestamp
+		// 			orderDirection: desc
+		// 		) {
+		// 			id
+		// 			account
+		// 			src
+		// 			amount
+		// 			dest
+		// 			amountReceived
+		// 			exchangeFeeRate
+		// 			roundIdForSrc
+		// 			roundIdForDest
+		// 			reclaim
+		// 			rebate
+		// 			srcRoundIdAtPeriodEnd
+		// 			destRoundIdAtPeriodEnd
+		// 			timestamp
+		// 			state
+		// 			appendedTxid
+		// 			settledTxid
+		// 		}
+		// 	}
+		// `,
 		variables,
 		mapping: ({ data }) => {
 			return data.exchangeHistories.map((item) => {

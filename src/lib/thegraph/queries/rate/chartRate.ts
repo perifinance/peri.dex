@@ -12,8 +12,6 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 			...data,
 		};
 	};
-	console.log("query parameters:", currencyName, skip, first, searchDate);
-	// , skip: ${skip}, first: ${first}, timestamp: ${searchDate}
 
 	return {
 		url: "",
