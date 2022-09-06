@@ -37,7 +37,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 	console.log("variables", variables);
 
 	return {
-		url: `exchangeHistory`,
+		url: ``,
 		query: gql`
 			query {
 				exchangeHistory(
