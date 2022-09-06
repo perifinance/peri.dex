@@ -55,6 +55,7 @@ const App = () => {
 					},
 					address: async (newAddress) => {
 						if (newAddress) {
+							console.log(newAddress,"aslkdjalsdkjaslkdjakls");
 							contracts.connect(newAddress);
 							dispatch(updateIsConnect(true));
 							dispatch(updateAddress({address: newAddress}));

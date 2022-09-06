@@ -34,8 +34,6 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 		};
 	};
 
-	console.log("variables", variables);
-
 	return {
 		url: ``,
 		query: gql`
@@ -96,7 +94,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 		// `,
 		variables,
 		mapping: ({ data }) => {
-			return data.exchangeHistories.map((item) => {
+			return data.exchangeHistory.map((item) => {
 				return settledMap(item);
 			});
 		},
