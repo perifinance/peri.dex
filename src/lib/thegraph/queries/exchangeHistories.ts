@@ -44,8 +44,6 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 					skip: ${variables.skip},
 					first: ${variables.first},
 					account: "${variables.address}",
-					orderBy: timestamp,
-					orderDirection: desc,
 				) {
 					id
 					account
