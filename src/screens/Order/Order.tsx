@@ -76,8 +76,6 @@ const Order = ({ openCoinList }) => {
 			currencyName: selectedCoins.source.symbol ?? "pUSD",
 		});
 
-		console.log("Order balance", balance);
-
 		setBalance(balance || 0n);
 	};
 

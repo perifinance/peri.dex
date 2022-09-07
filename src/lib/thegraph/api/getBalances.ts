@@ -20,8 +20,6 @@ export const getBalance = async (
 			amount = 0n;
 		}
 
-		console.log("rate", coinName, rate);
-
 		return {
 			currencyName: coinName,
 			amount,
@@ -57,8 +55,6 @@ export const getBalances = async ({
 	address,
 	rates = undefined,
 }) => {
-	console.log("BALANCES", currencyName, networkId, address);
-
 	if (currencyName) {
 		return getBalance(address, currencyName);
 	} else {

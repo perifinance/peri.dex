@@ -81,8 +81,6 @@ export const getChartRates = async ({
 	let values = [];
 	const datas = currencyNames.source === "pUSD" ? destinationData : sourceData;
 
-	console.log("args", sourceData, destinationData);
-
 	try {
 		datas.forEach((item, index) => {
 			const destinationDataItem = destinationData[index]

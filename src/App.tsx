@@ -1,29 +1,29 @@
-import React, {useEffect, useCallback} from "react";
-import {useSelector, useDispatch} from "react-redux";
-import {NotificationContainer, NotificationManager} from "react-notifications";
+import React, { useEffect, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { NotificationContainer, NotificationManager } from "react-notifications";
 // import { getLastRates, getBalances } from 'lib/thegraph/api'
-import {RootState} from "reducers";
+import { RootState } from "reducers";
 import detectEthereumProvider from "@metamask/detect-provider";
 
-import {updateAddress, updateNetwork, updateIsConnect} from "reducers/wallet";
+import { updateAddress, updateNetwork, updateIsConnect } from "reducers/wallet";
 // import { clearWallet, clearBalances } from 'reducers/wallet'
-import {resetTransaction} from "reducers/transaction";
-import {initCoinList} from "reducers/coin/coinList";
-import {setSourceCoin, setDestinationCoin} from "reducers/coin/selectedCoin";
-import {setAppReady} from "reducers/app";
+import { resetTransaction } from "reducers/transaction";
+import { initCoinList } from "reducers/coin/coinList";
+import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
+import { setAppReady } from "reducers/app";
 // import { changeNetwork } from 'lib/network'
 
-import {SUPPORTED_NETWORKS} from "lib/network";
-import {InitOnboard, onboard} from "lib/onboard/onboard";
-import {contracts} from "lib/contract";
-import {getCoinList} from "lib/coinList";
+import { SUPPORTED_NETWORKS } from "lib/network";
+import { InitOnboard, onboard } from "lib/onboard/onboard";
+import { contracts } from "lib/contract";
+import { getCoinList } from "lib/coinList";
 
 import Main from "./screens/Main";
 import "./App.css";
 import Loading from "components/loading";
 
 const App = () => {
-	const {address, networkId} = useSelector((state: RootState) => state.wallet);
+	const { address, networkId } = useSelector((state: RootState) => state.wallet);
 	const transaction = useSelector((state: RootState) => state.transaction);
 	const themeState = useSelector((state: RootState) => state.theme.theme);
 
@@ -40,7 +40,7 @@ const App = () => {
 
 		contracts.init(networkId);
 		dispatch(setAppReady());
-		dispatch(updateNetwork({networkId: networkId}));
+		dispatch(updateNetwork({ networkId: networkId }));
 		try {
 			InitOnboard(
 				networkId,
@@ -55,25 +55,24 @@ const App = () => {
 					},
 					address: async (newAddress) => {
 						if (newAddress) {
-							console.log(newAddress,"aslkdjalsdkjaslkdjakls");
 							contracts.connect(newAddress);
 							dispatch(updateIsConnect(true));
-							dispatch(updateAddress({address: newAddress}));
+							dispatch(updateAddress({ address: newAddress }));
 						}
 					},
 					network: async (network) => {
 						if (network) {
 							contracts.init(network);
-							onboard.config({networkId: network});
+							onboard.config({ networkId: network });
 
-							dispatch(updateNetwork({networkId: network}));
+							dispatch(updateNetwork({ networkId: network }));
 							if (SUPPORTED_NETWORKS[network]) {
 								contracts.connect(address);
 							} else {
 								// NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
 								// onboard.walletReset();
 								// onboard.config({ networkId: network });
-								dispatch(updateNetwork({networkId: network}));
+								dispatch(updateNetwork({ networkId: network }));
 								// dispatch(updateIsConnect(false));
 								// localStorage.removeItem('selectedWallet');
 								// dispatch(clearWallet());

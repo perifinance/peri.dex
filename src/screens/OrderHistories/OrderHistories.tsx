@@ -24,7 +24,6 @@ const OrderHistories = ({}) => {
 
 	const init = useCallback(async () => {
 		const histories = await getExchangeHistories({ address, first: 3 });
-		console.log("address:", address, "histories:", histories);
 		setHistories(histories);
 		setPages(getPages(histories.length));
 	}, [address, getExchangeHistories, setHistories]);

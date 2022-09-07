@@ -36,7 +36,7 @@ const Chart = () => {
 			chartTime,
 			loadingHandler,
 		});
-		console.log("chartRate", chartRate);
+
 		setData(chartRate);
 		setPrices({ ...chartRate[chartRate.length - 1] });
 	}, [currencyNames, chartTime]);
