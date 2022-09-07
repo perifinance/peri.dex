@@ -120,8 +120,9 @@ const Header = () => {
 								className={`hidden lg:inline-block hover:text-blue-500 ${
 									location.pathname.includes("/dashboard") && "text-blue-500"
 								}`}
-								href="https://dashboard.peri.finance/"
-								target="_blank"
+								// href="https://dashboard.peri.finance/" // ! temp off
+								href="http://localhost:3000/exchange"
+								// target="_blank"
 							>
 								DASHBOARD
 							</a>
