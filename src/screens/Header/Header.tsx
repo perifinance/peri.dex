@@ -115,18 +115,17 @@ const Header = () => {
 								BRIDGE
 							</Link>
 						</li>
-						<li className="text-xl font-bold inline m-4">
+						{/* <li className="text-xl font-bold inline m-4">
 							<a
 								className={`hidden lg:inline-block hover:text-blue-500 ${
 									location.pathname.includes("/dashboard") && "text-blue-500"
 								}`}
-								// href="https://dashboard.peri.finance/" // ! temp off
-								href="http://localhost:3000/exchange"
-								// target="_blank"
+								href="https://dashboard.peri.finance/"
+								target="_blank"
 							>
 								DASHBOARD
 							</a>
-						</li>
+						</li> */}
 					</ul>
 				</nav>
 			</div>
