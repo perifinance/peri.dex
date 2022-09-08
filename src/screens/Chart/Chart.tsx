@@ -22,6 +22,8 @@ const Chart = () => {
 		time?: string;
 	}>({});
 
+	console.log("data", data);
+
 	const dispatch = useDispatch();
 
 	const loadingHandler = (toggle: boolean) => {
@@ -36,7 +38,7 @@ const Chart = () => {
 			chartTime,
 			loadingHandler,
 		});
-		// console.log("chartRate", chartRate);
+		console.log("chartRate", chartRate);
 		setData(chartRate);
 		setPrices({ ...chartRate[chartRate.length - 1] });
 	}, [currencyNames, chartTime]);
@@ -128,7 +130,7 @@ const Chart = () => {
 				</div>
 
 				<div className="text-xl font-medium text-skyblue-500">
-					{prices?.price} {selectedCoins.source.symbol}
+					{prices?.formatPrice} {selectedCoins.source.symbol}
 				</div>
 				{/* <div>{ formatCurrency(exchangeRates, 8)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div> */}
 				<div className="text-xs">
@@ -156,7 +158,7 @@ const Chart = () => {
 								itemStyle={{ color: "#000000" }}
 								position={{ y: 0 }}
 								content={({ active, payload, label }) => {
-									// console.log("payload", payload);
+									console.log("payload", payload);
 									setPrice(payload);
 									return (
 										payload && (
