@@ -1,31 +1,31 @@
-import {ethers} from "ethers";
-import {contracts} from "lib/contract";
+import { ethers } from "ethers";
+import { contracts } from "lib/contract";
 
 export const lastRate = async (currencyName = undefined) => {
 	const aggregatorV3InterfaceABI = [
 		{
 			inputs: [],
 			name: "decimals",
-			outputs: [{internalType: "uint8", name: "", type: "uint8"}],
+			outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
 			stateMutability: "view",
 			type: "function",
 		},
 		{
 			inputs: [],
 			name: "description",
-			outputs: [{internalType: "string", name: "", type: "string"}],
+			outputs: [{ internalType: "string", name: "", type: "string" }],
 			stateMutability: "view",
 			type: "function",
 		},
 		{
-			inputs: [{internalType: "uint80", name: "_roundId", type: "uint80"}],
+			inputs: [{ internalType: "uint80", name: "_roundId", type: "uint80" }],
 			name: "getRoundData",
 			outputs: [
-				{internalType: "uint80", name: "roundId", type: "uint80"},
-				{internalType: "int256", name: "answer", type: "int256"},
-				{internalType: "uint256", name: "startedAt", type: "uint256"},
-				{internalType: "uint256", name: "updatedAt", type: "uint256"},
-				{internalType: "uint80", name: "answeredInRound", type: "uint80"},
+				{ internalType: "uint80", name: "roundId", type: "uint80" },
+				{ internalType: "int256", name: "answer", type: "int256" },
+				{ internalType: "uint256", name: "startedAt", type: "uint256" },
+				{ internalType: "uint256", name: "updatedAt", type: "uint256" },
+				{ internalType: "uint80", name: "answeredInRound", type: "uint80" },
 			],
 			stateMutability: "view",
 			type: "function",
@@ -34,11 +34,11 @@ export const lastRate = async (currencyName = undefined) => {
 			inputs: [],
 			name: "latestRoundData",
 			outputs: [
-				{internalType: "uint80", name: "roundId", type: "uint80"},
-				{internalType: "int256", name: "answer", type: "int256"},
-				{internalType: "uint256", name: "startedAt", type: "uint256"},
-				{internalType: "uint256", name: "updatedAt", type: "uint256"},
-				{internalType: "uint80", name: "answeredInRound", type: "uint80"},
+				{ internalType: "uint80", name: "roundId", type: "uint80" },
+				{ internalType: "int256", name: "answer", type: "int256" },
+				{ internalType: "uint256", name: "startedAt", type: "uint256" },
+				{ internalType: "uint256", name: "updatedAt", type: "uint256" },
+				{ internalType: "uint80", name: "answeredInRound", type: "uint80" },
 			],
 			stateMutability: "view",
 			type: "function",
@@ -46,13 +46,12 @@ export const lastRate = async (currencyName = undefined) => {
 		{
 			inputs: [],
 			name: "version",
-			outputs: [{internalType: "uint256", name: "", type: "uint256"}],
+			outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
 			stateMutability: "view",
 			type: "function",
 		},
 	];
 	const address = {
-		pUSD: "0x3f8BFbDc1e79777511c00Ad8591cef888C2113C1",
 		pBTC: "0x1B5C6cF9Df1CBF30387C24CC7DB1787CCf65C797",
 		pETH: "0xc3cF399566220dc5Ed6C8CFbf8247214Af103C72",
 		pBNB: "0xD6B013A65C22C372F995864CcdAE202D0194f9bf",
@@ -76,6 +75,10 @@ export const lastRate = async (currencyName = undefined) => {
 		pSAND: "0x5403385DF6eb607fc1fA6983eF5801A11eC7fD9a",
 		pMANA: "0x424807fA7B16f747CbD30963fAe25fB8Db0b97bF",
 	};
+
+	if (currencyName === "pUSD") {
+		return 1n * 10n ** 18n;
+	}
 
 	if (address[currencyName]) {
 		try {

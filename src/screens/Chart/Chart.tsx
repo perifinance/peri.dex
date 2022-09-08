@@ -36,7 +36,7 @@ const Chart = () => {
 			chartTime,
 			loadingHandler,
 		});
-
+		// console.log("chartRate", chartRate);
 		setData(chartRate);
 		setPrices({ ...chartRate[chartRate.length - 1] });
 	}, [currencyNames, chartTime]);
@@ -128,7 +128,7 @@ const Chart = () => {
 				</div>
 
 				<div className="text-xl font-medium text-skyblue-500">
-					{prices?.formatPrice} {selectedCoins.source.symbol}
+					{prices?.price} {selectedCoins.source.symbol}
 				</div>
 				{/* <div>{ formatCurrency(exchangeRates, 8)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div> */}
 				<div className="text-xs">
@@ -156,19 +156,19 @@ const Chart = () => {
 								itemStyle={{ color: "#000000" }}
 								position={{ y: 0 }}
 								content={({ active, payload, label }) => {
-									// console.log('payload', payload);
+									// console.log("payload", payload);
 									setPrice(payload);
 									return (
 										payload && (
 											<div className="bg-gray-300 p-2">
 												<div>
-													<span className="">High</span>: {payload[0]?.payload?.formatHigh}
+													<span className="">High</span>: {payload[0]?.payload?.high}
 												</div>
 												<div>
-													<span className="">Price</span>: {payload[0]?.payload?.formatPrice}
+													<span className="">Price</span>: {payload[0]?.payload?.price}
 												</div>
 												<div>
-													<span className="">Low</span>: {payload[0]?.payload?.formatLow}
+													<span className="">Low</span>: {payload[0]?.payload?.low}
 												</div>
 												<div>{formatDate(payload[0]?.payload?.timestamp)}</div>
 											</div>
