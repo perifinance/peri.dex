@@ -95,9 +95,16 @@ export const getChartRates = async ({
 			let price;
 			let high;
 
-			low = (BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low);
-			price = (BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price);
-			high = (BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high);
+			low =
+				((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
+			price =
+				((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) *
+				10n ** 10n;
+			high =
+				((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) *
+				10n ** 10n;
+
+			console.log(low, price, high, dayFlag);
 
 			values.push({ low, price, high, timestamp: dayFlag });
 		});
