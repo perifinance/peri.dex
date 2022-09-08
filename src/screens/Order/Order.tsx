@@ -76,8 +76,6 @@ const Order = ({ openCoinList }) => {
 			currencyName: selectedCoins.source.symbol ?? "pUSD",
 		});
 
-		console.log("Order balance", balance);
-
 		setBalance(balance || 0n);
 	};
 
@@ -110,6 +108,12 @@ const Order = ({ openCoinList }) => {
 		validationCheck(value);
 		setPayAmount(value);
 		try {
+			console.log(
+				"asdf",
+				sourceRate,
+				value,
+				(utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n
+			);
 			setPayAmountToUSD((utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n);
 			const exchangeAmount = (utils.parseEther(value).toBigInt() * 10n ** 18n) / exchangeRates;
 			const feePrice = (exchangeAmount * feeRate) / 10n ** 18n;

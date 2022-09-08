@@ -115,7 +115,7 @@ const Header = () => {
 								BRIDGE
 							</Link>
 						</li>
-						<li className="text-xl font-bold inline m-4">
+						{/* <li className="text-xl font-bold inline m-4">
 							<a
 								className={`hidden lg:inline-block hover:text-blue-500 ${
 									location.pathname.includes("/dashboard") && "text-blue-500"
@@ -125,7 +125,7 @@ const Header = () => {
 							>
 								DASHBOARD
 							</a>
-						</li>
+						</li> */}
 					</ul>
 				</nav>
 			</div>

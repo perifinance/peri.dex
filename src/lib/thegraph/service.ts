@@ -3,7 +3,7 @@ const API_URL = process.env.REACT_APP_THEGRAPH_URL;
 
 export const get = ({ url, query, mapping, variables, errorCallback }) => {
 	const client = new ApolloClient({
-		uri: "http://localhost:4000",
+		uri: API_URL,
 		cache: new InMemoryCache(),
 		connectToDevTools: true,
 	});

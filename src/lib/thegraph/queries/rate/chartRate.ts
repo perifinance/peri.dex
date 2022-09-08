@@ -17,7 +17,9 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 		url: "",
 		query: gql`
 			query {
-				aggregatorChartRates(currencyName: "${currencyName}", timestamp: ${searchDate}, skip: ${skip}, take: ${first}) {
+				aggregatorChartRates(currencyName: "${
+					currencyName === "1INCH" ? "INCH" : currencyName
+				}", timestamp: ${searchDate}, skip: ${skip}, take: ${first}) {
 					currencyName
                     price
 					id

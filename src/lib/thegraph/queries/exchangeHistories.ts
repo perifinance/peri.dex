@@ -34,18 +34,14 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 		};
 	};
 
-	console.log("variables", variables);
-
 	return {
-		url: `exchangeHistory`,
+		url: ``,
 		query: gql`
 			query {
 				exchangeHistory(
 					skip: ${variables.skip},
 					first: ${variables.first},
 					account: "${variables.address}",
-					orderBy: timestamp,
-					orderDirection: desc,
 				) {
 					id
 					account
@@ -98,7 +94,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 		// `,
 		variables,
 		mapping: ({ data }) => {
-			return data.exchangeHistories.map((item) => {
+			return data.exchangeHistory.map((item) => {
 				return settledMap(item);
 			});
 		},
