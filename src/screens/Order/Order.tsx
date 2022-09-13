@@ -63,9 +63,7 @@ const Order = ({ openCoinList }) => {
 
 	const getFeeRate = async () => {
 		try {
-			setFeeRate(
-				await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol)
-			);
+			setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
 		} catch (e) {}
 	};
 
@@ -108,12 +106,6 @@ const Order = ({ openCoinList }) => {
 		validationCheck(value);
 		setPayAmount(value);
 		try {
-			console.log(
-				"asdf",
-				sourceRate,
-				value,
-				(utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n
-			);
 			setPayAmountToUSD((utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n);
 			const exchangeAmount = (utils.parseEther(value).toBigInt() * 10n ** 18n) / exchangeRates;
 			const feePrice = (exchangeAmount * feeRate) / 10n ** 18n;
@@ -164,11 +156,11 @@ const Order = ({ openCoinList }) => {
 		dispatch(setLoading({ name: "balance", value: true }));
 
 		if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-			NotificationManager.warning(
-				`This network is not supported. Please change to moonriver network`,
-				"ERROR"
-			);
-			changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+			// NotificationManager.warning(
+			// 	`This network is not supported. Please change to moonriver network`,
+			// 	"ERROR"
+			// );
+			// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			return false;
 		}
 
@@ -211,11 +203,8 @@ const Order = ({ openCoinList }) => {
 
 	const swapToCurrency = () => {
 		if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-			NotificationManager.warning(
-				`This network is not supported. Please change to moonriver network`,
-				"ERROR"
-			);
-			changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+			// NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
+			// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			return false;
 		}
 		const { source, destination } = Object.assign({}, selectedCoins);
@@ -275,7 +264,7 @@ const Order = ({ openCoinList }) => {
 			if (networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
 				getSourceBalance();
 			} else {
-				changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+				// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 				setPayAmount("0");
 				validationCheck("0");
 				setPayAmountToUSD(0n);
@@ -306,14 +295,8 @@ const Order = ({ openCoinList }) => {
 			<div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
 				<div className="flex space-x-8 py-2 items-center">
 					<div className="relative">
-						<img
-							className="w-10 h-10"
-							src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}
-						></img>
-						<img
-							className="w-10 h-10 absolute bottom-0 left-6"
-							src={`/images/currencies/${selectedCoins.source.symbol}.svg`}
-						></img>
+						<img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
+						<img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
 					</div>
 					<div className="text-xl font-medium">
 						{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
@@ -327,14 +310,8 @@ const Order = ({ openCoinList }) => {
 				</div>
 				{/* ${isError && 'border border-red-500'} */}
 				<div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
-					<div
-						className="flex font-medium cursor-pointer items-center"
-						onClick={() => openCoinList("source")}
-					>
-						<img
-							className="w-6 h-6"
-							src={`/images/currencies/${selectedCoins.source.symbol}.svg`}
-						></img>
+					<div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList("source")}>
+						<img className="w-6 h-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
 						<div className="m-1">{selectedCoins.source.symbol}</div>
 						<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 					</div>
@@ -352,10 +329,7 @@ const Order = ({ openCoinList }) => {
 					<span>${formatCurrency(payAmountToUSD, 2)}</span>
 				</div>
 
-				<div
-					className="flex w-9 h-9 bg-gray-500 rounded-full mx-auto cursor-pointer"
-					onClick={() => swapToCurrency()}
-				>
+				<div className="flex w-9 h-9 bg-gray-500 rounded-full mx-auto cursor-pointer" onClick={() => swapToCurrency()}>
 					<div className="m-auto">
 						<img className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"}></img>
 					</div>
@@ -366,23 +340,12 @@ const Order = ({ openCoinList }) => {
 				</div>
 
 				<div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
-					<div
-						className="flex font-medium cursor-pointer items-center"
-						onClick={() => openCoinList("destination")}
-					>
-						<img
-							className="w-6 h-6"
-							src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}
-						></img>
+					<div className="flex font-medium cursor-pointer items-center" onClick={() => openCoinList("destination")}>
+						<img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
 						<span className="m-1">{selectedCoins.destination.symbol}</span>
 						<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 					</div>
-					<input
-						className="w-2/3 bg-black-900 outline-none text-right font-medium"
-						type="text"
-						value={formatCurrency(receiveAmount, 8)}
-						disabled
-					/>
+					<input className="w-2/3 bg-black-900 outline-none text-right font-medium" type="text" value={formatCurrency(receiveAmount, 8)} disabled />
 				</div>
 
 				<div className="py-2 w-full">
@@ -395,39 +358,22 @@ const Order = ({ openCoinList }) => {
 							value={per.toString()}
 							onChange={(e) => setPerAmount(BigInt(e.target.value))}
 						/>
-						<div className="border border-gray-200 rounded-md text-sm px-1">
-							{convertNumber(per)}%
-						</div>
+						<div className="border border-gray-200 rounded-md text-sm px-1">{convertNumber(per)}%</div>
 					</div>
 					<div className="flex justify-between text-xs text-gray-400 w-10/12">
-						<span
-							className={`w-8 text-left cursor-pointer ${per === 0n && "text-blue-500"}`}
-							onClick={() => setPerAmount(0n)}
-						>
+						<span className={`w-8 text-left cursor-pointer ${per === 0n && "text-blue-500"}`} onClick={() => setPerAmount(0n)}>
 							0%
 						</span>
-						<span
-							className={`w-8 text-center cursor-pointer ${per === 25n && "text-blue-500"}`}
-							onClick={() => setPerAmount(25n)}
-						>
+						<span className={`w-8 text-center cursor-pointer ${per === 25n && "text-blue-500"}`} onClick={() => setPerAmount(25n)}>
 							25%
 						</span>
-						<span
-							className={`w-8 text-center cursor-pointer ${per === 50n && "text-blue-500"}`}
-							onClick={() => setPerAmount(50n)}
-						>
+						<span className={`w-8 text-center cursor-pointer ${per === 50n && "text-blue-500"}`} onClick={() => setPerAmount(50n)}>
 							50%
 						</span>
-						<span
-							className={`w-8 text-center cursor-pointer ${per === 75n && "text-blue-500"}`}
-							onClick={() => setPerAmount(75n)}
-						>
+						<span className={`w-8 text-center cursor-pointer ${per === 75n && "text-blue-500"}`} onClick={() => setPerAmount(75n)}>
 							75%
 						</span>
-						<span
-							className={`w-8 text-right cursor-pointer ${per === 100n && "text-blue-500"}`}
-							onClick={() => setPerAmount(100n)}
-						>
+						<span className={`w-8 text-right cursor-pointer ${per === 100n && "text-blue-500"}`} onClick={() => setPerAmount(100n)}>
 							100%
 						</span>
 					</div>
