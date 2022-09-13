@@ -20,7 +20,7 @@ const Exchange = () => {
 	const openCoinList = (type) => {
 		if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
 			NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
-			// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+			changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			return false;
 		}
 		setCoinListType(type);
