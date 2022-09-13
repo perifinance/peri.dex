@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 
 import { VictoryPie } from "victory";
 import { getLastRates } from "lib/thegraph/api";
@@ -15,6 +15,15 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import pynths from "configure/coins/pynths";
 import { setLoading } from "reducers/loading";
+
+const useDidMountEffect = (func: any, deps: Array<any>) => {
+	const didMount = useRef(false);
+
+	useEffect(() => {
+		if (didMount.current) func();
+		else didMount.current = true;
+	}, deps);
+};
 
 const Assets = () => {
 	const dispatch = useDispatch();
@@ -106,11 +115,11 @@ const Assets = () => {
 		}
 	}, [histories, searchOptions]);
 
-	useEffect(() => {
+	useDidMountEffect(() => {
 		if (isReady && coinList && address && isConnect) {
 			if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
 				NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
-				// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+				changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			}
 		}
 	}, [searchOptions]);
