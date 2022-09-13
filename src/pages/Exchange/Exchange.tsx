@@ -19,10 +19,7 @@ const Exchange = () => {
 
 	const openCoinList = (type) => {
 		if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-			NotificationManager.warning(
-				`This network is not supported. Please change to moonriver network`,
-				"ERROR"
-			);
+			NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
 			changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			return false;
 		}
@@ -47,22 +44,15 @@ const Exchange = () => {
 	useEffect(() => {
 		if (isConnect) {
 			if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-				NotificationManager.warning(
-					`This network is not supported. Please change to moonriver network`,
-					"ERROR"
-				);
-				changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+				// NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
+				// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			}
 		}
 	}, [isConnect, networkId]);
 
 	return (
 		<div className="flex flex-col-reverse lg:flex-row lg:justify-between lg:space-x-4 xl:space-x-8">
-			<div
-				className={`lg:flex lg:grow lg:flex-col lg:w-full ${
-					isCoinList && "hidden lg: visible"
-				} flex-1`}
-			>
+			<div className={`lg:flex lg:grow lg:flex-col lg:w-full ${isCoinList && "hidden lg: visible"} flex-1`}>
 				<Chart />
 				<OrderHistories />
 			</div>

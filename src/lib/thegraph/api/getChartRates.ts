@@ -72,9 +72,7 @@ export const getChartRates = async ({
 	// );
 
 	if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
-		destinationData = await get(
-			chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 })
-		);
+		destinationData = await get(chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 }));
 	}
 
 	let dayFlag;
@@ -83,28 +81,17 @@ export const getChartRates = async ({
 
 	try {
 		datas.forEach((item, index) => {
-			const destinationDataItem = destinationData[index]
-				? destinationData[index]
-				: destinationData[destinationData.length - 1];
-			const sourceDataItem = sourceData[index]
-				? sourceData[index]
-				: sourceData[sourceData.length - 1];
+			const destinationDataItem = destinationData[index] ? destinationData[index] : destinationData[destinationData.length - 1];
+			const sourceDataItem = sourceData[index] ? sourceData[index] : sourceData[sourceData.length - 1];
 
 			dayFlag = new Date(item.timestamp * 1000);
 			let low;
 			let price;
 			let high;
 
-			low =
-				((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
-			price =
-				((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) *
-				10n ** 10n;
-			high =
-				((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) *
-				10n ** 10n;
-
-			console.log(low, price, high, dayFlag);
+			low = ((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
+			price = ((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) * 10n ** 10n;
+			high = ((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) * 10n ** 10n;
 
 			values.push({ low, price, high, timestamp: dayFlag });
 		});

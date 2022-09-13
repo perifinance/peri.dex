@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 
 import { VictoryPie } from "victory";
 import { getLastRates } from "lib/thegraph/api";
@@ -15,6 +15,15 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import pynths from "configure/coins/pynths";
 import { setLoading } from "reducers/loading";
+
+const useDidMountEffect = (func: any, deps: Array<any>) => {
+	const didMount = useRef(false);
+
+	useEffect(() => {
+		if (didMount.current) func();
+		else didMount.current = true;
+	}, deps);
+};
 
 const Assets = () => {
 	const dispatch = useDispatch();
@@ -106,6 +115,15 @@ const Assets = () => {
 		}
 	}, [histories, searchOptions]);
 
+	useDidMountEffect(() => {
+		if (isReady && coinList && address && isConnect) {
+			if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+				NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
+				changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+			}
+		}
+	}, [searchOptions]);
+
 	const getHistory = useCallback(async () => {
 		const histories = await getExchangeHistories({ address, first: 1000 });
 		setHistories(histories);
@@ -116,7 +134,7 @@ const Assets = () => {
 			if (networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
 				getHistory();
 			} else {
-				changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+				// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 				setHistories([]);
 			}
 		}
@@ -141,8 +159,6 @@ const Assets = () => {
 			let rates = await getLastRates({});
 			let balances: any = await getBalances({ networkId, address, rates });
 			setBalances(balances);
-
-			console.log("Assets balances", balances);
 
 			const totalAssets = balances.reduce((a, c) => a + c.balanceToUSD, 0n);
 			setTotalAssets(totalAssets);
@@ -172,11 +188,11 @@ const Assets = () => {
 			if (networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
 				init();
 			} else {
-				NotificationManager.warning(
-					`This network is not supported. Please change to moonriver network`,
-					"ERROR"
-				);
-				changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+				// NotificationManager.warning(
+				// 	`This network is not supported. Please change to moonriver network`,
+				// 	"ERROR"
+				// );
+				// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 				setBalances([]);
 				setTotalAssets(0n);
 				setChartDatas([]);
@@ -240,11 +256,7 @@ const Assets = () => {
 									<div className="flex">
 										{searchOptions?.dest ? (
 											<>
-												<img
-													alt={"${searchOptions?.dest}"}
-													className="w-6 h-6"
-													src={`/images/currencies/${searchOptions?.dest}.svg`}
-												></img>
+												<img alt={"${searchOptions?.dest}"} className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.svg`}></img>
 												<div className="m-1">{searchOptions?.dest}</div>
 											</>
 										) : (
@@ -268,14 +280,9 @@ const Assets = () => {
 												}}
 											>
 												<span
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
-														searchOptions?.dest === coin?.symbol && "bg-black-900"
-													}`}
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.dest === coin?.symbol && "bg-black-900"}`}
 												>
-													<img
-														className="w-6 h-6"
-														src={`/images/currencies/${coin?.symbol}.svg`}
-													></img>
+													<img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
 													<div className="m-1">{coin?.symbol}</div>
 												</span>
 											</li>
@@ -295,10 +302,7 @@ const Assets = () => {
 									<div className="flex">
 										{searchOptions?.src ? (
 											<>
-												<img
-													className="w-6 h-6"
-													src={`/images/currencies/${searchOptions?.src}.svg`}
-												></img>
+												<img className="w-6 h-6" src={`/images/currencies/${searchOptions?.src}.svg`}></img>
 												<div className="m-1">{searchOptions?.src}</div>
 											</>
 										) : (
@@ -322,14 +326,9 @@ const Assets = () => {
 												}}
 											>
 												<span
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
-														searchOptions?.src === coin?.symbol && "bg-black-900"
-													}`}
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.src === coin?.symbol && "bg-black-900"}`}
 												>
-													<img
-														className="w-6 h-6"
-														src={`/images/currencies/${coin?.symbol}.svg`}
-													></img>
+													<img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
 													<div className="m-1">{coin?.symbol}</div>
 												</span>
 											</li>
@@ -345,11 +344,7 @@ const Assets = () => {
 										setIsActionList(!isActionList);
 									}}
 								>
-									{searchOptions?.action ? (
-										<div className="m-1">{searchOptions?.action}</div>
-									) : (
-										<div className="text-gray-300">Action</div>
-									)}
+									{searchOptions?.action ? <div className="m-1">{searchOptions?.action}</div> : <div className="text-gray-300">Action</div>}
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
 								<div
@@ -366,11 +361,7 @@ const Assets = () => {
 													setIsActionList(false);
 												}}
 											>
-												<p
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
-														searchOptions?.action === action && "bg-black-900"
-													}`}
-												>
+												<p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.action === action && "bg-black-900"}`}>
 													{action}
 												</p>
 											</li>
@@ -424,11 +415,7 @@ const Assets = () => {
 											</td>
 											<td className="text-center">
 												<div className="flex justify-end left">
-													<img
-														className="w-5 h-5 pr-1"
-														src={`/images/currencies/${e.dest}.svg`}
-														alt="currencies"
-													></img>
+													<img className="w-5 h-5 pr-1" src={`/images/currencies/${e.dest}.svg`} alt="currencies"></img>
 													{formatCurrency(e.amountReceived, 8)}
 													<span className="pl-1 font-medium"> {e.dest}</span>
 												</div>
@@ -436,36 +423,21 @@ const Assets = () => {
 
 											<td className="text-center">
 												<div className="flex justify-end left">
-													<img
-														className="w-5 h-5 pr-1"
-														src={`/images/currencies/${e.src}.svg`}
-														alt="currencies"
-													></img>
+													<img className="w-5 h-5 pr-1" src={`/images/currencies/${e.src}.svg`} alt="currencies"></img>
 													{formatCurrency(e.amount, 8)}
 													<span className="pl-1 font-medium"> {e.src}</span>
 												</div>
 											</td>
 											{/* <td className="text-center">{formatCurrency(e.amount * 10n ** 18n / e.amountReceived, 5)} <span className="pl-1 font-medium"> {e.src}</span></td> */}
 											<td className="text-center">
-												<span
-													className={`font-medium ${
-														e.state === "Settled" ? "text-skyblue-500" : "text-yellow-500"
-													}`}
-												>
-													{e.state}
-												</span>
+												<span className={`font-medium ${e.state === "Settled" ? "text-skyblue-500" : "text-yellow-500"}`}>{e.state}</span>
 											</td>
 											<td className="text-center">
 												<img
 													id="moonbeam"
 													className="w-8 h-8 cursor-pointer mx-auto"
 													src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC4UlEQVR4Ae2WA6wcYRzE65hFXDeqbdu2bbdxatu2bdu2bdtupzOb913vtl1crZf8Vv//zM6Hd3eRAPxS/gf4H8CxkDdZxwrkGHmts+6djb5e62RQjsCOzehrtd4B8iXvfLxC5mlokHcLWhQ+gpakfp6NqJh52vVWRY7Hc3o5a5GLpO53pnymKeqXTnr6bEalLDNvsB7DK4BMYjfKt/0Dz3DhGelo03XVcw/dPvk7BZBJdLLLzaRgyp6aGV3fJokjdEk4ygeq8dqLnSSaU4DGXgZaz8Kp+qBx/p26f0eONM6/652eqaYeH9T7LIDWh1zyE0DkS9YJxdMOEbrWs3ACnCPR7AHqtSh8GLVzreKGmYVymSZZVMo6i89WQzUTwA31+PAR1QMBlIZreLN8pskom3HCF1GtYb6tnqNTj0+fkySKFaBWzhVDTEPD1jPQdcdSDH6wWljXDVrNMAYczUQUSzPI2gcFUnTnqDvpbN2XSDccPn1MiIqReBObU/ROD9uPmYfBT1agx+XZ6HxqitC1nqkWEOdL3gVF0wxE9RxLhK6tZ2UyjINfH81E80IHdylAF2KlW/PyMHbcP4HOJ6ag04nJBhpMlVijkjjwcn1YCRPC+Fx4exuP3jxDvzNz3HxEDwU4RKwpuvX6IfQ34OzcEKHQCNSjXo3UHqBU+lEwPg/ePsX7Dx8w7NwiNx9xRAFeEQy+vxpDLyzEhEsrrcYR55dg8NkFQemnqMcI339agsURox8P49P7zCwMPDvP0g09txALr29z8nkdEkBF03jk0XlsvXckVPggIHzGf7lH5Bo5r7MJYPdZdnMn7r9+7OTzNHgJND2m0WvqDtu+Q77ax2xCbQxtEG0UNXpuHluAr/aRMA55HMa/4WNpbAG+2seIy5IP1gjazLSmaPDD1ULXwYk/qFcaG1/tEywuR54QOPDE5eVf7WMXxyI9yFHyhjwjB0hX1Txe/lU+/3+W/w/wP8BHrC3DQabFPxAAAAAASUVORK5CYII="
-													onClick={() =>
-														window.open(
-															`https://moonriver.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`,
-															"_blank"
-														)
-													}
+													onClick={() => window.open(`https://moonriver.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`, "_blank")}
 												/>
 											</td>
 										</tr>
@@ -490,9 +462,7 @@ const Assets = () => {
 							</ul>
 						</div>
 					) : (
-						<div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">
-							No Trade History
-						</div>
+						<div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">No Trade History</div>
 					)}
 				</div>
 				<div className="flex flex-col bg-gray-700 rounded-lg px-4 max-w-sm mb-4 min-w-80 lg:min-h-max lg:mb-0">
@@ -527,10 +497,7 @@ const Assets = () => {
 												<div className="flex py-2 justify-between w-full">
 													<div className="flex items-center" key={index}>
 														<div className="font-bold min-w-12">{coinList[index]?.symbol}</div>
-														<div
-															className="mx-4 w-3 h-3"
-															style={{ background: chartColors[index] }}
-														></div>
+														<div className="mx-4 w-3 h-3" style={{ background: chartColors[index] }}></div>
 													</div>
 													<div className="">{chartDatas[index]?.y}%</div>
 												</div>
@@ -551,11 +518,7 @@ const Assets = () => {
 										<div className="border border-gray-500 my-5"></div>
 										<div className="flex justify-between">
 											<div className="flex">
-												<img
-													className="w-6 h-6 pr-1"
-													src={`/images/currencies/${currencyName}.svg`}
-													alt="currencies"
-												></img>
+												<img className="w-6 h-6 pr-1" src={`/images/currencies/${currencyName}.svg`} alt="currencies"></img>
 												<span className="pl-1 text-base font-medium"> {currencyName}</span>
 											</div>
 
@@ -565,9 +528,7 @@ const Assets = () => {
 													<span>{formatCurrency(amount, 6)}</span>
 													<span className="ml-1">{currencyName}</span>
 												</div>
-												<div className="font-medium text-gray-300 text-right pt-5">
-													Evaluation Amount
-												</div>
+												<div className="font-medium text-gray-300 text-right pt-5">Evaluation Amount</div>
 												<div className="text-right text-base mt-1">
 													<span>{formatCurrency(balanceToUSD, 4)}</span>
 													<span className="ml-1">$</span>

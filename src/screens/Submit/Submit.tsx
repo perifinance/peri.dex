@@ -51,6 +51,7 @@ const Submit = ({}) => {
 	};
 
 	const switchChain = async (selectedNetwork) => {
+		console.log("selectedNetwork.id", selectedNetwork.id);
 		await changeNetwork(selectedNetwork.id);
 	};
 
@@ -93,10 +94,7 @@ const Submit = ({}) => {
 			pUSD: "pUSD",
 		};
 
-		const messageHash = utils.solidityKeccak256(
-			["bytes"],
-			[utils.solidityPack(["uint"], [utils.parseEther(payAmount)])]
-		);
+		const messageHash = utils.solidityKeccak256(["bytes"], [utils.solidityPack(["uint"], [utils.parseEther(payAmount)])]);
 		const messageHashBytes = utils.arrayify(messageHash);
 		let mySignature = await contracts.signer.signMessage(messageHashBytes);
 		setSignature(mySignature);
@@ -160,9 +158,7 @@ const Submit = ({}) => {
 	}, [networks, address, setNetworks, getBalancesNetworks]);
 
 	const amountMax = () => {
-		const amount = networks.find((e) => selectedFromNetwork.id === e.id)?.balance[
-			selectedCoin?.name
-		];
+		const amount = networks.find((e) => selectedFromNetwork.id === e.id)?.balance[selectedCoin?.name];
 		changePayAmount(utils.formatEther(amount));
 	};
 
@@ -246,19 +242,8 @@ const Submit = ({}) => {
 							onClick={() => setIsFromNetworkList(!isFromNetworkList)}
 						>
 							<span className="mx-1">{selectedFromNetwork?.name}</span>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-6 w-6"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M19 9l-7 7-7-7"
-								/>
+							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
 							</svg>
 						</div>
 						<div
@@ -273,16 +258,11 @@ const Submit = ({}) => {
 										onClick={() => {
 											setSelectedFromNetwork(network);
 											setSelectedToNetwork({});
-											if (network?.name === "KOVAN")
-												setSelectedCoin({ name: "PERI", id: 1, contract: "periFinance" });
+											if (network?.name === "KOVAN") setSelectedCoin({ name: "PERI", id: 1, contract: "periFinance" });
 											setIsFromNetworkList(false);
 										}}
 									>
-										<p
-											className={`p-2 block hover:bg-black-900 cursor-pointer ${
-												selectedFromNetwork?.name === network?.name && "bg-black-900"
-											}`}
-										>
+										<p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedFromNetwork?.name === network?.name && "bg-black-900"}`}>
 											{network?.name}
 										</p>
 									</li>
@@ -292,10 +272,7 @@ const Submit = ({}) => {
 					</div>
 				</div>
 
-				<div
-					className="flex flex-none mx-auto lg:mt-auto lg:mx-4 my-3 w-9 h-9 bg-gray-500 rounded-full cursor-pointer"
-					onClick={() => networkSwap()}
-				>
+				<div className="flex flex-none mx-auto lg:mt-auto lg:mx-4 my-3 w-9 h-9 bg-gray-500 rounded-full cursor-pointer" onClick={() => networkSwap()}>
 					<div className="transform-gpu m-auto lg:rotate-90">
 						<img className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"}></img>
 					</div>
@@ -312,33 +289,17 @@ const Submit = ({}) => {
 							onClick={() => setIsToNetworkList(!isToNetworkList)}
 						>
 							<span className="mx-1">{selectedToNetwork?.name}</span>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-6 w-6"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M19 9l-7 7-7-7"
-								/>
+							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
 							</svg>
 						</div>
 						<div
-							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
-								isToNetworkList ? "block" : "hidden"
-							} z-10`}
+							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isToNetworkList ? "block" : "hidden"} z-10`}
 						>
 							<ul className="list-reset">
 								{networks
 									.filter((e) => {
-										return (
-											selectedFromNetwork?.id !== e.id &&
-											!(selectedCoin?.name === "pUSD" && (e.id === 42 || e.id === 1))
-										);
+										return selectedFromNetwork?.id !== e.id && !(selectedCoin?.name === "pUSD" && (e.id === 42 || e.id === 1));
 									})
 									.map((network, index) => (
 										<li
@@ -348,11 +309,7 @@ const Submit = ({}) => {
 												setIsToNetworkList(false);
 											}}
 										>
-											<p
-												className={`p-2 block hover:bg-black-900 cursor-pointer ${
-													selectedToNetwork?.name === network?.name && "bg-black-900"
-												}`}
-											>
+											<p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedToNetwork?.name === network?.name && "bg-black-900"}`}>
 												{network?.name}
 											</p>
 										</li>
@@ -366,30 +323,18 @@ const Submit = ({}) => {
 			<div className="flex py-1 justify-between w-full">
 				<div></div>
 				<div>
-					Available:{" "}
-					{formatCurrency(
-						selectedFromNetwork &&
-							networks.find((e) => selectedFromNetwork.id === e.id)?.balance[selectedCoin?.name],
-						4
-					)}
+					Available: {formatCurrency(selectedFromNetwork && networks.find((e) => selectedFromNetwork.id === e.id)?.balance[selectedCoin?.name], 4)}
 				</div>
 			</div>
 			<div className="flex flex-row justify-end">
 				<div className="flex rounded-l-md rounded-r-none lg:rounded-md bg-black-900 text-base p-2 space-x-4 justify-between lg:w-5/12">
 					<div className="relative">
-						<div
-							className="flex font-medium cursor-pointer items-center"
-							onClick={() => setIsCoinList(!isCoinList)}
-						>
+						<div className="flex font-medium cursor-pointer items-center" onClick={() => setIsCoinList(!isCoinList)}>
 							<img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
 							<div className="m-1">{selectedCoin?.name}</div>
 							<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 						</div>
-						<div
-							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
-								isCoinList ? "block" : "hidden"
-							} z-10`}
-						>
+						<div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isCoinList ? "block" : "hidden"} z-10`}>
 							<ul className="list-reset">
 								{pynths.map((coin) => {
 									if ((networkId === 1 || networkId === 42) && coin.name === "pUSD") return <></>;
@@ -402,15 +347,8 @@ const Submit = ({}) => {
 													setIsCoinList(false);
 												}}
 											>
-												<p
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
-														selectedCoin?.name === coin?.name && "bg-black-900"
-													}`}
-												>
-													<img
-														className="w-6 h-6"
-														src={`/images/currencies/${coin?.name}.svg`}
-													></img>
+												<p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && "bg-black-900"}`}>
+													<img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
 													{coin?.name}
 												</p>
 											</li>
@@ -430,10 +368,7 @@ const Submit = ({}) => {
 				<button className="bg-blue-500 rounded-r-md px-2 lg:hidden" onClick={() => amountMax()}>
 					M
 				</button>
-				<button
-					className="ml-4 bg-blue-500 rounded-md px-2 hidden lg:block"
-					onClick={() => amountMax()}
-				>
+				<button className="ml-4 bg-blue-500 rounded-md px-2 hidden lg:block" onClick={() => amountMax()}>
 					Max
 				</button>
 			</div>
@@ -441,9 +376,7 @@ const Submit = ({}) => {
 			<div className="pt-4">
 				<div className="flex py-2 justify-between w-full lg:justify-center">
 					<div className="lg:text-lg">Network Fee({gasPrice.toString()}GWEI)</div>
-					<div className="lg:text-lg lg:px-2 lg:font-semibold">
-						${formatCurrency(networkFeePrice, 4)}
-					</div>
+					<div className="lg:text-lg lg:px-2 lg:font-semibold">${formatCurrency(networkFeePrice, 4)}</div>
 				</div>
 			</div>
 
@@ -474,10 +407,7 @@ const Submit = ({}) => {
 
 			<div className="w-auto text-gray-300 items-center p-2">
 				<span className="text-lg font-bold pb-4">Notice</span>
-				<p className="leading-tight">
-					Tokens you have confirmed on the ‘Submit’ tab may take up to 10 mins for arrival on the
-					‘Receive’ tab.
-				</p>
+				<p className="leading-tight">Tokens you have confirmed on the ‘Submit’ tab may take up to 10 mins for arrival on the ‘Receive’ tab.</p>
 			</div>
 		</div>
 	);
