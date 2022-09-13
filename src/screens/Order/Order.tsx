@@ -296,7 +296,10 @@ const Order = ({ openCoinList }) => {
 				<div className="flex space-x-8 py-2 items-center">
 					<div className="relative">
 						<img className="w-10 h-10" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`}></img>
-						<img className="w-10 h-10 absolute bottom-0 left-6" src={`/images/currencies/${selectedCoins.source.symbol}.svg`}></img>
+						<img
+							className="w-10 h-10 absolute bottom-0 left-6"
+							src={`/images/currencies/${selectedCoins.source.symbol}.svg`}
+						></img>
 					</div>
 					<div className="text-xl font-medium">
 						{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
@@ -345,7 +348,12 @@ const Order = ({ openCoinList }) => {
 						<span className="m-1">{selectedCoins.destination.symbol}</span>
 						<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 					</div>
-					<input className="w-2/3 bg-black-900 outline-none text-right font-medium" type="text" value={formatCurrency(receiveAmount, 8)} disabled />
+					<input
+						className="w-2/3 bg-black-900 outline-none text-right font-medium"
+						type="text"
+						value={formatCurrency(receiveAmount, 8)}
+						disabled
+					/>
 				</div>
 
 				<div className="py-2 w-full">
@@ -364,16 +372,28 @@ const Order = ({ openCoinList }) => {
 						<span className={`w-8 text-left cursor-pointer ${per === 0n && "text-blue-500"}`} onClick={() => setPerAmount(0n)}>
 							0%
 						</span>
-						<span className={`w-8 text-center cursor-pointer ${per === 25n && "text-blue-500"}`} onClick={() => setPerAmount(25n)}>
+						<span
+							className={`w-8 text-center cursor-pointer ${per === 25n && "text-blue-500"}`}
+							onClick={() => setPerAmount(25n)}
+						>
 							25%
 						</span>
-						<span className={`w-8 text-center cursor-pointer ${per === 50n && "text-blue-500"}`} onClick={() => setPerAmount(50n)}>
+						<span
+							className={`w-8 text-center cursor-pointer ${per === 50n && "text-blue-500"}`}
+							onClick={() => setPerAmount(50n)}
+						>
 							50%
 						</span>
-						<span className={`w-8 text-center cursor-pointer ${per === 75n && "text-blue-500"}`} onClick={() => setPerAmount(75n)}>
+						<span
+							className={`w-8 text-center cursor-pointer ${per === 75n && "text-blue-500"}`}
+							onClick={() => setPerAmount(75n)}
+						>
 							75%
 						</span>
-						<span className={`w-8 text-right cursor-pointer ${per === 100n && "text-blue-500"}`} onClick={() => setPerAmount(100n)}>
+						<span
+							className={`w-8 text-right cursor-pointer ${per === 100n && "text-blue-500"}`}
+							onClick={() => setPerAmount(100n)}
+						>
 							100%
 						</span>
 					</div>
@@ -411,7 +431,7 @@ const Order = ({ openCoinList }) => {
 				</button>
 				{!isValidation || !isConnect ? (
 					<div className="bg-black-900 w-full text-center text-gray-300 rounded-lg text-xs p-1">
-						{!isConnect ? "Connect your wallet" : validationMessage}
+						{!isConnect ? "Connect your wallet" : networkId === 1285 ? validationMessage : "Unsupported Network"}
 					</div>
 				) : (
 					<></>

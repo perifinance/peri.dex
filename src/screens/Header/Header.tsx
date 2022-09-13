@@ -5,7 +5,7 @@ import { RootState } from "reducers";
 import { useSelector, useDispatch } from "react-redux";
 import { clearWallet, clearBalances } from "reducers/wallet";
 import { onboard } from "lib/onboard";
-import { SUPPORTED_NETWORKS } from "lib/network";
+import { changeNetwork, SUPPORTED_NETWORKS } from "lib/network";
 import "./Header.css";
 const networkColor = {
 	80001: "#53cbc9",
@@ -21,32 +21,32 @@ const Header = () => {
 	const getNetworkName = (networkId) => {
 		let returnValue;
 		switch (networkId) {
-			case 1:
-				returnValue = "Ethereum";
-				break;
-			case 42:
-				returnValue = "Kovan";
-				break;
-			case 56:
-				returnValue = "BSC";
-				break;
-			case 97:
-				returnValue = "BSCTEST";
-				break;
-			case 137:
-				returnValue = "Polygon";
-				break;
-			case 80001:
-				returnValue = "MUMBAI";
-				break;
+			// case 1:
+			// 	returnValue = "Ethereum";
+			// 	break;
+			// case 42:
+			// 	returnValue = "Kovan";
+			// 	break;
+			// case 56:
+			// 	returnValue = "BSC";
+			// 	break;
+			// case 97:
+			// 	returnValue = "BSCTEST";
+			// 	break;
+			// case 137:
+			// 	returnValue = "Polygon";
+			// 	break;
+			// case 80001:
+			// 	returnValue = "MUMBAI";
+			// 	break;
 			case 1285:
 				returnValue = "Moonriver";
 				break;
-			case 1287:
-				returnValue = "Mbase";
-				break;
+			// case 1287:
+			// 	returnValue = "Mbase";
+			// 	break;
 			default:
-				returnValue = "Wrong Network";
+				returnValue = "Unsupported Network";
 				break;
 		}
 		return returnValue;
@@ -84,9 +84,7 @@ const Header = () => {
                         </li> */}
 						<li className="text-xl font-bold inline m-4">
 							<Link
-								className={`hidden lg:inline-block hover:text-blue-500 ${
-									location.pathname === "/exchange" && "text-blue-500"
-								}`}
+								className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === "/exchange" && "text-blue-500"}`}
 								to="/exchange"
 							>
 								EXCHANGE
@@ -97,9 +95,7 @@ const Header = () => {
                         </li> */}
 						<li className="text-xl font-bold inline m-4">
 							<Link
-								className={`hidden lg:inline-block hover:text-blue-500 ${
-									location.pathname === "/assets" && "text-blue-500"
-								}`}
+								className={`hidden lg:inline-block hover:text-blue-500 ${location.pathname === "/assets" && "text-blue-500"}`}
 								to="/assets"
 							>
 								ASSETS
@@ -130,10 +126,13 @@ const Header = () => {
 				</nav>
 			</div>
 
-			<div className="flex items-center h-9">
+			<div
+				className="flex items-center h-9 cursor-pointer"
+				onClick={() => changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)}
+			>
 				{isConnect && (
 					<div className="flex bg-gray-700 rounded-l-lg font-medium h-9">
-						{SUPPORTED_NETWORKS[networkId] ? (
+						{SUPPORTED_NETWORKS[networkId] === "MOONRIVER" ? (
 							<>
 								<div className="text-gray-400 mx-2 my-auto">
 									{address && address.slice(0, 6) + "..." + address.slice(-4, address.length)}
@@ -143,20 +142,12 @@ const Header = () => {
 									<div className="bg-red-500" style={{ width: "8px", height: "8px" }}></div>
 								</div>
 
-								<div
-									className={`mx-2 truncate ${
-										SUPPORTED_NETWORKS[networkId] || "text-red-500"
-									} my-auto`}
-								>
+								<div className={`mx-2 truncate ${SUPPORTED_NETWORKS[networkId] || "text-red-500"} my-auto`}>
 									{getNetworkName(networkId)}
 								</div>
 							</>
 						) : (
-							<div
-								className={`px-8 truncate ${
-									SUPPORTED_NETWORKS[networkId] || "text-red-500"
-								} my-auto`}
-							>
+							<div className={`px-8 truncate ${SUPPORTED_NETWORKS[networkId] || "text-red-500"} my-auto`}>
 								{getNetworkName(networkId)}
 							</div>
 						)}
@@ -167,16 +158,10 @@ const Header = () => {
 					className={`w-9 h-full mt-0 bg-gray-500 ${isConnect ? "rounded-r-lg" : "rounded-lg"}`}
 					onClick={() => (isConnect ? onDisConnect() : onConnect())}
 				>
-					<img
-						className="w-4 h-4 mx-auto"
-						src={`/images/icon/power_${isConnect ? "on" : "off"}.png`}
-					/>
+					<img className="w-4 h-4 mx-auto" src={`/images/icon/power_${isConnect ? "on" : "off"}.png`} />
 				</button>
 
-				<button
-					onClick={() => setDropdownOpen(!dropdownOpen)}
-					className="lg:hidden hover:cursor-pointer py-1 ml-2"
-				>
+				<button onClick={() => setDropdownOpen(!dropdownOpen)} className="lg:hidden hover:cursor-pointer py-1 ml-2">
 					<img className="w-7" src={"/images/icon/drawer.svg"} />
 				</button>
 			</div>
@@ -185,25 +170,16 @@ const Header = () => {
 					{/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Home
                 </Link> */}
-					<Link
-						to="/exchange"
-						className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white"
-					>
+					<Link to="/exchange" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
 						Exchange
 					</Link>
 					{/* <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
                     Futures
                 </Link> */}
-					<Link
-						to="/assets"
-						className={`block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white`}
-					>
+					<Link to="/assets" className={`block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white`}>
 						Assets
 					</Link>
-					<Link
-						to="/bridge"
-						className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white"
-					>
+					<Link to="/bridge" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-500 hover:text-white">
 						Bridge
 					</Link>
 				</div>
