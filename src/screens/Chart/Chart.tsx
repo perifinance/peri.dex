@@ -6,6 +6,7 @@ import { getChartRates } from "lib/thegraph/api";
 import { formatDate, formatCurrency } from "lib";
 import { utils } from "ethers";
 import { setLoading } from "reducers/loading";
+
 const Chart = () => {
 	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
 	const [chartTime, setChartTime] = useState("24H");
@@ -48,7 +49,6 @@ const Chart = () => {
 	};
 
 	const setPrice = (payload) => {
-		// console.log('payload', payload);
 		if (payload && payload[0] && payload[0].payload) {
 			setPrices(payload[0].payload);
 		}
@@ -81,7 +81,11 @@ const Chart = () => {
 				<div className="flex space-x-5">
 					<div className="relative mt-1">
 						<img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`} alt="currencies"></img>
-						<img className="w-6 h-6 absolute bottom-1 left-4" src={`/images/currencies/${selectedCoins.source.symbol}.svg`} alt="currencies"></img>
+						<img
+							className="w-6 h-6 absolute bottom-1 left-4"
+							src={`/images/currencies/${selectedCoins.source.symbol}.svg`}
+							alt="currencies"
+						></img>
 					</div>
 					<div className="flex justify-between w-full">
 						<div className="text-xl font-medium">
@@ -89,16 +93,28 @@ const Chart = () => {
 						</div>
 
 						<div className="hidden lg:flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
-							<span className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("24H")}>
+							<span
+								className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("24H")}
+							>
 								24H
 							</span>
-							<span className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("3D")}>
+							<span
+								className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("3D")}
+							>
 								3D
 							</span>
-							<span className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("1W")}>
+							<span
+								className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("1W")}
+							>
 								1W
 							</span>
-							<span className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("1M")}>
+							<span
+								className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("1M")}
+							>
 								1M
 							</span>
 						</div>
@@ -129,6 +145,8 @@ const Chart = () => {
 								position={{ y: 0 }}
 								content={({ active, payload, label }) => {
 									setPrice(payload);
+									// setPayload(payload);
+
 									return (
 										payload && (
 											<div className="bg-gray-300 p-2">
@@ -158,16 +176,28 @@ const Chart = () => {
 					</ResponsiveContainer>
 				</div>
 				<div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
-					<span className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("24H")}>
+					<span
+						className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("24H")}
+					>
 						24H
 					</span>
-					<span className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("3D")}>
+					<span
+						className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("3D")}
+					>
 						3D
 					</span>
-					<span className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("1W")}>
+					<span
+						className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("1W")}
+					>
 						1W
 					</span>
-					<span className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"} onClick={() => setChartTime("1M")}>
+					<span
+						className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("1M")}
+					>
 						1M
 					</span>
 				</div>

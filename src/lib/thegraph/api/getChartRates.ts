@@ -89,9 +89,19 @@ export const getChartRates = async ({
 			let price;
 			let high;
 
-			low = ((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
-			price = ((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) * 10n ** 10n;
-			high = ((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) * 10n ** 10n;
+			if (currencyNames.source === "pUSD") {
+				low = ((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
+				price = ((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) * 10n ** 10n;
+				high = ((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) * 10n ** 10n;
+			} else if (currencyNames.destination === "pUSD") {
+				low = (BigInt(destinationDataItem.low) * 10n ** 18n) / (BigInt(sourceDataItem.low) * 10n ** 10n);
+				price = (BigInt(destinationDataItem.price) * 10n ** 18n) / (BigInt(sourceDataItem.price) * 10n ** 10n);
+				high = (BigInt(destinationDataItem.high) * 10n ** 18n) / (BigInt(sourceDataItem.high) * 10n ** 10n);
+			} else {
+				low = (BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low);
+				price = (BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price);
+				high = (BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high);
+			}
 
 			values.push({ low, price, high, timestamp: dayFlag });
 		});
