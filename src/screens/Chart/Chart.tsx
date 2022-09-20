@@ -151,13 +151,13 @@ const Chart = () => {
 										payload && (
 											<div className="bg-gray-300 p-2">
 												<div>
-													<span className="">High</span>: {payload[0]?.payload?.high}
+													<span className="">High</span>: {payload[0]?.payload?.formatHigh}
 												</div>
 												<div>
-													<span className="">Price</span>: {payload[0]?.payload?.price}
+													<span className="">Low</span>: {payload[0]?.payload?.formatLow}
 												</div>
 												<div>
-													<span className="">Low</span>: {payload[0]?.payload?.low}
+													<span className="">Close</span>: {payload[0]?.payload?.formatPrice}
 												</div>
 												<div>{formatDate(payload[0]?.payload?.timestamp)}</div>
 											</div>
