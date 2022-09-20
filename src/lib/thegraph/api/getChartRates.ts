@@ -79,6 +79,8 @@ export const getChartRates = async ({
 	let values = [];
 	const datas = currencyNames.source === "pUSD" ? destinationData : sourceData;
 
+	console.log("DataList", destinationData, sourceData);
+
 	try {
 		datas.forEach((item, index) => {
 			const destinationDataItem = destinationData[index] ? destinationData[index] : destinationData[destinationData.length - 1];
@@ -90,17 +92,26 @@ export const getChartRates = async ({
 			let high;
 
 			if (currencyNames.source === "pUSD") {
-				low = ((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
+				const min = ((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
+				const max = ((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) * 10n ** 10n;
+
+				high = max > min ? max : min;
+				low = max < min ? max : min;
 				price = ((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) * 10n ** 10n;
-				high = ((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) * 10n ** 10n;
 			} else if (currencyNames.destination === "pUSD") {
-				low = (BigInt(destinationDataItem.low) * 10n ** 18n) / (BigInt(sourceDataItem.low) * 10n ** 10n);
+				const min = (BigInt(destinationDataItem.low) * 10n ** 18n) / (BigInt(sourceDataItem.low) * 10n ** 10n);
+				const max = (BigInt(destinationDataItem.high) * 10n ** 18n) / (BigInt(sourceDataItem.high) * 10n ** 10n);
+
+				high = max > min ? max : min;
+				low = max < min ? max : min;
 				price = (BigInt(destinationDataItem.price) * 10n ** 18n) / (BigInt(sourceDataItem.price) * 10n ** 10n);
-				high = (BigInt(destinationDataItem.high) * 10n ** 18n) / (BigInt(sourceDataItem.high) * 10n ** 10n);
 			} else {
-				low = (BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low);
+				const min = (BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low);
+				const max = (BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high);
+
+				high = max > min ? max : min;
+				low = max < min ? max : min;
 				price = (BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price);
-				high = (BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high);
 			}
 
 			values.push({ low, price, high, timestamp: dayFlag });

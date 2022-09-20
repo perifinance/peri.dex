@@ -13,6 +13,8 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 		};
 	};
 
+	console.log("chartRate", currencyName, searchDate);
+
 	return {
 		url: "",
 		query: gql`
@@ -21,11 +23,11 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 					currencyName === "1INCH" ? "INCH" : currencyName
 				}", timestamp: ${searchDate}, skip: ${skip}, take: ${first}) {
 					currencyName
-                    price
+					price
 					id
 					low
 					high
-                    timestamp
+					timestamp
 				}
 			}
 		`,
