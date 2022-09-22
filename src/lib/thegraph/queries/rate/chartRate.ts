@@ -1,8 +1,6 @@
 import { gql } from "@apollo/client";
-import { utils } from "ethers";
 
 export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0 }) => {
-	// const currencyKey = currencyName && utils.formatBytes32String(currencyName);
 	currencyName = currencyName[0] === "p" ? currencyName.substring(1) : currencyName;
 
 	const skip = page * first;
@@ -12,8 +10,6 @@ export const chartRate = ({ currencyName, page = 0, first = 1000, searchDate = 0
 			...data,
 		};
 	};
-
-	console.log("chartRate", currencyName, searchDate);
 
 	return {
 		url: "",
