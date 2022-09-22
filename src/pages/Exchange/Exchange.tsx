@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
 
@@ -41,6 +41,10 @@ const Exchange = () => {
 		dispatch(setLoading({ name: "balance", value: false }));
 	};
 
+	const closeCoinList = () => {
+		setIsCoinList(false);
+	};
+
 	useEffect(() => {
 		if (isConnect) {
 			if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
@@ -58,7 +62,7 @@ const Exchange = () => {
 			</div>
 
 			{isCoinList ? (
-				<CoinList coinListType={coinListType} selectedCoin={selectedCoin} />
+				<CoinList isCoinList={isCoinList} coinListType={coinListType} selectedCoin={selectedCoin} closeCoinList={closeCoinList} />
 			) : (
 				<>
 					<Order openCoinList={openCoinList} />
