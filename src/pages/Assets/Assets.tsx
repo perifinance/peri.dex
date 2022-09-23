@@ -210,6 +210,36 @@ const Assets = () => {
 		}
 	}, [init, isReady, coinList, address, networkId, isConnect]);
 
+	// todo trade order click on close outside
+	const receiveRef = useRef<HTMLDivElement>(null);
+	const destRef = useRef<HTMLDivElement>(null);
+	const actionRef = useRef<HTMLDivElement>(null);
+
+	const closeModalHandler = useCallback(
+		(e) => {
+			if (isDestCoinList && !destRef.current.contains(e.target)) {
+				setIsDestCoinList(false);
+			}
+
+			if (isSrcCoinList && !receiveRef.current.contains(e.target)) {
+				setIsSrcCoinList(false);
+			}
+
+			if (isActionList && !actionRef.current.contains(e.target)) {
+				setIsActionList(false);
+			}
+		},
+		[isActionList, isDestCoinList, isSrcCoinList]
+	);
+
+	useEffect(() => {
+		window.addEventListener("click", closeModalHandler);
+
+		return () => {
+			window.removeEventListener("click", closeModalHandler);
+		};
+	}, [closeModalHandler]);
+
 	return (
 		<>
 			<div className="flex flex-col-reverse lg:flex-row lg:py-7 lg:justify-between lg:space-x-8">
@@ -284,6 +314,7 @@ const Assets = () => {
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
 								<div
+									ref={receiveRef}
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isSrcCoinList ? "block" : "hidden"
 									} z-10`}
@@ -331,7 +362,9 @@ const Assets = () => {
 									</div>
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
+								{/* paid coinList */}
 								<div
+									ref={destRef}
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isDestCoinList ? "block" : "hidden"
 									} z-10`}
@@ -374,6 +407,7 @@ const Assets = () => {
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
 								<div
+									ref={actionRef}
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isActionList ? "block" : "hidden"
 									} z-10`}
@@ -533,30 +567,11 @@ const Assets = () => {
 								</div>
 
 								<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setTogglePer(!togglePer)}>
-									Amount{" "}
-									{togglePer ? (
-										<svg
-											className="ml-1.5"
-											width="22"
-											height="19"
-											viewBox="0 0 22 19"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path d="M17.6005 4.40002L11.0665 13.6401L4.40039 4.40002" stroke="white" strokeWidth="1.440004" />
-										</svg>
-									) : (
-										<svg
-											className="ml-1.5"
-											width="22"
-											height="19"
-											viewBox="0 0 22 19"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path d="M17.6005 13.8802L11.0665 4.64016L4.40039 13.8802" stroke="white" strokeWidth="1.440004" />
-										</svg>
-									)}
+									<span className="mr-1.5">Amount</span>
+									<img
+										className={`w-4 h-2 my-auto transform ${!togglePer && "rotate-180"}`}
+										src={`/images/icon/bottom_arrow.png`}
+									/>
 								</button>
 								<div className={`text-base ${togglePer && "hidden"} overflow-auto scrollbar-hide max-h-72`}>
 									{balances.map(({ amount }, index) =>
@@ -579,20 +594,14 @@ const Assets = () => {
 						</>
 					)}
 
-					<button className="flex justify-center" onClick={() => setToggleDesc(!toggleDesc)}>
-						Balance{" "}
-						{toggleDesc ? (
-							<svg className="ml-1.5" width="22" height="19" viewBox="0 0 22 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-								<path d="M17.6005 4.40002L11.0665 13.6401L4.40039 4.40002" stroke="white" strokeWidth="1.440004" />
-							</svg>
-						) : (
-							<svg className="ml-1.5" width="22" height="19" viewBox="0 0 22 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-								<path d="M17.6005 13.8802L11.0665 4.64016L4.40039 13.8802" stroke="white" strokeWidth="1.440004" />
-							</svg>
-						)}
+					<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setToggleDesc(!toggleDesc)}>
+						<span className="mr-1.5">Balance</span>
+						<img className={`w-4 h-2 my-auto ${!togglePer && "rotate-180"}`} src={`/images/icon/bottom_arrow.png`} />
 					</button>
 					<div
-						className={`mb-14 bg-gray-700 rounded-lg max-w-sm ${toggleDesc && "hidden"} overflow-auto scrollbar-hide max-h-72`}
+						className={`mb-14 bg-gray-700 rounded-lg max-w-sm transform ${
+							toggleDesc && "hidden"
+						} overflow-auto scrollbar-hide max-h-72`}
 					>
 						{balances.length > 0 &&
 							balances.map(({ currencyName, amount, balanceToUSD }, index) =>
