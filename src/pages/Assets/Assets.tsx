@@ -55,6 +55,9 @@ const Assets = () => {
 
 	const [pages, setPages] = useState([]);
 
+	const [togglePer, setTogglePer] = useState(true);
+	const [toggleDesc, setToggleDesc] = useState(true);
+
 	const clearOpens = () => {
 		setIsStartDate(false);
 		setIsEndDate(false);
@@ -256,7 +259,11 @@ const Assets = () => {
 									<div className="flex">
 										{searchOptions?.dest ? (
 											<>
-												<img alt={"${searchOptions?.dest}"} className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.svg`}></img>
+												<img
+													alt={"${searchOptions?.dest}"}
+													className="w-6 h-6"
+													src={`/images/currencies/${searchOptions?.dest}.svg`}
+												></img>
 												<div className="m-1">{searchOptions?.dest}</div>
 											</>
 										) : (
@@ -280,7 +287,9 @@ const Assets = () => {
 												}}
 											>
 												<span
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.dest === coin?.symbol && "bg-black-900"}`}
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														searchOptions?.dest === coin?.symbol && "bg-black-900"
+													}`}
 												>
 													<img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
 													<div className="m-1">{coin?.symbol}</div>
@@ -326,7 +335,9 @@ const Assets = () => {
 												}}
 											>
 												<span
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.src === coin?.symbol && "bg-black-900"}`}
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														searchOptions?.src === coin?.symbol && "bg-black-900"
+													}`}
 												>
 													<img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
 													<div className="m-1">{coin?.symbol}</div>
@@ -344,7 +355,11 @@ const Assets = () => {
 										setIsActionList(!isActionList);
 									}}
 								>
-									{searchOptions?.action ? <div className="m-1">{searchOptions?.action}</div> : <div className="text-gray-300">Action</div>}
+									{searchOptions?.action ? (
+										<div className="m-1">{searchOptions?.action}</div>
+									) : (
+										<div className="text-gray-300">Action</div>
+									)}
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
 								<div
@@ -361,7 +376,11 @@ const Assets = () => {
 													setIsActionList(false);
 												}}
 											>
-												<p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.action === action && "bg-black-900"}`}>
+												<p
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														searchOptions?.action === action && "bg-black-900"
+													}`}
+												>
 													{action}
 												</p>
 											</li>
@@ -430,14 +449,18 @@ const Assets = () => {
 											</td>
 											{/* <td className="text-center">{formatCurrency(e.amount * 10n ** 18n / e.amountReceived, 5)} <span className="pl-1 font-medium"> {e.src}</span></td> */}
 											<td className="text-center">
-												<span className={`font-medium ${e.state === "Settled" ? "text-skyblue-500" : "text-yellow-500"}`}>{e.state}</span>
+												<span className={`font-medium ${e.state === "Settled" ? "text-skyblue-500" : "text-yellow-500"}`}>
+													{e.state}
+												</span>
 											</td>
 											<td className="text-center">
 												<img
 													id="moonbeam"
 													className="w-8 h-8 cursor-pointer mx-auto"
 													src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC4UlEQVR4Ae2WA6wcYRzE65hFXDeqbdu2bbdxatu2bdu2bdtupzOb913vtl1crZf8Vv//zM6Hd3eRAPxS/gf4H8CxkDdZxwrkGHmts+6djb5e62RQjsCOzehrtd4B8iXvfLxC5mlokHcLWhQ+gpakfp6NqJh52vVWRY7Hc3o5a5GLpO53pnymKeqXTnr6bEalLDNvsB7DK4BMYjfKt/0Dz3DhGelo03XVcw/dPvk7BZBJdLLLzaRgyp6aGV3fJokjdEk4ygeq8dqLnSSaU4DGXgZaz8Kp+qBx/p26f0eONM6/652eqaYeH9T7LIDWh1zyE0DkS9YJxdMOEbrWs3ACnCPR7AHqtSh8GLVzreKGmYVymSZZVMo6i89WQzUTwA31+PAR1QMBlIZreLN8pskom3HCF1GtYb6tnqNTj0+fkySKFaBWzhVDTEPD1jPQdcdSDH6wWljXDVrNMAYczUQUSzPI2gcFUnTnqDvpbN2XSDccPn1MiIqReBObU/ROD9uPmYfBT1agx+XZ6HxqitC1nqkWEOdL3gVF0wxE9RxLhK6tZ2UyjINfH81E80IHdylAF2KlW/PyMHbcP4HOJ6ag04nJBhpMlVijkjjwcn1YCRPC+Fx4exuP3jxDvzNz3HxEDwU4RKwpuvX6IfQ34OzcEKHQCNSjXo3UHqBU+lEwPg/ePsX7Dx8w7NwiNx9xRAFeEQy+vxpDLyzEhEsrrcYR55dg8NkFQemnqMcI339agsURox8P49P7zCwMPDvP0g09txALr29z8nkdEkBF03jk0XlsvXckVPggIHzGf7lH5Bo5r7MJYPdZdnMn7r9+7OTzNHgJND2m0WvqDtu+Q77ax2xCbQxtEG0UNXpuHluAr/aRMA55HMa/4WNpbAG+2seIy5IP1gjazLSmaPDD1ULXwYk/qFcaG1/tEywuR54QOPDE5eVf7WMXxyI9yFHyhjwjB0hX1Txe/lU+/3+W/w/wP8BHrC3DQabFPxAAAAAASUVORK5CYII="
-													onClick={() => window.open(`https://moonriver.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`, "_blank")}
+													onClick={() =>
+														window.open(`https://moonriver.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`, "_blank")
+													}
 												/>
 											</td>
 										</tr>
@@ -462,10 +485,17 @@ const Assets = () => {
 							</ul>
 						</div>
 					) : (
-						<div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">No Trade History</div>
+						<div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">
+							No Trade History
+						</div>
 					)}
 				</div>
-				<div className="flex flex-col bg-gray-700 rounded-lg px-4 max-w-sm mb-4 min-w-80 lg:min-h-max lg:mb-0">
+
+				<div
+					className={`flex flex-col bg-gray-700 rounded-lg px-4 pb-7 max-w-sm mb-4 min-w-80 lg:mb-0 ${
+						(togglePer && toggleDesc) && "max-h-524"
+					}`}
+				>
 					<div className="flex py-6 justify-between text-lg">
 						<div className="font-bold">Total Asset</div>
 						<div className="font-bold">{formatCurrency(totalAssets, 4)} $</div>
@@ -490,7 +520,34 @@ const Assets = () => {
 										style={{ labels: { fill: "white", fontSize: 20 } }}
 									></VictoryPie>
 								</div>
-								<div className="text-base">
+
+								<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setTogglePer(!togglePer)}>
+									Amount{" "}
+									{togglePer ? (
+										<svg
+											className="ml-1.5"
+											width="22"
+											height="19"
+											viewBox="0 0 22 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path d="M17.6005 4.40002L11.0665 13.6401L4.40039 4.40002" stroke="white" strokeWidth="1.440004" />
+										</svg>
+									) : (
+										<svg
+											className="ml-1.5"
+											width="22"
+											height="19"
+											viewBox="0 0 22 19"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path d="M17.6005 13.8802L11.0665 4.64016L4.40039 13.8802" stroke="white" strokeWidth="1.440004" />
+										</svg>
+									)}
+								</button>
+								<div className={`text-base ${togglePer && "hidden"} overflow-auto scrollbar-hide max-h-72`}>
 									{balances.map(({ amount }, index) =>
 										amount > 0n ? (
 											<div className="flex" key={index}>
@@ -510,7 +567,22 @@ const Assets = () => {
 							</div>
 						</>
 					)}
-					<div className="mb-14 flex-1 bg-gray-700 rounded-lg max-w-sm">
+
+					<button className="flex justify-center" onClick={() => setToggleDesc(!toggleDesc)}>
+						Balance{" "}
+						{toggleDesc ? (
+							<svg className="ml-1.5" width="22" height="19" viewBox="0 0 22 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M17.6005 4.40002L11.0665 13.6401L4.40039 4.40002" stroke="white" strokeWidth="1.440004" />
+							</svg>
+						) : (
+							<svg className="ml-1.5" width="22" height="19" viewBox="0 0 22 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M17.6005 13.8802L11.0665 4.64016L4.40039 13.8802" stroke="white" strokeWidth="1.440004" />
+							</svg>
+						)}
+					</button>
+					<div
+						className={`mb-14 bg-gray-700 rounded-lg max-w-sm ${toggleDesc && "hidden"} overflow-auto scrollbar-hide max-h-72`}
+					>
 						{balances.length > 0 &&
 							balances.map(({ currencyName, amount, balanceToUSD }, index) =>
 								amount > 0n ? (

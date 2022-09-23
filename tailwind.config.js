@@ -9,6 +9,9 @@ module.exports = {
 			80: "20rem",
 		},
 		extend: {
+			maxHeight: {
+				524: "524px",
+			},
 			fontFamily: {
 				serif: ["Montserrat", "serif"],
 			},
