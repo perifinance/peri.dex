@@ -54,10 +54,6 @@ export const getChartRates = async ({
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
 			: await get(chartRate({ currencyName: currencyNames.source, page, first, searchDate }));
 
-	// let sourceData = await get(
-	// 	chartRate({ currencyName: currencyNames.source, page, first, searchDate })
-	// );
-
 	if (currencyNames.source !== "pUSD" && sourceData.length <= 1) {
 		sourceData = await get(chartRate({ currencyName: currencyNames.source, page: 0, first: 2 }));
 	}
@@ -67,46 +63,38 @@ export const getChartRates = async ({
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
 			: await get(chartRate({ currencyName: currencyNames.destination, page, first, searchDate }));
 
-	// let destinationData = await get(
-	// 	chartRate({ currencyName: currencyNames.destination, page, first, searchDate })
-	// );
-
 	if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
 		destinationData = await get(chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 }));
 	}
 
 	let dayFlag;
 	let values = [];
+	let low = BigInt(1000000000000000000000000000000000);
+	let high = BigInt(0);
 	const datas = currencyNames.source === "pUSD" ? destinationData : sourceData;
 
 	try {
 		datas.forEach((item, index) => {
 			const destinationDataItem = destinationData[index] ? destinationData[index] : destinationData[destinationData.length - 1];
 			const sourceDataItem = sourceData[index] ? sourceData[index] : sourceData[sourceData.length - 1];
-
 			dayFlag = new Date(item.timestamp * 1000);
-			let low;
-			let price;
-			let high;
 
-			if (currencyNames.source === "pUSD") {
-				low = ((BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low)) * 10n ** 10n;
+			let price = BigInt(0);
+
+			if (currencyNames.source === "pUSD" || currencyNames.destination === "pUSD") {
 				price = ((BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price)) * 10n ** 10n;
-				high = ((BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high)) * 10n ** 10n;
-			} else if (currencyNames.destination === "pUSD") {
-				low = (BigInt(destinationDataItem.low) * 10n ** 18n) / (BigInt(sourceDataItem.low) * 10n ** 10n);
-				price = (BigInt(destinationDataItem.price) * 10n ** 18n) / (BigInt(sourceDataItem.price) * 10n ** 10n);
-				high = (BigInt(destinationDataItem.high) * 10n ** 18n) / (BigInt(sourceDataItem.high) * 10n ** 10n);
+				high = price > high ? price : high;
+				low = price < low ? price : low;
 			} else {
-				low = (BigInt(destinationDataItem.low) * 10n ** 18n) / BigInt(sourceDataItem.low);
 				price = (BigInt(destinationDataItem.price) * 10n ** 18n) / BigInt(sourceDataItem.price);
-				high = (BigInt(destinationDataItem.high) * 10n ** 18n) / BigInt(sourceDataItem.high);
+				high = price > high ? price : high;
+				low = price < low ? price : low;
 			}
 
 			values.push({ low, price, high, timestamp: dayFlag });
 		});
 	} catch (e) {
-		console.log(e);
+		console.error("getChartRates Error:", e);
 	}
 
 	await loadingHandler(false);
