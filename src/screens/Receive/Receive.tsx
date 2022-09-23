@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { contracts, formatCurrency } from "lib";
@@ -77,9 +77,9 @@ const Receive = ({}) => {
 		let gasLimit = 6000000n;
 		try {
 			gasLimit = BigInt(
-				await contracts.signers[contractName[selectedCoin.name]].estimateGas.claimAllBridgedAmounts(
-					{ value: (await getBridgeClaimGasCost()).toString() }
-				)
+				await contracts.signers[contractName[selectedCoin.name]].estimateGas.claimAllBridgedAmounts({
+					value: (await getBridgeClaimGasCost()).toString(),
+				})
 			);
 			if (gasLimit) {
 				return 6000000n;
@@ -101,7 +101,7 @@ const Receive = ({}) => {
 
 	const getBridgeClaimGasCost = async () => {
 		let cost = await contracts.SystemSettings.bridgeClaimGasCost();
-		console.log("bridge claim gas cost", cost);
+		// console.log("bridge claim gas cost", cost);
 		return cost;
 	};
 
@@ -118,13 +118,11 @@ const Receive = ({}) => {
 			value: (await getBridgeClaimGasCost()).toString(),
 		};
 
-		console.log(contractName[selectedCoin.name], selectedCoin.name, transactionSettings);
+		// console.log(contractName[selectedCoin.name], selectedCoin.name, transactionSettings);
 
 		try {
 			let transaction;
-			transaction = await contracts.signers[contractName[selectedCoin.name]].claimAllBridgedAmounts(
-				transactionSettings
-			);
+			transaction = await contracts.signers[contractName[selectedCoin.name]].claimAllBridgedAmounts(transactionSettings);
 			dispatch(
 				updateTransaction({
 					hash: transaction.hash,
@@ -140,7 +138,9 @@ const Receive = ({}) => {
 		dispatch(setLoading({ name: "balance", value: false }));
 	};
 	const switchChain = async (selectedNetwork) => {
-		changeNetwork(selectedNetwork.id);
+		dispatch(setLoading({ name: "balance", value: true }));
+		await changeNetwork(selectedNetwork.id);
+		dispatch(setLoading({ name: "balance", value: false }));
 	};
 
 	useEffect(() => {
@@ -184,8 +184,33 @@ const Receive = ({}) => {
 		};
 	}, [totalAmount, selectedNetwork, networkId, isConnect]);
 
+	// click on outside close
+	const toRef = useRef<HTMLDivElement>(null);
+	const coinListRef = useRef<HTMLDivElement>(null);
+
+	const closeModalHandler = useCallback(
+		(e) => {
+			if (isNetworkList && !toRef.current.contains(e.target)) {
+				setIsNetworkList(false);
+			}
+
+			if (isCoinList && !coinListRef.current.contains(e.target)) {
+				setIsCoinList(false);
+			}
+		},
+		[isNetworkList, isCoinList]
+	);
+
+	useEffect(() => {
+		window.addEventListener("click", closeModalHandler);
+
+		return () => {
+			window.removeEventListener("click", closeModalHandler);
+		};
+	}, [closeModalHandler]);
+
 	return (
-		<div className="flex flex-col bg-gray-700 rounded-lg p-4 overflow-hidden">
+		<div className="flex flex-col bg-gray-700 rounded-r-lg p-4 overflow-hidden">
 			<div className="w-full">
 				<div className="flex py-1">
 					<div>To</div>
@@ -199,25 +224,15 @@ const Receive = ({}) => {
 							onClick={() => setIsNetworkList(!isNetworkList)}
 						>
 							<span className="mx-1">{selectedNetwork?.name}</span>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-6 w-6"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M19 9l-7 7-7-7"
-								/>
+							<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
 							</svg>
 						</div>
 						<div
 							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 								isNetworkList ? "block" : "hidden"
 							} z-10`}
+							ref={toRef}
 						>
 							<ul className="list-reset">
 								{networks.map((network, index) => (
@@ -243,14 +258,8 @@ const Receive = ({}) => {
 					<div className="py-1 relative w-full">
 						<div className="flex justify-between items-center rounded-md bg-black-900 text-base">
 							<div className="relative">
-								<div
-									className="flex p-3 font-semibold cursor-pointer"
-									onClick={() => setIsCoinList(!isCoinList)}
-								>
-									<img
-										className="w-6 h-6"
-										src={`/images/currencies/${selectedCoin?.name}.svg`}
-									></img>
+								<div className="flex p-3 font-semibold cursor-pointer" onClick={() => setIsCoinList(!isCoinList)}>
+									<img className="w-6 h-6" src={`/images/currencies/${selectedCoin?.name}.svg`}></img>
 									<div className="mx-1">{selectedCoin?.name}</div>
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -259,18 +268,14 @@ const Receive = ({}) => {
 										viewBox="0 0 24 24"
 										stroke="currentColor"
 									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M19 9l-7 7-7-7"
-										/>
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
 									</svg>
 								</div>
 								<div
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isCoinList ? "block" : "hidden"
 									} z-10`}
+									ref={coinListRef}
 								>
 									<ul className="list-reset">
 										{pynths.map((coin) => (
@@ -286,10 +291,7 @@ const Receive = ({}) => {
 														selectedCoin?.name === coin?.name && "bg-black-900"
 													}`}
 												>
-													<img
-														className="w-6 h-6"
-														src={`/images/currencies/${coin?.name}.svg`}
-													></img>
+													<img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
 													{coin?.name}
 												</p>
 											</li>
@@ -310,29 +312,18 @@ const Receive = ({}) => {
 
 			<div className="flex flex-col my-5 text-base overflow-y-scroll text-center border-gray-300 border-b-2 border-t-2">
 				<div className="flex flex-row">
-					<div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full border-b">
-						From
-					</div>
+					<div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full border-b">From</div>
 					{Object.keys(receiveDatas).map((e, idx) => (
-						<div
-							className="border-gray-300 py-4 min-w-36 w-full border border-r-0"
-							key={`receiveData${idx}`}
-						>
+						<div className="border-gray-300 py-4 min-w-36 w-full border border-r-0" key={`receiveData${idx}`}>
 							{SUPPORTED_NETWORKS[e]}{" "}
 						</div>
 					))}
 				</div>
 				<div className="flex flex-row">
-					<div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full">
-						Amount
-					</div>
+					<div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full">Amount</div>
 					{Object.values(receiveDatas).map((amount, idx) => (
-						<div
-							className="border-gray-300 py-4 min-w-36 w-full border border-r-0 border-t-0"
-							key={`selectedCoin${idx}`}
-						>
-							{formatCurrency(amount, 4)}{" "}
-							<span className="font-medium pl-1">{selectedCoin?.name}</span>
+						<div className="border-gray-300 py-4 min-w-36 w-full border border-r-0 border-t-0" key={`selectedCoin${idx}`}>
+							{formatCurrency(amount, 4)} <span className="font-medium pl-1">{selectedCoin?.name}</span>
 						</div>
 					))}
 				</div>
@@ -341,9 +332,7 @@ const Receive = ({}) => {
 			<div className="pt-4">
 				<div className="flex py-2 justify-between w-full lg:justify-center">
 					<div className="lg:text-lg">Network Fee({gasPrice.toString()}GWEI)</div>
-					<div className="lg:text-lg lg:px-2 lg:font-semibold">
-						${formatCurrency(networkFeePrice, 4)}
-					</div>
+					<div className="lg:text-lg lg:px-2 lg:font-semibold">${formatCurrency(networkFeePrice, 4)}</div>
 				</div>
 			</div>
 

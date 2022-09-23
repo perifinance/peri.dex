@@ -210,7 +210,6 @@ const Assets = () => {
 		}
 	}, [init, isReady, coinList, address, networkId, isConnect]);
 
-	// todo trade order click on close outside
 	const receiveRef = useRef<HTMLDivElement>(null);
 	const destRef = useRef<HTMLDivElement>(null);
 	const actionRef = useRef<HTMLDivElement>(null);
