@@ -219,11 +219,17 @@ const Assets = () => {
 						<div className="flex">
 							<DatePicker
 								selected={searchOptions.startDate}
-								onChange={(date) => setSearchOptions({ ...searchOptions, startDate: date })}
+								onChange={(date) => {
+									setSearchOptions({ ...searchOptions, startDate: date });
+									setIsStartDate(!isStartDate);
+									clearOpens();
+								}}
 								onInputClick={() => {
 									clearOpens();
 									setIsStartDate(!isStartDate);
 								}}
+								onClickOutside={() => clearOpens()}
+								shouldCloseOnSelect={false}
 								open={isStartDate}
 								selectsStart
 								startDate={searchOptions.startDate}
@@ -234,11 +240,16 @@ const Assets = () => {
 							<div className="px-2 h-12 py-3">~</div>
 							<DatePicker
 								selected={searchOptions.endDate}
-								onChange={(date) => setSearchOptions({ ...searchOptions, endDate: date })}
+								onChange={(date) => {
+									setSearchOptions({ ...searchOptions, endDate: date });
+									setIsEndDate(!isEndDate);
+									clearOpens();
+								}}
 								onInputClick={() => {
 									clearOpens();
 									setIsEndDate(!isEndDate);
 								}}
+								onClickOutside={() => clearOpens()}
 								open={isEndDate}
 								selectsEnd
 								startDate={searchOptions.startDate}
@@ -493,7 +504,7 @@ const Assets = () => {
 
 				<div
 					className={`flex flex-col bg-gray-700 rounded-lg px-4 pb-7 max-w-sm mb-4 min-w-80 lg:mb-0 ${
-						(togglePer && toggleDesc) && "max-h-524"
+						togglePer && toggleDesc && "max-h-524"
 					}`}
 				>
 					<div className="flex py-6 justify-between text-lg">
