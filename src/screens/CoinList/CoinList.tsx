@@ -64,6 +64,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 
 	const coinListRef = useRef<any>();
 	const handleCloseModal = (e) => {
+		// console.log("coinlist modal", coinListRef.current, coinListRef.current.contains(e.target), isCoinList);
 		if (isCoinList && (!coinListRef.current || !coinListRef.current.contains(e.target))) closeCoinList();
 	};
 
@@ -75,7 +76,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 	}, []);
 
 	return (
-		<div className="flex mb-6 bg-gray-700 rounded-lg p-4 min-w-80">
+		<div className={`flex mb-6 bg-gray-700 rounded-lg p-4 min-w-80`} ref={coinListRef}>
 			<div className="w-full">
 				<div className="mb-4">
 					<div className="relative text-center mb-4 ml-4">

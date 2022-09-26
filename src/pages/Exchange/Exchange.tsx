@@ -68,6 +68,9 @@ const Exchange = () => {
 					<Order openCoinList={openCoinList} />
 				</>
 			)}
+
+			{/* <CoinList isCoinList={isCoinList} coinListType={coinListType} selectedCoin={selectedCoin} closeCoinList={closeCoinList} />
+			<Order isCoinList={isCoinList} openCoinList={openCoinList} /> */}
 		</div>
 	);
 };

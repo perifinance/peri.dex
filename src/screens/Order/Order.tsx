@@ -291,7 +291,7 @@ const Order = ({ openCoinList }) => {
 	}, [isConnect, selectedCoins]);
 
 	return (
-		<div className="min-w-80 lg:max-w-xs mb-4">
+		<div className={`min-w-80 lg:max-w-xs mb-4`}>
 			<div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
 				<div className="flex space-x-8 py-2 items-center">
 					<div className="relative">
