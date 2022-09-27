@@ -321,7 +321,8 @@ const Order = ({ openCoinList }) => {
 					<input
 						className="w-2/3 bg-black-900 outline-none text-right font-medium"
 						type="text"
-						value={payAmount}
+						value={payAmount === "0" ? undefined : payAmount}
+						placeholder="0"
 						onChange={(e) => {
 							changePayAmount(e.target.value);
 							setPer(0n);

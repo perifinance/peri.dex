@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
+import { NotificationManager } from "react-notifications";
 
 import Order from "screens/Order";
 import CoinList from "screens/CoinList";
 import OrderHistories from "screens/OrderHistories";
 import Chart from "screens/Chart";
 import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
-import { NotificationManager } from "react-notifications";
-import { changeNetwork } from "lib/network";
 import { setLoading } from "reducers/loading";
+import { changeNetwork } from "lib/network";
 
 const Exchange = () => {
 	const dispatch = useDispatch();
@@ -70,7 +70,7 @@ const Exchange = () => {
 			)}
 
 			{/* <CoinList isCoinList={isCoinList} coinListType={coinListType} selectedCoin={selectedCoin} closeCoinList={closeCoinList} />
-			<Order isCoinList={isCoinList} openCoinList={openCoinList} /> */}
+			<Order isCoinList={isCoinList} openCoinList={openCoinLbist} /> */}
 		</div>
 	);
 };

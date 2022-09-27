@@ -6,6 +6,18 @@ import { getChartRates } from "lib/thegraph/api";
 import { formatDate, formatCurrency } from "lib";
 import { utils } from "ethers";
 import { setLoading } from "reducers/loading";
+import CustomCandleStick from "screens/Chart/CandleStick";
+import axios from "axios";
+
+const convertDate = (timestamp) => {
+	const date = new Date(timestamp * 1000);
+	const month = ("0" + (1 + date.getMonth())).slice(-2);
+	const day = ("0" + date.getDate()).slice(-2);
+	const hour = date.getHours();
+	const mint = date.getMinutes();
+
+	return `${month}/${day} ${hour}:${mint}`;
+};
 
 const Chart = () => {
 	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
@@ -29,6 +41,54 @@ const Chart = () => {
 		toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
 	};
 
+	// ! new chart
+	const [source, setSource] = useState([]);
+	const [destinate, setDestinate] = useState([]);
+
+	const setPrepareData = async (data, key) => {
+		const title = [
+			"openTime",
+			"open",
+			"high",
+			"low",
+			"close",
+			"volume",
+			"closeTime",
+			"quoteAssetVolume",
+			"numberOfTrades",
+			"takerBuyBaseAssetVolume",
+			"takerBuyQuoteAssetVolume",
+			"ignore",
+		];
+
+		const dataList = await data.data.slice(-60, data.data.length).map((candle) => {
+			const result = { openClose: [] };
+			candle.forEach((name, idx) => {
+				if (idx === 1) {
+					result.openClose[0] = Number(name);
+				}
+
+				if (idx === 4) {
+					result.openClose[1] = Number(name);
+				}
+
+				if (idx === 0) {
+					result[title[idx]] = convertDate(name);
+				} else {
+					result[title[idx]] = name;
+				}
+			});
+
+			return result;
+		});
+
+		if (key === "source") {
+			setSource(dataList);
+		} else if (key === "destination") {
+			setDestinate(dataList);
+		}
+	};
+
 	const init = useCallback(async () => {
 		const chartRate = await getChartRates({
 			currencyNames,
@@ -38,6 +98,41 @@ const Chart = () => {
 
 		setData(chartRate);
 		setPrices({ ...chartRate[chartRate.length - 1] });
+
+		// ! new chart
+		// const intervalList = ["1s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1M"];
+
+		let interval = "";
+
+		switch (chartTime) {
+			case "24H":
+				interval = "1d";
+				break;
+			case "3D":
+				interval = "3d";
+				break;
+			case "1W":
+				interval = "1w";
+				break;
+			case "1M":
+				interval = "1M";
+				break;
+			default:
+				interval = "1d";
+				break;
+		}
+
+		Object.keys(currencyNames).forEach(async (key) => {
+			const symbol = currencyNames[key].replace("p", "");
+
+			if (currencyNames[key] !== "pUSD") {
+				await axios
+					.get("http://localhost:4001/api/v1/binance", {
+						params: { symbol: symbol, interval: interval },
+					})
+					.then((res) => setPrepareData(res, key));
+			}
+		});
 	}, [currencyNames, chartTime]);
 
 	const formatPrice = (e) => {
@@ -67,11 +162,6 @@ const Chart = () => {
 		if (currencyNames) {
 			setData([]);
 			init();
-
-			// const timeout = setInterval(() => {
-			// 	init();
-			// }, 1000 * 60);
-			// return () => clearInterval(timeout);
 		}
 	}, [currencyNames, chartTime]);
 
@@ -125,7 +215,10 @@ const Chart = () => {
 					{prices?.formatPrice} {selectedCoins.source.symbol}
 				</div>
 				{/* <div>{ formatCurrency(exchangeRates, 8)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div> */}
+
 				<div className="text-xs">
+					<CustomCandleStick source={source} destinate={destinate} />
+
 					<ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={"15rem"}>
 						<AreaChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
 							<defs>
