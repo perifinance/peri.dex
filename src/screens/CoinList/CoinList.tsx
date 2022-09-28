@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
 import pynthsCategories from "configure/coins/pynthsCategories";
@@ -63,22 +63,27 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 	}, [setSelectedCategory, setFilterCoinList, coinList]);
 
 	const coinListRef = useRef<any>();
-	const handleCloseModal = (e) => {
-		// console.log("coinlist modal", coinListRef.current, coinListRef.current.contains(e.target), isCoinList);
-		if (isCoinList && (!coinListRef.current || !coinListRef.current.contains(e.target))) closeCoinList();
-	};
+	const handleCloseModal = useCallback(
+		(e) => {
+			console.log("click event Test");
+			console.log("isCoinList", isCoinList, "&&", !coinListRef.current.contains(e.target));
+			// if (isCoinList && (!coinListRef.current || !coinListRef.current.contains(e.target))) closeCoinList();
+			if (isCoinList && !coinListRef.current.contains(e.target)) closeCoinList();
+		},
+		[closeCoinList, isCoinList]
+	);
 
 	useEffect(() => {
 		window.addEventListener("click", handleCloseModal);
 		return () => {
 			window.removeEventListener("click", handleCloseModal);
 		};
-	}, []);
+	}, [handleCloseModal]);
 
 	return (
-		<div className={`flex mb-6 bg-gray-700 rounded-lg p-4 min-w-80`} ref={coinListRef}>
+		<div className={`flex mb-6 bg-gray-700 rounded-lg p-4 min-w-80`}>
 			<div className="w-full">
-				<div className="mb-4">
+				<div className="mb-4" ref={coinListRef}>
 					<div className="relative text-center mb-4 ml-4">
 						<button type="button" className="absolute top-0 bottom-0 block" onClick={() => selectedCoin()}>
 							<img src="images/icon/left_arrow.svg" alt="left_arrow"></img>
@@ -127,7 +132,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 						></img>
 					</div>
 
-					<div className="py-3 text-sm overflow-auto scrollbar-hide max-h-96">
+					<div className="py-3 text-sm overflow-auto scrollbar-hide max-h-640 lg:max-h-96">
 						{filterCoinList &&
 							filterCoinList.length > 0 &&
 							filterCoinList.map((coin, index) => {
@@ -135,9 +140,9 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 									<div
 										key={index}
 										className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2 ${
-											selectedCoins[coinListType].id === coin.id && "bg-black-900"
+											selectedCoins[coinListType]?.id === coin.id && "bg-black-900"
 										}`}
-										onClick={() => selectedCoins[coinListType].id !== coin.id && selectedCoin(coin)}
+										onClick={() => selectedCoins[coinListType]?.id !== coin.id && selectedCoin(coin)}
 									>
 										<div
 											onClick={(e) => {

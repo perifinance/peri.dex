@@ -11,13 +11,14 @@ module.exports = {
 		extend: {
 			maxHeight: {
 				524: "524px",
+				640: "40rem",
 			},
 			fontFamily: {
 				serif: ["Montserrat", "serif"],
 			},
 			fontSize: {
 				sm: [
-					"0.875rem",
+					".875rem",
 					{
 						letterSpacing: "0px",
 					},

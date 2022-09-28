@@ -1,14 +1,11 @@
-import axios from "axios";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setLoading } from "reducers/loading";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
-
-// const colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
+import { decimalSplit } from "lib/price/decimalSplit";
 
 const Candlestick = (props) => {
 	const {
-		fill,
 		x,
 		y,
 		width,
@@ -69,36 +66,30 @@ const Candlestick = (props) => {
 	);
 };
 
-const CustomShapeBarChart = ({ source, destinate }) => {
-	console.log("CUSTOME", source, destinate);
+const CustomShapeBarChart = ({ source, destinate, setPrice }) => {
+	const mergeData = () => {
+		const values = [];
+		const datas = source.length === 0 ? destinate : source;
 
-	// todo 여기서 합쳐주면 될듯? 어차피 빈배열이면 usd임 ㅇㅇ
+		datas.forEach((item, index) => {
+			const destinationDataItem = destinate[index] ? destinate[index] : destinate[destinate.length - 1];
+			const sourceDataItem = source[index] ? source[index] : source[source.length - 1];
 
-	const dataHandler = () => {
-		const dataList = source.length > 0 ? source : destinate;
-		const apiData = dataList.map((data, idx) => {
-			let result = {};
-			Object.keys(data).forEach((key) => {
-				if (key !== "openClose") {
-					const sourceData = data[key] ? data[key] : 1;
-					const destinateData = destinate[idx][key] ? destinate[idx][key] : 1;
-					result[key] = sourceData / destinateData;
-				} else if (key === "openClose") {
-					result[key] = [data[key][0] / destinate[idx][key][0], data[key][1] / destinate[idx][key][1]];
-				} else if (key === "openTime") {
-					result["openTime"] = data[key];
-				}
-			});
+			let close = 0;
+			let high = 0;
+			let low = 0;
 
-			return result;
+			close = destinationDataItem.close ?? 1 / sourceDataItem.close ?? 1;
+			high = destinationDataItem.high ?? 1 / sourceDataItem.high ?? 1;
+			low = destinationDataItem.low ?? 1 / sourceDataItem.low ?? 1;
+
+			values.push({ low, close, high, timestamp: source.openTime, ...item });
 		});
 
-		console.log("apiData", apiData);
-		return apiData;
+		return values;
 	};
 
-	// const data = dataHandler();
-	const data = destinate;
+	const data = mergeData() ?? [];
 
 	const minValue = data.reduce((minValue, { low, open, close }) => {
 		const currentMin = Math.min(low, open, close);
@@ -119,17 +110,35 @@ const CustomShapeBarChart = ({ source, destinate }) => {
 						borderColor: "#151515",
 						color: "#151515",
 					}}
-					itemStyle={{ color: "#ffffff" }}
+					itemStyle={{ color: "#ebebeb" }}
 					position={{ y: 0 }}
+					content={({ active, payload, label }) => {
+						setPrice(payload);
+
+						return (
+							payload && (
+								<div className="bg-gray-300 p-2">
+									<div>
+										<span className="">High</span>: {decimalSplit(payload[0]?.payload?.high)}
+									</div>
+									<div>
+										<span className="">Low</span>: {decimalSplit(payload[0]?.payload?.low)}
+									</div>
+									<div>
+										<span className="">Open</span>: {decimalSplit(payload[0]?.payload?.open)}
+									</div>
+									<div>
+										<span className="">Close</span>: {decimalSplit(payload[0]?.payload?.close)}
+									</div>
+								</div>
+							)
+						);
+					}}
 				></Tooltip>
 				<XAxis dataKey="openTime" />
-				{/* <YAxis domain={[minValue, maxValue]} /> */}
+				<YAxis domain={[minValue, maxValue]} tickFormatter={(e) => e} hide={true} />
 
-				<Bar
-					dataKey="openClose"
-					shape={<Candlestick />}
-					// label={{ position: 'top' }}
-				>
+				<Bar dataKey="openClose" shape={<Candlestick />}>
 					{data.map((entry, index) => (
 						<Cell key={`cell-${index}`} />
 					))}

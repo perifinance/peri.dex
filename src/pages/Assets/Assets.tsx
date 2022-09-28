@@ -537,7 +537,7 @@ const Assets = () => {
 
 				<div
 					className={`flex flex-col bg-gray-700 rounded-lg px-4 pb-7 max-w-sm mb-4 min-w-80 lg:mb-0 ${
-						togglePer && toggleDesc && "max-h-524"
+						togglePer && toggleDesc && "md:max-h-524 lg:max-h-640"
 					}`}
 				>
 					<div className="flex py-6 justify-between text-lg">
@@ -566,7 +566,7 @@ const Assets = () => {
 								</div>
 
 								<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setTogglePer(!togglePer)}>
-									<span className="mr-1.5">Amount</span>
+									<span className="mr-1.5">Percentage</span>
 									<img
 										className={`w-4 h-2 my-auto transform ${!togglePer && "rotate-180"}`}
 										src={`/images/icon/bottom_arrow.png`}
@@ -594,7 +594,7 @@ const Assets = () => {
 					)}
 
 					<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setToggleDesc(!toggleDesc)}>
-						<span className="mr-1.5">Balance</span>
+						<span className="my-auto mr-1.5">Balance</span>
 						<img className={`w-4 h-2 my-auto ${!togglePer && "rotate-180"}`} src={`/images/icon/bottom_arrow.png`} />
 					</button>
 					<div
