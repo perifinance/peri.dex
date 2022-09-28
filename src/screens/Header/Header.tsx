@@ -19,23 +19,25 @@ const Header = () => {
 	const { isConnect } = useSelector((state: RootState) => state.wallet);
 
 	const getNetworkName = (networkId) => {
+		const bridgeHeaderFlag = location.pathname.includes("/bridge");
+
 		let returnValue;
 		switch (networkId) {
-			// case 1:
-			// 	returnValue = "Ethereum";
-			// 	break;
+			case 1:
+				returnValue = bridgeHeaderFlag ? "Ethereum" : "Unsupported Network";
+				break;
 			// case 42:
 			// 	returnValue = "Kovan";
 			// 	break;
-			// case 56:
-			// 	returnValue = "BSC";
-			// 	break;
+			case 56:
+				returnValue = bridgeHeaderFlag ? "BSC" : "Unsupported Network";
+				break;
 			// case 97:
 			// 	returnValue = "BSCTEST";
 			// 	break;
-			// case 137:
-			// 	returnValue = "Polygon";
-			// 	break;
+			case 137:
+				returnValue = bridgeHeaderFlag ? "Polygon" : "Unsupported Network";
+				break;
 			// case 80001:
 			// 	returnValue = "MUMBAI";
 			// 	break;
@@ -132,13 +134,18 @@ const Header = () => {
 			>
 				{isConnect && (
 					<div className="flex bg-gray-700 rounded-l-lg font-medium h-9">
-						{SUPPORTED_NETWORKS[networkId] === "MOONRIVER" ? (
+						{SUPPORTED_NETWORKS[networkId] === "MAINNET" ||
+						SUPPORTED_NETWORKS[networkId] === "BSC" ||
+						SUPPORTED_NETWORKS[networkId] === "POLYGON" ||
+						SUPPORTED_NETWORKS[networkId] === "MOONRIVER" ? (
 							<>
-								<div className="text-gray-400 mx-2 my-auto">
-									{address && address.slice(0, 6) + "..." + address.slice(-4, address.length)}
+								<div className={`text-gray-400 mx-2 my-auto `}>
+									{location.pathname.includes("/bridge") || SUPPORTED_NETWORKS[networkId] === "MOONRIVER"
+										? address && address.slice(0, 6) + "..." + address.slice(-4, address.length)
+										: ""}
 								</div>
 
-								<div className="transform rotate-45 my-auto">
+								<div className={`transform rotate-45 my-auto`}>
 									<div className="bg-red-500" style={{ width: "8px", height: "8px" }}></div>
 								</div>
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { contracts, formatCurrency } from "lib";
@@ -46,13 +46,16 @@ const Submit = ({}) => {
 	const [networkFeePrice, setNetworkFeePrice] = useState(0n);
 	const [gasPrice, setGasPrice] = useState(0n);
 	const [signature, setSignature] = useState(zeroSignature);
+
 	const changePayAmount = async (value) => {
 		setPayAmount(value);
 	};
 
 	const switchChain = async (selectedNetwork) => {
-		console.log("selectedNetwork.id", selectedNetwork.id);
+		dispatch(setLoading({ name: "balance", value: true }));
+		// console.log("selectedNetwork.id", selectedNetwork.id);
 		await changeNetwork(selectedNetwork.id);
+		dispatch(setLoading({ name: "balance", value: false }));
 	};
 
 	const getBridgeTransferGasCost = async () => {
@@ -165,9 +168,16 @@ const Submit = ({}) => {
 	// maxSecsLeftInWaitingPeriod
 	// waitingPeriodSecs
 	useEffect(() => {
+		let loader = true;
 		if (selectedFromNetwork && isReady) {
-			switchChain(selectedFromNetwork);
+			if (loader) {
+				switchChain(selectedFromNetwork);
+			}
 		}
+
+		return () => {
+			loader = false;
+		};
 	}, [selectedFromNetwork, isReady]);
 
 	useEffect(() => {
@@ -229,8 +239,38 @@ const Submit = ({}) => {
 		};
 	}, [payAmount, selectedFromNetwork, networkId, isConnect]);
 
+	// click on outside close
+	const fromRef = useRef<HTMLDivElement>(null);
+	const toRef = useRef<HTMLDivElement>(null);
+	const availableRef = useRef<HTMLDivElement>(null);
+
+	const closeModalHandler = useCallback(
+		(e) => {
+			if (isFromNetworkList && !fromRef.current.contains(e.target)) {
+				setIsFromNetworkList(false);
+			}
+
+			if (isToNetworkList && !toRef.current.contains(e.target)) {
+				setIsToNetworkList(false);
+			}
+
+			if (isCoinList && !availableRef.current.contains(e.target)) {
+				setIsCoinList(false);
+			}
+		},
+		[isCoinList, isFromNetworkList, isToNetworkList]
+	);
+
+	useEffect(() => {
+		window.addEventListener("click", closeModalHandler);
+
+		return () => {
+			window.removeEventListener("click", closeModalHandler);
+		};
+	}, [closeModalHandler]);
+
 	return (
-		<div className="flex flex-col bg-gray-700 rounded-lg p-4">
+		<div className="flex flex-col bg-gray-700 rounded-r-lg p-4">
 			<div className="flex flex-col lg:flex-row">
 				<div className="w-full">
 					<div className="flex py-1">
@@ -250,6 +290,7 @@ const Submit = ({}) => {
 							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 								isFromNetworkList ? "block" : "hidden"
 							} z-10`}
+							ref={fromRef}
 						>
 							<ul className="list-reset">
 								{networks.map((network, index) => (
@@ -262,7 +303,11 @@ const Submit = ({}) => {
 											setIsFromNetworkList(false);
 										}}
 									>
-										<p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedFromNetwork?.name === network?.name && "bg-black-900"}`}>
+										<p
+											className={`p-2 block hover:bg-black-900 cursor-pointer ${
+												selectedFromNetwork?.name === network?.name && "bg-black-900"
+											}`}
+										>
 											{network?.name}
 										</p>
 									</li>
@@ -272,7 +317,10 @@ const Submit = ({}) => {
 					</div>
 				</div>
 
-				<div className="flex flex-none mx-auto lg:mt-auto lg:mx-4 my-3 w-9 h-9 bg-gray-500 rounded-full cursor-pointer" onClick={() => networkSwap()}>
+				<div
+					className="flex flex-none mx-auto lg:mt-auto lg:mx-4 my-3 w-9 h-9 bg-gray-500 rounded-full cursor-pointer"
+					onClick={() => networkSwap()}
+				>
 					<div className="transform-gpu m-auto lg:rotate-90">
 						<img className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"}></img>
 					</div>
@@ -294,7 +342,10 @@ const Submit = ({}) => {
 							</svg>
 						</div>
 						<div
-							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isToNetworkList ? "block" : "hidden"} z-10`}
+							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
+								isToNetworkList ? "block" : "hidden"
+							} z-10`}
+							ref={toRef}
 						>
 							<ul className="list-reset">
 								{networks
@@ -309,7 +360,11 @@ const Submit = ({}) => {
 												setIsToNetworkList(false);
 											}}
 										>
-											<p className={`p-2 block hover:bg-black-900 cursor-pointer ${selectedToNetwork?.name === network?.name && "bg-black-900"}`}>
+											<p
+												className={`p-2 block hover:bg-black-900 cursor-pointer ${
+													selectedToNetwork?.name === network?.name && "bg-black-900"
+												}`}
+											>
 												{network?.name}
 											</p>
 										</li>
@@ -323,7 +378,11 @@ const Submit = ({}) => {
 			<div className="flex py-1 justify-between w-full">
 				<div></div>
 				<div>
-					Available: {formatCurrency(selectedFromNetwork && networks.find((e) => selectedFromNetwork.id === e.id)?.balance[selectedCoin?.name], 4)}
+					Available:{" "}
+					{formatCurrency(
+						selectedFromNetwork && networks.find((e) => selectedFromNetwork.id === e.id)?.balance[selectedCoin?.name],
+						4
+					)}
 				</div>
 			</div>
 			<div className="flex flex-row justify-end">
@@ -334,7 +393,12 @@ const Submit = ({}) => {
 							<div className="m-1">{selectedCoin?.name}</div>
 							<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 						</div>
-						<div className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${isCoinList ? "block" : "hidden"} z-10`}>
+						<div
+							className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
+								isCoinList ? "block" : "hidden"
+							} z-10`}
+							ref={availableRef}
+						>
 							<ul className="list-reset">
 								{pynths.map((coin) => {
 									if ((networkId === 1 || networkId === 42) && coin.name === "pUSD") return <></>;
@@ -347,7 +411,11 @@ const Submit = ({}) => {
 													setIsCoinList(false);
 												}}
 											>
-												<p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${selectedCoin?.name === coin?.name && "bg-black-900"}`}>
+												<p
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														selectedCoin?.name === coin?.name && "bg-black-900"
+													}`}
+												>
 													<img className="w-6 h-6" src={`/images/currencies/${coin?.name}.svg`}></img>
 													{coin?.name}
 												</p>
@@ -407,7 +475,9 @@ const Submit = ({}) => {
 
 			<div className="w-auto text-gray-300 items-center p-2">
 				<span className="text-lg font-bold pb-4">Notice</span>
-				<p className="leading-tight">Tokens you have confirmed on the ‘Submit’ tab may take up to 10 mins for arrival on the ‘Receive’ tab.</p>
+				<p className="leading-tight">
+					Tokens you have confirmed on the ‘Submit’ tab may take up to 10 mins for arrival on the ‘Receive’ tab.
+				</p>
 			</div>
 		</div>
 	);
