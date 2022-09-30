@@ -107,8 +107,9 @@ const Chart = () => {
 				break;
 		}
 
-		loadingHandler(true);
 		Object.keys(currencyNames).forEach(async (key) => {
+			loadingHandler(true);
+
 			const symbol = currencyNames[key].replace("p", "");
 			const url = true ? "https://dex-api.peri.finance/api/v1/binance" : "http://localhost:4001/api/v1/binance";
 			if (currencyNames[key] !== "pUSD") {
@@ -117,12 +118,13 @@ const Chart = () => {
 						headers: { "Access-Control-Allow-Origin": "*" },
 						params: { symbol: symbol, interval: interval },
 					})
-					.then((res) => setPrepareData(res, key, sliceLength));
+					.then((res) => {
+						setPrepareData(res, key, sliceLength);
+						loadingHandler(false);
+					});
 			}
 		});
-
-		loadingHandler(false);
-	}, [currencyNames, chartTime]);
+	}, [chartTime, currencyNames, setPrepareData]);
 
 	useEffect(() => {
 		if (selectedCoins.source.symbol && selectedCoins.destination.symbol) {
@@ -134,6 +136,8 @@ const Chart = () => {
 	}, [selectedCoins]);
 
 	useEffect(() => {
+		loadingHandler(true);
+
 		if (currencyNames) {
 			init();
 
