@@ -65,10 +65,9 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 	const coinListRef = useRef<any>();
 	const handleCloseModal = useCallback(
 		(e) => {
-			console.log("click event Test");
-			console.log("isCoinList", isCoinList, "&&", !coinListRef.current.contains(e.target));
-			// if (isCoinList && (!coinListRef.current || !coinListRef.current.contains(e.target))) closeCoinList();
-			if (isCoinList && !coinListRef.current.contains(e.target)) closeCoinList();
+			if (window.innerWidth < 1025) {
+				// todo
+			} else if (isCoinList && !coinListRef.current?.contains(e.target)) closeCoinList();
 		},
 		[closeCoinList, isCoinList]
 	);
