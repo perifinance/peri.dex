@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setLoading } from "reducers/loading";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, Cross } from "recharts";
 import { decimalSplit } from "lib/price/decimalSplit";
 
 const Candlestick = (props) => {
@@ -100,35 +100,87 @@ const CustomShapeBarChart = ({ source, destinate, setPrice }) => {
 		return currentMax > maxValue ? currentMax : maxValue;
 	}, minValue);
 
+	const chart = useRef<any>(null);
+	const [lineWidth, setLineWidth] = useState(625.2);
+	const resizeHandler = () => {
+		const windowSize = window.innerWidth;
+
+		switch (windowSize) {
+			case 640:
+				setLineWidth(625.2);
+				break;
+			case 768:
+				break;
+			case 1024:
+				break;
+			case 1280:
+				setLineWidth(800);
+				break;
+			case 1536:
+				break;
+			default:
+				break;
+		}
+	};
+
+	useEffect(() => {
+		// const position = chart.current?.getBoundingClientRect();
+		// console.log("position", position);
+
+		window.addEventListener("resize", resizeHandler);
+		return window.removeEventListener("resize", resizeHandler);
+	}, [setLineWidth]);
+
+	const CustomCursor = (props) => {
+		const { x, y, width, height, stroke } = props;
+		console.log("cursor", x, y, props);
+		resizeHandler();
+		// ! y 값이 바뀌질 않음 내부적으로 뭔가 로직이 들어가져있는거같음
+		// low high 값 기준으로 백분율 구해서 y좌표에 해당하는 값을 옆에 띄워줘야됨
+		// maxY lowY maxValue - minValue
+		return (
+			<React.Fragment>
+				<Cross stroke="gray" strokeDasharray={10} x={x + 5} y={y} width={lineWidth} height={height + 20}></Cross>
+				<span className="absolute right-10 bg-white-500">20000</span>
+			</React.Fragment>
+		);
+	};
+
 	return (
-		<ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={"15rem"}>
-			<BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+		<ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={"15rem"} ref={chart}>
+			<BarChart className="overflow-hidden" data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
 				<Tooltip
-					labelStyle={{ color: "#151515" }}
+					separator={" : "}
+					labelStyle={{ paddingTop: 4 }}
 					contentStyle={{
-						background: "#151515",
-						borderColor: "#151515",
-						color: "#151515",
+						padding: "10px 14px",
+						borderRadius: 10,
 					}}
+					// cursor={{ fill: "none" }}
+					cursor={<CustomCursor />}
+					wrapperStyle={{ border: "none", outline: "none" }}
 					itemStyle={{ color: "#ebebeb" }}
-					position={{ y: 0 }}
-					content={({ active, payload, label }) => {
+					position={{ x: 250, y: -10 }}
+					content={({ payload }) => {
 						setPrice(payload);
+
+						const isGrowing = payload[0]?.payload ? Number(payload[0]?.payload.open) < Number(payload[0]?.payload.close) : true;
+						const color = isGrowing ? "long" : "short";
 
 						return (
 							payload && (
-								<div className="bg-gray-300 p-2">
+								<div className="flex flex-wrap space-x-4 p-2">
 									<div>
-										<span className="">High</span>: {decimalSplit(payload[0]?.payload?.high)}
+										<span>High</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.high)}</span>
 									</div>
 									<div>
-										<span className="">Low</span>: {decimalSplit(payload[0]?.payload?.low)}
+										<span>Low</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.low)}</span>
 									</div>
 									<div>
-										<span className="">Open</span>: {decimalSplit(payload[0]?.payload?.open)}
+										<span>Open</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.open)}</span>
 									</div>
 									<div>
-										<span className="">Close</span>: {decimalSplit(payload[0]?.payload?.close)}
+										<span>Close</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.close)}</span>
 									</div>
 								</div>
 							)
@@ -136,7 +188,7 @@ const CustomShapeBarChart = ({ source, destinate, setPrice }) => {
 					}}
 				></Tooltip>
 				<XAxis dataKey="openTime" />
-				<YAxis domain={[minValue, maxValue]} tickFormatter={(e) => e} hide={true} />
+				<YAxis domain={[minValue, maxValue]} tickFormatter={(e) => e} orientation="right" />
 
 				<Bar dataKey="openClose" shape={<Candlestick />}>
 					{data.map((entry, index) => (

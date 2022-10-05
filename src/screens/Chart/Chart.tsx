@@ -31,11 +31,14 @@ const Chart = () => {
 	const [source, setSource] = useState([]);
 	const [destinate, setDestinate] = useState([]);
 
-	const setPrice = (payload) => {
-		if (payload && payload[0] && payload[0].payload) {
-			dispatch(updatePrice({ close: payload[0].payload.close }));
-		}
-	};
+	const setPrice = useCallback(
+		(payload) => {
+			if (payload && payload[0] && payload[0].payload) {
+				dispatch(updatePrice({ close: payload[0].payload.close }));
+			}
+		},
+		[dispatch]
+	);
 
 	const prices = useSelector((state: RootState) => state.exchangeRates);
 
@@ -111,7 +114,7 @@ const Chart = () => {
 			loadingHandler(true);
 
 			const symbol = currencyNames[key].replace("p", "");
-			const url = true ? "https://dex-api.peri.finance/api/v1/binance" : "http://localhost:4001/api/v1/binance";
+			const url = "https://dex-api.peri.finance/api/v1/binance";
 			if (currencyNames[key] !== "pUSD") {
 				await axios
 					.get(url, {
