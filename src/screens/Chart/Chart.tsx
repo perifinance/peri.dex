@@ -8,6 +8,7 @@ import CustomCandleStick from "screens/Chart/CandleStick";
 import axios from "axios";
 import { updatePrice } from "reducers/rates";
 import { decimalSplit } from "lib/price/decimalSplit";
+import LWchart from "./LWchart";
 
 const convertDate = (timestamp) => {
 	const date = new Date(timestamp);
@@ -149,6 +150,9 @@ const Chart = () => {
 			);
 		}
 	}, [currencyNames, chartTime]);
+
+	const chartList = useSelector((state: RootState) => state.chart);
+	console.log("chartList", chartList);
 
 	return (
 		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">

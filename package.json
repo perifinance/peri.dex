@@ -14,6 +14,7 @@
 		"@egjs/react-flicking": "^4.5.3",
 		"@metamask/detect-provider": "^1.2.0",
 		"@perifinance/peri-finance": "^0.6.3",
+		"@qognicafinance/react-lightweight-charts": "^1.0.5",
 		"@reach/router": "^1.3.4",
 		"@reduxjs/toolkit": "^1.8.0",
 		"@types/react-datepicker": "^4.3.4",

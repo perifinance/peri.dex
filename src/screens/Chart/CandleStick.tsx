@@ -3,6 +3,8 @@ import { useDispatch } from "react-redux";
 import { setLoading } from "reducers/loading";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, Cross } from "recharts";
 import { decimalSplit } from "lib/price/decimalSplit";
+import { updateChart } from "reducers/chart/chart";
+import LWchart from "./LWchart";
 
 const Candlestick = (props) => {
 	const {
@@ -67,6 +69,8 @@ const Candlestick = (props) => {
 };
 
 const CustomShapeBarChart = ({ source, destinate, setPrice }) => {
+	const dispatch = useDispatch();
+
 	const mergeData = () => {
 		const values = [];
 		const datas = source.length === 0 ? destinate : source;
@@ -147,56 +151,59 @@ const CustomShapeBarChart = ({ source, destinate, setPrice }) => {
 	};
 
 	return (
-		<ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={"15rem"} ref={chart}>
-			<BarChart className="overflow-hidden" data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-				<Tooltip
-					separator={" : "}
-					labelStyle={{ paddingTop: 4 }}
-					contentStyle={{
-						padding: "10px 14px",
-						borderRadius: 10,
-					}}
-					// cursor={{ fill: "none" }}
-					cursor={<CustomCursor />}
-					wrapperStyle={{ border: "none", outline: "none" }}
-					itemStyle={{ color: "#ebebeb" }}
-					position={{ x: 250, y: -10 }}
-					content={({ payload }) => {
-						setPrice(payload);
+		<>
+			<ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={"15rem"} ref={chart}>
+				<BarChart className="overflow-hidden" data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+					<Tooltip
+						separator={" : "}
+						labelStyle={{ paddingTop: 4 }}
+						contentStyle={{
+							padding: "10px 14px",
+							borderRadius: 10,
+						}}
+						// cursor={{ fill: "none" }}
+						cursor={<CustomCursor />}
+						wrapperStyle={{ border: "none", outline: "none" }}
+						itemStyle={{ color: "#ebebeb" }}
+						position={{ x: 250, y: -10 }}
+						content={({ payload }) => {
+							setPrice(payload);
 
-						const isGrowing = payload[0]?.payload ? Number(payload[0]?.payload.open) < Number(payload[0]?.payload.close) : true;
-						const color = isGrowing ? "long" : "short";
+							const isGrowing = payload[0]?.payload ? Number(payload[0]?.payload.open) < Number(payload[0]?.payload.close) : true;
+							const color = isGrowing ? "long" : "short";
 
-						return (
-							payload && (
-								<div className="flex flex-wrap space-x-4 p-2">
-									<div>
-										<span>High</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.high)}</span>
+							return (
+								payload && (
+									<div className="flex flex-wrap space-x-4 p-2">
+										<div>
+											<span>High</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.high)}</span>
+										</div>
+										<div>
+											<span>Low</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.low)}</span>
+										</div>
+										<div>
+											<span>Open</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.open)}</span>
+										</div>
+										<div>
+											<span>Close</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.close)}</span>
+										</div>
 									</div>
-									<div>
-										<span>Low</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.low)}</span>
-									</div>
-									<div>
-										<span>Open</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.open)}</span>
-									</div>
-									<div>
-										<span>Close</span>: <span className={`text-${color}-500`}>{decimalSplit(payload[0]?.payload?.close)}</span>
-									</div>
-								</div>
-							)
-						);
-					}}
-				></Tooltip>
-				<XAxis dataKey="openTime" />
-				<YAxis domain={[minValue, maxValue]} tickFormatter={(e) => e} orientation="right" />
+								)
+							);
+						}}
+					></Tooltip>
+					<XAxis dataKey="openTime" />
+					<YAxis domain={[minValue, maxValue]} tickFormatter={(e) => e} orientation="right" />
 
-				<Bar dataKey="openClose" shape={<Candlestick />}>
-					{data.map((entry, index) => (
-						<Cell key={`cell-${index}`} />
-					))}
-				</Bar>
-			</BarChart>
-		</ResponsiveContainer>
+					<Bar dataKey="openClose" shape={<Candlestick />}>
+						{data.map((entry, index) => (
+							<Cell key={`cell-${index}`} />
+						))}
+					</Bar>
+				</BarChart>
+			</ResponsiveContainer>
+			<LWchart chart={data} />
+		</>
 	);
 };
 
