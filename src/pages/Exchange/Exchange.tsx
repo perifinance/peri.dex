@@ -23,7 +23,6 @@ const Exchange = () => {
 			changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 			return false;
 		}
-		console.log("type", type);
 		setCoinListType(type);
 		setIsCoinList(true);
 	};
@@ -69,9 +68,6 @@ const Exchange = () => {
 					<Order openCoinList={openCoinList} />
 				</>
 			)}
-
-			{/* <CoinList isCoinList={isCoinList} coinListType={coinListType} selectedCoin={selectedCoin} closeCoinList={closeCoinList} />
-			<Order openCoinList={openCoinList} /> */}
 		</div>
 	);
 };

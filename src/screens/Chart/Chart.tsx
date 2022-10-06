@@ -19,29 +19,19 @@ const convertDate = (timestamp) => {
 };
 
 const Chart = () => {
+	const dispatch = useDispatch();
+
 	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+	const prices = useSelector((state: RootState) => state.exchangeRates);
+
 	const [chartTime, setChartTime] = useState("24H");
 	const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
-
-	const dispatch = useDispatch();
+	const [source, setSource] = useState([]);
+	const [destinate, setDestinate] = useState([]);
 
 	const loadingHandler = (toggle: boolean) => {
 		toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
 	};
-
-	const [source, setSource] = useState([]);
-	const [destinate, setDestinate] = useState([]);
-
-	const setPrice = useCallback(
-		(payload) => {
-			if (payload && payload[0] && payload[0].payload) {
-				dispatch(updatePrice({ close: payload[0].payload.close }));
-			}
-		},
-		[dispatch]
-	);
-
-	const prices = useSelector((state: RootState) => state.exchangeRates);
 
 	const setPrepareData = async (data, key, sliceLength) => {
 		const title = [
@@ -71,7 +61,7 @@ const Chart = () => {
 				}
 
 				if (idx === 0) {
-					result[title[idx]] = convertDate(name);
+					result[title[idx]] = name;
 				} else {
 					result[title[idx]] = name;
 				}
@@ -151,9 +141,6 @@ const Chart = () => {
 		}
 	}, [currencyNames, chartTime]);
 
-	const chartList = useSelector((state: RootState) => state.chart);
-	console.log("chartList", chartList);
-
 	return (
 		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
 			<div className="flex flex-col lg:justify-end">
@@ -205,7 +192,7 @@ const Chart = () => {
 				</div>
 
 				<div className="text-xs">
-					<CustomCandleStick source={source} destinate={destinate} setPrice={setPrice} />
+					<CustomCandleStick source={source} destinate={destinate} />
 				</div>
 				<div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
 					<span
