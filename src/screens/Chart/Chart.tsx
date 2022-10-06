@@ -8,6 +8,7 @@ import CustomCandleStick from "screens/Chart/CandleStick";
 import axios from "axios";
 import { updatePrice } from "reducers/rates";
 import { decimalSplit } from "lib/price/decimalSplit";
+import LWchart from "./LWchart";
 
 const convertDate = (timestamp) => {
 	const date = new Date(timestamp);
@@ -18,26 +19,19 @@ const convertDate = (timestamp) => {
 };
 
 const Chart = () => {
+	const dispatch = useDispatch();
+
 	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+	const prices = useSelector((state: RootState) => state.exchangeRates);
+
 	const [chartTime, setChartTime] = useState("24H");
 	const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
-
-	const dispatch = useDispatch();
+	const [source, setSource] = useState([]);
+	const [destinate, setDestinate] = useState([]);
 
 	const loadingHandler = (toggle: boolean) => {
 		toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
 	};
-
-	const [source, setSource] = useState([]);
-	const [destinate, setDestinate] = useState([]);
-
-	const setPrice = (payload) => {
-		if (payload && payload[0] && payload[0].payload) {
-			dispatch(updatePrice({ close: payload[0].payload.close }));
-		}
-	};
-
-	const prices = useSelector((state: RootState) => state.exchangeRates);
 
 	const setPrepareData = async (data, key, sliceLength) => {
 		const title = [
@@ -67,12 +61,11 @@ const Chart = () => {
 				}
 
 				if (idx === 0) {
-					result[title[idx]] = convertDate(name);
+					result[title[idx]] = name;
 				} else {
 					result[title[idx]] = name;
 				}
 			});
-
 			return result;
 		});
 
@@ -90,6 +83,12 @@ const Chart = () => {
 		let sliceLength = -60;
 
 		switch (chartTime) {
+			case "15M":
+				interval = "15m";
+				break;
+			case "4H":
+				interval = "4h";
+				break;
 			case "24H":
 				interval = "1d";
 				break;
@@ -103,7 +102,7 @@ const Chart = () => {
 				interval = "1M";
 				break;
 			default:
-				interval = "1d";
+				interval = "15m";
 				break;
 		}
 
@@ -111,7 +110,7 @@ const Chart = () => {
 			loadingHandler(true);
 
 			const symbol = currencyNames[key].replace("p", "");
-			const url = true ? "https://dex-api.peri.finance/api/v1/binance" : "http://localhost:4001/api/v1/binance";
+			const url = "https://dex-api.peri.finance/api/v1/binance";
 			if (currencyNames[key] !== "pUSD") {
 				await axios
 					.get(url, {
@@ -166,29 +165,41 @@ const Chart = () => {
 
 						<div className="hidden lg:flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
 							<span
+								className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("15M")}
+							>
+								15M
+							</span>
+							<span
+								className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("4H")}
+							>
+								4H
+							</span>
+							<span
 								className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("24H")}
 							>
 								24H
 							</span>
-							<span
+							{/* <span
 								className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("3D")}
 							>
 								3D
-							</span>
+							</span> */}
 							<span
 								className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("1W")}
 							>
 								1W
 							</span>
-							<span
+							{/* <span
 								className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("1M")}
 							>
 								1M
-							</span>
+							</span> */}
 						</div>
 					</div>
 				</div>
@@ -198,33 +209,45 @@ const Chart = () => {
 				</div>
 
 				<div className="text-xs">
-					<CustomCandleStick source={source} destinate={destinate} setPrice={setPrice} />
+					<CustomCandleStick source={source} destinate={destinate} chartTime={chartTime} />
 				</div>
 				<div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
+					<span
+						className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("15M")}
+					>
+						15M
+					</span>
+					<span
+						className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("4H")}
+					>
+						4H
+					</span>
 					<span
 						className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("24H")}
 					>
 						24H
 					</span>
-					<span
+					{/* <span
 						className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("3D")}
 					>
 						3D
-					</span>
+					</span> */}
 					<span
 						className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("1W")}
 					>
 						1W
 					</span>
-					<span
+					{/* <span
 						className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("1M")}
 					>
 						1M
-					</span>
+					</span> */}
 				</div>
 			</div>
 		</div>

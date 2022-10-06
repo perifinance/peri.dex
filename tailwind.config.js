@@ -1,5 +1,5 @@
 module.exports = {
-	purge: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
+	purge: { content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"], safelist: ["text-long-500", "text-short-500"] },
 	darkMode: "class",
 	theme: {
 		minWidth: {
@@ -12,6 +12,7 @@ module.exports = {
 			maxHeight: {
 				524: "524px",
 				640: "40rem",
+				666: "41rem",
 			},
 			fontFamily: {
 				serif: ["Montserrat", "serif"],
@@ -63,6 +64,12 @@ module.exports = {
 					500: "#333333",
 					300: "#737373",
 					200: "#fffff2",
+				},
+				long: {
+					500: "#89F8CA",
+				},
+				short: {
+					500: "#ED6D87",
 				},
 			},
 		},
