@@ -80,7 +80,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 	}, [handleCloseModal]);
 
 	return (
-		<div className={`flex mb-6 bg-gray-700 rounded-lg p-4 min-w-80`}>
+		<div className={`flex mb-6 bg-gray-700 lg:max-h-640 rounded-lg p-4 min-w-80`}>
 			<div className="w-full">
 				<div className="mb-4" ref={coinListRef}>
 					<div className="relative text-center mb-4 ml-4">
@@ -131,7 +131,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 						></img>
 					</div>
 
-					<div className="py-3 text-sm overflow-auto scrollbar-hide max-h-640 lg:max-h-96">
+					<div className="py-3 text-sm mt-4 overflow-auto scrollbar-hide max-h-640 lg:max-h-96">
 						{filterCoinList &&
 							filterCoinList.length > 0 &&
 							filterCoinList.map((coin, index) => {
@@ -162,6 +162,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 								);
 							})}
 					</div>
+					<img className="w-6 h-3 mx-auto mt-8" src="/images/icon/bottom_arrow.png" />
 				</div>
 			</div>
 		</div>

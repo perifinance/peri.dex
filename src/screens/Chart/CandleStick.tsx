@@ -1,7 +1,7 @@
 import React from "react";
 import LWchart from "./LWchart";
 
-const CustomShapeBarChart = ({ source, destinate }) => {
+const CustomShapeBarChart = ({ source, destinate, chartTime }) => {
 	const mergeData = () => {
 		const values = [];
 		const datas = source.length === 0 ? destinate : source;
@@ -26,7 +26,7 @@ const CustomShapeBarChart = ({ source, destinate }) => {
 
 	const data = mergeData() ?? [];
 
-	return <LWchart chart={data} />;
+	return <LWchart chart={data} chartTime={chartTime} />;
 };
 
 export default CustomShapeBarChart;

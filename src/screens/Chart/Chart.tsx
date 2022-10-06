@@ -66,7 +66,6 @@ const Chart = () => {
 					result[title[idx]] = name;
 				}
 			});
-
 			return result;
 		});
 
@@ -84,6 +83,12 @@ const Chart = () => {
 		let sliceLength = -60;
 
 		switch (chartTime) {
+			case "15M":
+				interval = "15m";
+				break;
+			case "4H":
+				interval = "4h";
+				break;
 			case "24H":
 				interval = "1d";
 				break;
@@ -97,7 +102,7 @@ const Chart = () => {
 				interval = "1M";
 				break;
 			default:
-				interval = "1d";
+				interval = "15m";
 				break;
 		}
 
@@ -160,29 +165,41 @@ const Chart = () => {
 
 						<div className="hidden lg:flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
 							<span
+								className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("15M")}
+							>
+								15M
+							</span>
+							<span
+								className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("4H")}
+							>
+								4H
+							</span>
+							<span
 								className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("24H")}
 							>
 								24H
 							</span>
-							<span
+							{/* <span
 								className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("3D")}
 							>
 								3D
-							</span>
+							</span> */}
 							<span
 								className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("1W")}
 							>
 								1W
 							</span>
-							<span
+							{/* <span
 								className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("1M")}
 							>
 								1M
-							</span>
+							</span> */}
 						</div>
 					</div>
 				</div>
@@ -192,33 +209,45 @@ const Chart = () => {
 				</div>
 
 				<div className="text-xs">
-					<CustomCandleStick source={source} destinate={destinate} />
+					<CustomCandleStick source={source} destinate={destinate} chartTime={chartTime} />
 				</div>
 				<div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
+					<span
+						className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("15M")}
+					>
+						15M
+					</span>
+					<span
+						className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("4H")}
+					>
+						4H
+					</span>
 					<span
 						className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("24H")}
 					>
 						24H
 					</span>
-					<span
+					{/* <span
 						className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("3D")}
 					>
 						3D
-					</span>
+					</span> */}
 					<span
 						className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("1W")}
 					>
 						1W
 					</span>
-					<span
+					{/* <span
 						className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("1M")}
 					>
 						1M
-					</span>
+					</span> */}
 				</div>
 			</div>
 		</div>

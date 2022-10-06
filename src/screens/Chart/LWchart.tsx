@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import Chart from "@qognicafinance/react-lightweight-charts";
 import { updatePrice } from "reducers/rates";
 import { useDispatch } from "react-redux";
@@ -16,10 +16,17 @@ const LWchart = (chart) => {
 		const year = timestamp.getFullYear();
 		const month = timestamp.getMonth() + 1;
 		const day = timestamp.getDate();
-		const openTime = `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day}`;
+		const hour = timestamp.getHours();
+		const min = timestamp.getMinutes();
+		// const second = timestamp.getSeconds();
+		const openTime = `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day} ${
+			hour < 10 ? `0${hour}` : hour
+		}:${min < 10 ? `0${min}` : min}`;
+
+		// Date.parse('2019-04-11 09:43')/1000
 
 		return {
-			time: openTime,
+			time: Date.parse(openTime) / 1000,
 			open: Number(el.open),
 			high: Number(el.high),
 			low: Number(el.low),
@@ -32,16 +39,18 @@ const LWchart = (chart) => {
 		alignLabels: false,
 		timeScale: {
 			rightOffset: 0,
-			barSpacing: 25,
-			fixLeftEdge: true,
-			lockVisibleTimeRangeOnResize: true,
+			barSpacing: 12,
+			lockVisibleTimeRangeOnResize: false,
 			rightBarStaysOnScroll: false,
 			borderVisible: false,
 			visible: true,
-			timeVisible: true,
+			timeVisible: chart.chartTime === "15M" ? true : false,
 			secondsVisible: false,
 			tickMarkFormatter: (time) => {
-				return time["month"] + "/" + time["day"];
+				const date = new Date(time * 1000);
+				const month = date.getMonth() + 1;
+				const day = date.getDate();
+				return `${month}/${day}`;
 			},
 		},
 		layout: {
@@ -65,6 +74,17 @@ const LWchart = (chart) => {
 			tickMarkFormatter: (time) => {
 				return time["month"] + "/" + time["day"];
 			},
+		},
+		handleScale: {
+			mouseWheel: false,
+			pressedMouseMove: false,
+			horzTouchDrag: false,
+			vertTouchDrag: false,
+		},
+		handleScroll: false,
+		kineticScroll: {
+			touch: false,
+			mouse: false,
 		},
 	};
 
@@ -90,7 +110,7 @@ const LWchart = (chart) => {
 					low: cutDecimals(obj.low),
 					close: cutDecimals(obj.close),
 				});
-			}, 200);
+			}, 100);
 		}
 	}, []);
 
@@ -119,6 +139,9 @@ const LWchart = (chart) => {
 				autoWidth
 				height={380}
 				onCrosshairMove={handleCrosshairMoved}
+				chartRef={(chart) => {
+					chart.timeScale().fitContent();
+				}}
 			/>
 		</>
 	);
