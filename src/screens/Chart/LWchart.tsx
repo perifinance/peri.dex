@@ -38,11 +38,11 @@ const LWchart = (chart) => {
 	const options = {
 		alignLabels: false,
 		timeScale: {
-			rightOffset: 0,
-			barSpacing: 12,
-			lockVisibleTimeRangeOnResize: false,
-			rightBarStaysOnScroll: false,
-			borderVisible: false,
+			rightOffset: 3,
+			barSpacing: 15.5,
+			// lockVisibleTimeRangeOnResize: false,
+			// rightBarStaysOnScroll: false,
+			// borderVisible: false,
 			visible: true,
 			timeVisible: chart.chartTime === "15M" ? true : false,
 			secondsVisible: false,
@@ -141,6 +141,7 @@ const LWchart = (chart) => {
 				onCrosshairMove={handleCrosshairMoved}
 				chartRef={(chart) => {
 					chart.timeScale().fitContent();
+					// chart.timeScale().scrollToPosition(2, true);
 				}}
 			/>
 		</>
