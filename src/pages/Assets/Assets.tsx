@@ -244,7 +244,7 @@ const Assets = () => {
 			<div className="flex flex-col-reverse lg:flex-row lg:py-7 lg:justify-between lg:space-x-8">
 				<div className="flex flex-col w-full">
 					<div className="text-xl lg:pl-8 font-semibold w-full mb-4">Trade Order</div>
-					<div className="flex flex-col space-y-4 xl:flex-row lg:pl-8 xl:space-x-4 xl:space-y-0">
+					<div className="flex flex-col space-y-4 xl:flex-row lg:pl-8 xl:space-x-4 xl:space-y-0 scrollbar-hide">
 						<div className="flex">
 							<DatePicker
 								selected={searchOptions.startDate}
@@ -457,7 +457,7 @@ const Assets = () => {
 						</div>
 					</div>
 					{filteredHistory.length > 0 ? (
-						<div className="overflow-x-scroll">
+						<div className="overflow-x-scroll scrollbar-hide">
 							<table className="table-auto mt-4 mb-2 w-full">
 								<thead>
 									<tr className="text-lg text-gray-300">

@@ -210,7 +210,7 @@ const Receive = ({}) => {
 	}, [closeModalHandler]);
 
 	return (
-		<div className="flex flex-col bg-gray-700 rounded-r-lg p-4 overflow-hidden">
+		<div className="flex flex-col bg-gray-700 rounded-r-lg p-4 overflow-hidden scrollbar-hide">
 			<div className="w-full">
 				<div className="flex py-1">
 					<div>To</div>
@@ -310,7 +310,7 @@ const Receive = ({}) => {
 				</div>
 			</div>
 
-			<div className="flex flex-col my-5 text-base overflow-y-scroll text-center border-gray-300 border-b-2 border-t-2">
+			<div className="flex flex-col my-5 text-base overflow-y-scroll text-center border-gray-300 border-b-2 border-t-2 scrollbar-hide">
 				<div className="flex flex-row">
 					<div className="font-medium bg-black-900 py-4 border-gray-300 min-w-36 w-full border-b">From</div>
 					{Object.keys(receiveDatas).map((e, idx) => (

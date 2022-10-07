@@ -1,30 +1,26 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { useEffect, useState, useCallback } from "react";
-import { formatCurrency } from "lib";
-import { utils } from "ethers";
 import { setLoading } from "reducers/loading";
 import CustomCandleStick from "screens/Chart/CandleStick";
 import axios from "axios";
-import { updatePrice } from "reducers/rates";
+import { updatePrice, updateTooltip } from "reducers/rates";
 import { decimalSplit } from "lib/price/decimalSplit";
-import LWchart from "./LWchart";
 
-const convertDate = (timestamp) => {
-	const date = new Date(timestamp);
-	const month = ("0" + (1 + date.getMonth())).slice(-2);
-	const day = ("0" + date.getDate()).slice(-2);
+const cutDecimals = (str) => {
+	const splitStr = str.split(".");
+	splitStr[1] = splitStr[1][1] === "0" ? splitStr[1][1].slice(0, 2) : splitStr[1][1].slice(0, 4);
 
-	return `${month}/${day}`;
+	return splitStr[1][3] === "0" || splitStr[1][2] === "0" ? splitStr[0] : splitStr.join(".");
 };
 
 const Chart = () => {
 	const dispatch = useDispatch();
 
 	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
-	const prices = useSelector((state: RootState) => state.exchangeRates);
+	const { close, tooltip } = useSelector((state: RootState) => state.exchangeRates);
 
-	const [chartTime, setChartTime] = useState("24H");
+	const [chartTime, setChartTime] = useState("15M");
 	const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
 	const [source, setSource] = useState([]);
 	const [destinate, setDestinate] = useState([]);
@@ -69,13 +65,59 @@ const Chart = () => {
 			return result;
 		});
 
+		const { open, high, low, close, openTime } = dataList[dataList.length - 1];
+		const date = new Date(Math.floor(openTime / 1000) * 1000);
+		const year = date.getFullYear();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+
 		if (key === "source") {
 			setSource(dataList);
 			dispatch(updatePrice({ close: dataList[dataList.length - 1].close }));
+			dispatch(
+				updateTooltip({
+					open: cutDecimals(open),
+					high: cutDecimals(high),
+					low: cutDecimals(low),
+					close: cutDecimals(close),
+					year,
+					month,
+					day,
+				})
+			);
 		} else if (key === "destination") {
 			setDestinate(dataList);
 			dispatch(updatePrice({ close: dataList[dataList.length - 1].close }));
+			dispatch(
+				updateTooltip({
+					open: cutDecimals(open),
+					high: cutDecimals(high),
+					low: cutDecimals(low),
+					close: cutDecimals(close),
+					year,
+					month,
+					day,
+				})
+			);
 		}
+	};
+
+	const color = tooltip.open < tooltip.close ? "long" : "short";
+
+	const runTimer = (url, symbol, interval, key, sliceLength) => {
+		setTimeout(async () => {
+			if (currencyNames[key] !== "pUSD") {
+				await axios
+					.get(url, {
+						headers: { "Access-Control-Allow-Origin": "*" },
+						params: { symbol: symbol, interval: interval },
+					})
+					.then((res) => {
+						setPrepareData(res, key, sliceLength);
+						loadingHandler(false);
+					});
+			}
+		}, 300000);
 	};
 
 	const init = useCallback(async () => {
@@ -121,6 +163,8 @@ const Chart = () => {
 						setPrepareData(res, key, sliceLength);
 						loadingHandler(false);
 					});
+
+				runTimer(url, symbol, interval, key, sliceLength);
 			}
 		});
 	}, [chartTime, currencyNames, setPrepareData]);
@@ -204,8 +248,27 @@ const Chart = () => {
 					</div>
 				</div>
 
-				<div className="text-xl font-medium text-skyblue-500">
-					{decimalSplit(prices?.close)} {selectedCoins.source.symbol}
+				<div className="flex items-center space-x-4">
+					<div className="text-xl font-medium text-skyblue-500">
+						{decimalSplit(close)} {selectedCoins.source.symbol}
+					</div>
+					<div className="space-x-3">
+						<span>
+							Open: <span className={`text-${color}-500`}>{tooltip.open}</span>
+						</span>
+						<span>
+							High: <span className={`text-${color}-500`}>{tooltip.high}</span>
+						</span>
+						<span>
+							Low: <span className={`text-${color}-500`}>{tooltip.low}</span>
+						</span>
+						<span>
+							Close: <span className={`text-${color}-500`}>{tooltip.close}</span>
+						</span>
+						<span className="tracking-tighter">{`${tooltip.year} / ${
+							tooltip.month < 10 ? `0${tooltip.month}` : tooltip.month
+						} / ${tooltip.day < 10 ? `0${tooltip.day}` : tooltip.day}`}</span>
+					</div>
 				</div>
 
 				<div className="text-xs">

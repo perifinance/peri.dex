@@ -172,6 +172,6 @@ button.bg-blue-500:disabled {
 	src: url(./fonts/Montserrat-ExtraBold.ttf) format("truetype");
 }
 
-::-webkit-scrollbar {
+/* ::-webkit-scrollbar {
 	display: none;
-}
+} */
