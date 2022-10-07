@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
 import pynthsCategories from "configure/coins/pynthsCategories";
 import { updateCoin } from "reducers/coin/coinList";
+import "./coinList.css";
 
 interface ICoinList {
 	isCoinList?: Boolean;
@@ -106,7 +107,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 					</div>
 
 					<div className="flex justify-between">
-						<div className="flex overflow-hidden py-4">
+						<div className="flex py-4">
 							{pynthsCategories &&
 								pynthsCategories.length > 0 &&
 								pynthsCategories.map((category, index) => {
@@ -131,7 +132,7 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 						></img>
 					</div>
 
-					<div className="py-3 text-sm mt-4 overflow-auto scrollbar-hide max-h-640 lg:max-h-96">
+					<div className="py-3 text-sm mt-4 scrollbarOn max-h-640 lg:max-h-96">
 						{filterCoinList &&
 							filterCoinList.length > 0 &&
 							filterCoinList.map((coin, index) => {
@@ -162,7 +163,6 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 								);
 							})}
 					</div>
-					<img className="w-6 h-3 mx-auto mt-8" src="/images/icon/bottom_arrow.png" />
 				</div>
 			</div>
 		</div>

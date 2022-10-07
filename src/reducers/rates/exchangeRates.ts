@@ -6,6 +6,7 @@ export type ExchangeRatesState = {
 	USDC?: bigint;
 	DAI?: bigint;
 	close?: string;
+	tooltip?: { open: any; close: any; high: any; low: any; year: any; month: any; day: any };
 };
 
 const initialState: ExchangeRatesState = {
@@ -14,6 +15,7 @@ const initialState: ExchangeRatesState = {
 	USDC: 0n,
 	DAI: 0n,
 	close: "0",
+	tooltip: { open: 0, close: 0, high: 0, low: 0, year: 0, month: 0, day: 0 },
 };
 
 export const ExchangeRatesSlice = createSlice({
@@ -29,9 +31,12 @@ export const ExchangeRatesSlice = createSlice({
 		updatePrice(state, actions: PayloadAction<ExchangeRatesState>) {
 			state.close = actions.payload.close;
 		},
+		updateTooltip(state, actions: PayloadAction<ExchangeRatesState>) {
+			state.tooltip = { ...state.tooltip, ...actions.payload };
+		},
 	},
 });
 
-export const { updateExchangeRates, updatePrice } = ExchangeRatesSlice.actions;
+export const { updateExchangeRates, updatePrice, updateTooltip } = ExchangeRatesSlice.actions;
 
 export default ExchangeRatesSlice.reducer;

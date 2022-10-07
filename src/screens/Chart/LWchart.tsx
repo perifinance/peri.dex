@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import Chart from "@qognicafinance/react-lightweight-charts";
-import { updatePrice } from "reducers/rates";
+import { updatePrice, updateTooltip } from "reducers/rates";
 import { useDispatch } from "react-redux";
 
 const cutDecimals = (str) => {
@@ -18,12 +18,9 @@ const LWchart = (chart) => {
 		const day = timestamp.getDate();
 		const hour = timestamp.getHours();
 		const min = timestamp.getMinutes();
-		// const second = timestamp.getSeconds();
 		const openTime = `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day} ${
 			hour < 10 ? `0${hour}` : hour
 		}:${min < 10 ? `0${min}` : min}`;
-
-		// Date.parse('2019-04-11 09:43')/1000
 
 		return {
 			time: Date.parse(openTime) / 1000,
@@ -44,13 +41,17 @@ const LWchart = (chart) => {
 			// rightBarStaysOnScroll: false,
 			// borderVisible: false,
 			visible: true,
-			timeVisible: chart.chartTime === "15M" ? true : false,
+			timeVisible: chart.chartTime === "15M" || chart.chartTime === "4H" ? true : false,
 			secondsVisible: false,
 			tickMarkFormatter: (time) => {
 				const date = new Date(time * 1000);
 				const month = date.getMonth() + 1;
 				const day = date.getDate();
-				return `${month}/${day}`;
+				const hour = date.getHours();
+				const min = date.getMinutes();
+				return chart.chartTime === "15M"
+					? `${hour < 10 ? `0${hour}` : hour}:${min < 10 ? `0${min}` : `${min}`}`
+					: `${month}/${day}`;
 			},
 		},
 		layout: {
@@ -88,7 +89,6 @@ const LWchart = (chart) => {
 		},
 	};
 
-	const [{ open, high, low, close }, setTooltip] = useState({ open: "0", high: "0", low: "0", close: "0" });
 	const dispatch = useDispatch();
 
 	let throttled;
@@ -102,49 +102,41 @@ const LWchart = (chart) => {
 					return;
 				}
 
+				const date = new Date(param.time * 1000);
+				const year = date.getFullYear();
+				const month = date.getMonth() + 1;
+				const day = date.getDate();
+
 				const obj = param.seriesPrices.entries().next().value[1];
 				dispatch(updatePrice({ close: cutDecimals(obj.close) }));
-				setTooltip({
-					open: cutDecimals(obj.open),
-					high: cutDecimals(obj.high),
-					low: cutDecimals(obj.low),
-					close: cutDecimals(obj.close),
-				});
+				dispatch(
+					updateTooltip({
+						...obj,
+						open: cutDecimals(obj.open),
+						high: cutDecimals(obj.high),
+						low: cutDecimals(obj.low),
+						close: cutDecimals(obj.close),
+						year,
+						month,
+						day,
+					})
+				);
 			}, 100);
 		}
 	}, []);
 
-	const color = open < close ? "long" : "short";
-
 	return (
-		<>
-			<div className="space-x-3">
-				<span>
-					Open: <span className={`text-${color}-500`}>{open}</span>
-				</span>
-				<span>
-					High: <span className={`text-${color}-500`}>{high}</span>
-				</span>
-				<span>
-					Low: <span className={`text-${color}-500`}>{low}</span>
-				</span>
-				<span>
-					Close: <span className={`text-${color}-500`}>{close}</span>
-				</span>
-			</div>
-
-			<Chart
-				options={options}
-				candlestickSeries={[{ data: candleSeries }]}
-				autoWidth
-				height={380}
-				onCrosshairMove={handleCrosshairMoved}
-				chartRef={(chart) => {
-					chart.timeScale().fitContent();
-					// chart.timeScale().scrollToPosition(2, true);
-				}}
-			/>
-		</>
+		<Chart
+			options={options}
+			candlestickSeries={[{ data: candleSeries }]}
+			autoWidth
+			height={380}
+			onCrosshairMove={handleCrosshairMoved}
+			chartRef={(chart) => {
+				chart.timeScale().fitContent();
+				// chart.timeScale().scrollToPosition(2, true);
+			}}
+		/>
 	);
 };
 
