@@ -1,16 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import Chart from "@qognicafinance/react-lightweight-charts";
 import { updatePrice, updateTooltip } from "reducers/rates";
 import { useDispatch } from "react-redux";
-
-const cutDecimals = (str) => {
-	const splitStr = str.split(".");
-	splitStr[1] = splitStr[1][1] === "0" ? splitStr[1][1].slice(0, 2) : splitStr[1][1].slice(0, 4);
-
-	return splitStr[1][3] === "0" || splitStr[1][2] === "0" ? splitStr[0] : splitStr.join(".");
-};
+import { decimalSplit } from "lib/price/decimalSplit";
 
 const LWchart = (chart) => {
+	const dispatch = useDispatch();
+
 	const candleSeries = chart.chart.map((el) => {
 		const timestamp = new Date(el.openTime);
 		const year = timestamp.getFullYear();
@@ -89,10 +85,23 @@ const LWchart = (chart) => {
 		},
 	};
 
-	const dispatch = useDispatch();
+	useEffect(() => {
+		if (chart.chart.length > 0) {
+			dispatch(updatePrice({ close: decimalSplit(chart.chart[chart.chart.length - 1].close) }));
+			dispatch(
+				updateTooltip({
+					...chart.chart[chart.chart.length - 1],
+					open: decimalSplit(chart.chart[chart.chart.length - 1].open),
+					high: decimalSplit(chart.chart[chart.chart.length - 1].high),
+					low: decimalSplit(chart.chart[chart.chart.length - 1].low),
+					close: decimalSplit(chart.chart[chart.chart.length - 1].close),
+				})
+			);
+		}
+	}, [chart, dispatch]);
 
 	let throttled;
-	const handleCrosshairMoved = useCallback((param) => {
+	const handleCrosshairMoved = useCallback((param, lastCandle) => {
 		if (!throttled) {
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 			throttled = setTimeout(() => {
@@ -102,23 +111,31 @@ const LWchart = (chart) => {
 					return;
 				}
 
-				const date = new Date(param.time * 1000);
-				const year = date.getFullYear();
-				const month = date.getMonth() + 1;
-				const day = date.getDate();
+				// todo out focus mouse over
+				// const { open, high, low, close } = lastCandle;
+
+				// dispatch(updatePrice({ close: lastCandle.close }));
+				// dispatch(
+				// 	updateTooltip({
+				// 		open: cutDecimals(open),
+				// 		high: cutDecimals(high),
+				// 		low: cutDecimals(low),
+				// 		close: cutDecimals(close),
+				// 		year,
+				// 		month,
+				// 		day,
+				// 	})
+				// );
 
 				const obj = param.seriesPrices.entries().next().value[1];
-				dispatch(updatePrice({ close: cutDecimals(obj.close) }));
+				dispatch(updatePrice({ close: decimalSplit(obj.close) }));
 				dispatch(
 					updateTooltip({
 						...obj,
-						open: cutDecimals(obj.open),
-						high: cutDecimals(obj.high),
-						low: cutDecimals(obj.low),
-						close: cutDecimals(obj.close),
-						year,
-						month,
-						day,
+						open: decimalSplit(obj.open),
+						high: decimalSplit(obj.high),
+						low: decimalSplit(obj.low),
+						close: decimalSplit(obj.close),
 					})
 				);
 			}, 100);
@@ -131,7 +148,7 @@ const LWchart = (chart) => {
 			candlestickSeries={[{ data: candleSeries }]}
 			autoWidth
 			height={380}
-			onCrosshairMove={handleCrosshairMoved}
+			onCrosshairMove={(param) => handleCrosshairMoved(param, candleSeries[candleSeries.length - 1])}
 			chartRef={(chart) => {
 				chart.timeScale().fitContent();
 				// chart.timeScale().scrollToPosition(2, true);
@@ -140,4 +157,4 @@ const LWchart = (chart) => {
 	);
 };
 
-export default LWchart;
+export default React.memo(LWchart);
