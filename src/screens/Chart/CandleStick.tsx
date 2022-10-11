@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { updatePrice, updateTooltip } from "reducers/rates";
 import LWchart from "./LWchart";
@@ -6,7 +6,7 @@ import LWchart from "./LWchart";
 const dummy = { open: "1", low: "1", high: "1", close: "1" };
 
 const CustomShapeBarChart = ({ source, destinate, chartTime }) => {
-	const dispatch = useDispatch();
+	const [data, setData] = useState([]);
 
 	const mergeData = useCallback(() => {
 		const values = [];
@@ -29,9 +29,33 @@ const CustomShapeBarChart = ({ source, destinate, chartTime }) => {
 		return values;
 	}, [destinate, source]);
 
-	const data = mergeData() ?? [];
+	useEffect(() => {
+		const prepareData = mergeData() ?? [];
+		setData(
+			prepareData.map((el) => {
+				const timestamp = new Date(el.openTime);
+				const year = timestamp.getFullYear();
+				const month = timestamp.getMonth() + 1;
+				const day = timestamp.getDate();
+				const hour = timestamp.getHours();
+				const min = timestamp.getMinutes();
+				const openTime = `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day} ${
+					hour < 10 ? `0${hour}` : hour
+				}:${min < 10 ? `0${min}` : min}`;
 
-	return <LWchart chart={data} chartTime={chartTime} />;
+				return {
+					time: Date.parse(openTime) / 1000,
+					open: Number(el.open),
+					high: Number(el.high),
+					low: Number(el.low),
+					close: Number(el.close),
+					...el,
+				};
+			})
+		);
+	}, [mergeData]);
+
+	return <LWchart chart={data} chartTime={chartTime} lastCandle={data[data.length - 1]} />;
 };
 
-export default React.memo(CustomShapeBarChart);
+export default CustomShapeBarChart;

@@ -132,7 +132,7 @@ const Chart = () => {
 						loadingHandler(false);
 					});
 
-				runTimer(url, symbol, interval, key, sliceLength);
+				// runTimer(url, symbol, interval, key, sliceLength);
 			} else {
 				setPrepareData(undefined, key, sliceLength);
 			}
@@ -154,7 +154,7 @@ const Chart = () => {
 		if (currencyNames) {
 			init();
 		}
-	}, [currencyNames, chartTime]);
+	}, [currencyNames, chartTime, loadingHandler, init]);
 
 	return (
 		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
