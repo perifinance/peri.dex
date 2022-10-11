@@ -13,6 +13,7 @@ import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
 import { changeNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
 import { setLoading } from "reducers/loading";
+import "./Order.css";
 
 const Order = ({ openCoinList }) => {
 	const dispatch = useDispatch();
@@ -291,7 +292,7 @@ const Order = ({ openCoinList }) => {
 	}, [isConnect, selectedCoins]);
 
 	return (
-		<div className="min-w-80 lg:max-w-xs mb-4">
+		<div className={`min-w-80 lg:max-w-xs mb-4`}>
 			<div className="w-full bg-gray-500 rounded-t-lg px-4 py-2">
 				<div className="flex space-x-8 py-2 items-center">
 					<div className="relative">
@@ -321,7 +322,8 @@ const Order = ({ openCoinList }) => {
 					<input
 						className="w-2/3 bg-black-900 outline-none text-right font-medium"
 						type="text"
-						value={payAmount}
+						value={payAmount === "0" ? undefined : payAmount}
+						placeholder="0"
 						onChange={(e) => {
 							changePayAmount(e.target.value);
 							setPer(0n);
@@ -366,7 +368,16 @@ const Order = ({ openCoinList }) => {
 							value={per.toString()}
 							onChange={(e) => setPerAmount(BigInt(e.target.value))}
 						/>
-						<div className="border border-gray-200 rounded-md text-sm px-1">{convertNumber(per)}%</div>
+						<div className="flex border border-gray-200 rounded-md text-sm px-1 bg-black-900">
+							<input
+								className="w-6 bg-black-900 outline-none"
+								type="number"
+								max="100"
+								value={per.toString()}
+								onChange={(e) => setPerAmount(Number(e.target.value) > 100 ? BigInt("100") : BigInt(e.target.value))}
+							/>
+							%
+						</div>
 					</div>
 					<div className="flex justify-between text-xs text-gray-400 w-10/12">
 						<span className={`w-8 text-left cursor-pointer ${per === 0n && "text-blue-500"}`} onClick={() => setPerAmount(0n)}>

@@ -55,6 +55,9 @@ const Assets = () => {
 
 	const [pages, setPages] = useState([]);
 
+	const [togglePer, setTogglePer] = useState(true);
+	const [toggleDesc, setToggleDesc] = useState(true);
+
 	const clearOpens = () => {
 		setIsStartDate(false);
 		setIsEndDate(false);
@@ -207,20 +210,55 @@ const Assets = () => {
 		}
 	}, [init, isReady, coinList, address, networkId, isConnect]);
 
+	const receiveRef = useRef<HTMLDivElement>(null);
+	const destRef = useRef<HTMLDivElement>(null);
+	const actionRef = useRef<HTMLDivElement>(null);
+
+	const closeModalHandler = useCallback(
+		(e) => {
+			if (isDestCoinList && !destRef.current.contains(e.target)) {
+				setIsDestCoinList(false);
+			}
+
+			if (isSrcCoinList && !receiveRef.current.contains(e.target)) {
+				setIsSrcCoinList(false);
+			}
+
+			if (isActionList && !actionRef.current.contains(e.target)) {
+				setIsActionList(false);
+			}
+		},
+		[isActionList, isDestCoinList, isSrcCoinList]
+	);
+
+	useEffect(() => {
+		window.addEventListener("click", closeModalHandler);
+
+		return () => {
+			window.removeEventListener("click", closeModalHandler);
+		};
+	}, [closeModalHandler]);
+
 	return (
 		<>
 			<div className="flex flex-col-reverse lg:flex-row lg:py-7 lg:justify-between lg:space-x-8">
 				<div className="flex flex-col w-full">
 					<div className="text-xl lg:pl-8 font-semibold w-full mb-4">Trade Order</div>
-					<div className="flex flex-col space-y-4 xl:flex-row lg:pl-8 xl:space-x-4 xl:space-y-0">
+					<div className="flex flex-col space-y-4 xl:flex-row lg:pl-8 xl:space-x-4 xl:space-y-0 scrollbar-hide">
 						<div className="flex">
 							<DatePicker
 								selected={searchOptions.startDate}
-								onChange={(date) => setSearchOptions({ ...searchOptions, startDate: date })}
+								onChange={(date) => {
+									setSearchOptions({ ...searchOptions, startDate: date });
+									setIsStartDate(!isStartDate);
+									clearOpens();
+								}}
 								onInputClick={() => {
 									clearOpens();
 									setIsStartDate(!isStartDate);
 								}}
+								onClickOutside={() => clearOpens()}
+								shouldCloseOnSelect={false}
 								open={isStartDate}
 								selectsStart
 								startDate={searchOptions.startDate}
@@ -231,11 +269,16 @@ const Assets = () => {
 							<div className="px-2 h-12 py-3">~</div>
 							<DatePicker
 								selected={searchOptions.endDate}
-								onChange={(date) => setSearchOptions({ ...searchOptions, endDate: date })}
+								onChange={(date) => {
+									setSearchOptions({ ...searchOptions, endDate: date });
+									setIsEndDate(!isEndDate);
+									clearOpens();
+								}}
 								onInputClick={() => {
 									clearOpens();
 									setIsEndDate(!isEndDate);
 								}}
+								onClickOutside={() => clearOpens()}
 								open={isEndDate}
 								selectsEnd
 								startDate={searchOptions.startDate}
@@ -256,7 +299,11 @@ const Assets = () => {
 									<div className="flex">
 										{searchOptions?.dest ? (
 											<>
-												<img alt={"${searchOptions?.dest}"} className="w-6 h-6" src={`/images/currencies/${searchOptions?.dest}.svg`}></img>
+												<img
+													alt={"${searchOptions?.dest}"}
+													className="w-6 h-6"
+													src={`/images/currencies/${searchOptions?.dest}.svg`}
+												></img>
 												<div className="m-1">{searchOptions?.dest}</div>
 											</>
 										) : (
@@ -266,6 +313,7 @@ const Assets = () => {
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
 								<div
+									ref={receiveRef}
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isSrcCoinList ? "block" : "hidden"
 									} z-10`}
@@ -280,7 +328,9 @@ const Assets = () => {
 												}}
 											>
 												<span
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.dest === coin?.symbol && "bg-black-900"}`}
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														searchOptions?.dest === coin?.symbol && "bg-black-900"
+													}`}
 												>
 													<img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
 													<div className="m-1">{coin?.symbol}</div>
@@ -311,7 +361,9 @@ const Assets = () => {
 									</div>
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
+								{/* paid coinList */}
 								<div
+									ref={destRef}
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isDestCoinList ? "block" : "hidden"
 									} z-10`}
@@ -326,7 +378,9 @@ const Assets = () => {
 												}}
 											>
 												<span
-													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.src === coin?.symbol && "bg-black-900"}`}
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														searchOptions?.src === coin?.symbol && "bg-black-900"
+													}`}
 												>
 													<img className="w-6 h-6" src={`/images/currencies/${coin?.symbol}.svg`}></img>
 													<div className="m-1">{coin?.symbol}</div>
@@ -344,10 +398,15 @@ const Assets = () => {
 										setIsActionList(!isActionList);
 									}}
 								>
-									{searchOptions?.action ? <div className="m-1">{searchOptions?.action}</div> : <div className="text-gray-300">Action</div>}
+									{searchOptions?.action ? (
+										<div className="m-1">{searchOptions?.action}</div>
+									) : (
+										<div className="text-gray-300">Action</div>
+									)}
 									<img className="w-4 h-2" src={`/images/icon/bottom_arrow.png`}></img>
 								</div>
 								<div
+									ref={actionRef}
 									className={`absolute w-full bg-gray-700 border-2 border-gray-300 rounded my-2 pin-t pin-l ${
 										isActionList ? "block" : "hidden"
 									} z-10`}
@@ -361,7 +420,11 @@ const Assets = () => {
 													setIsActionList(false);
 												}}
 											>
-												<p className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${searchOptions?.action === action && "bg-black-900"}`}>
+												<p
+													className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
+														searchOptions?.action === action && "bg-black-900"
+													}`}
+												>
 													{action}
 												</p>
 											</li>
@@ -394,7 +457,7 @@ const Assets = () => {
 						</div>
 					</div>
 					{filteredHistory.length > 0 ? (
-						<div className="overflow-x-scroll">
+						<div className="overflow-x-scroll scrollbar-hide">
 							<table className="table-auto mt-4 mb-2 w-full">
 								<thead>
 									<tr className="text-lg text-gray-300">
@@ -430,14 +493,18 @@ const Assets = () => {
 											</td>
 											{/* <td className="text-center">{formatCurrency(e.amount * 10n ** 18n / e.amountReceived, 5)} <span className="pl-1 font-medium"> {e.src}</span></td> */}
 											<td className="text-center">
-												<span className={`font-medium ${e.state === "Settled" ? "text-skyblue-500" : "text-yellow-500"}`}>{e.state}</span>
+												<span className={`font-medium ${e.state === "Settled" ? "text-skyblue-500" : "text-yellow-500"}`}>
+													{e.state}
+												</span>
 											</td>
 											<td className="text-center">
 												<img
 													id="moonbeam"
 													className="w-8 h-8 cursor-pointer mx-auto"
 													src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC4UlEQVR4Ae2WA6wcYRzE65hFXDeqbdu2bbdxatu2bdu2bdtupzOb913vtl1crZf8Vv//zM6Hd3eRAPxS/gf4H8CxkDdZxwrkGHmts+6djb5e62RQjsCOzehrtd4B8iXvfLxC5mlokHcLWhQ+gpakfp6NqJh52vVWRY7Hc3o5a5GLpO53pnymKeqXTnr6bEalLDNvsB7DK4BMYjfKt/0Dz3DhGelo03XVcw/dPvk7BZBJdLLLzaRgyp6aGV3fJokjdEk4ygeq8dqLnSSaU4DGXgZaz8Kp+qBx/p26f0eONM6/652eqaYeH9T7LIDWh1zyE0DkS9YJxdMOEbrWs3ACnCPR7AHqtSh8GLVzreKGmYVymSZZVMo6i89WQzUTwA31+PAR1QMBlIZreLN8pskom3HCF1GtYb6tnqNTj0+fkySKFaBWzhVDTEPD1jPQdcdSDH6wWljXDVrNMAYczUQUSzPI2gcFUnTnqDvpbN2XSDccPn1MiIqReBObU/ROD9uPmYfBT1agx+XZ6HxqitC1nqkWEOdL3gVF0wxE9RxLhK6tZ2UyjINfH81E80IHdylAF2KlW/PyMHbcP4HOJ6ag04nJBhpMlVijkjjwcn1YCRPC+Fx4exuP3jxDvzNz3HxEDwU4RKwpuvX6IfQ34OzcEKHQCNSjXo3UHqBU+lEwPg/ePsX7Dx8w7NwiNx9xRAFeEQy+vxpDLyzEhEsrrcYR55dg8NkFQemnqMcI339agsURox8P49P7zCwMPDvP0g09txALr29z8nkdEkBF03jk0XlsvXckVPggIHzGf7lH5Bo5r7MJYPdZdnMn7r9+7OTzNHgJND2m0WvqDtu+Q77ax2xCbQxtEG0UNXpuHluAr/aRMA55HMa/4WNpbAG+2seIy5IP1gjazLSmaPDD1ULXwYk/qFcaG1/tEywuR54QOPDE5eVf7WMXxyI9yFHyhjwjB0hX1Txe/lU+/3+W/w/wP8BHrC3DQabFPxAAAAAASUVORK5CYII="
-													onClick={() => window.open(`https://moonriver.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`, "_blank")}
+													onClick={() =>
+														window.open(`https://moonriver.moonscan.io/tx/${e.appendedTxid || e.settledTxid}`, "_blank")
+													}
 												/>
 											</td>
 										</tr>
@@ -462,10 +529,17 @@ const Assets = () => {
 							</ul>
 						</div>
 					) : (
-						<div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">No Trade History</div>
+						<div className="text-base text-center lg:text-left lg:pl-8 border-b border-gray-500 text-gray-300 font-medium mt-5">
+							No Trade History
+						</div>
 					)}
 				</div>
-				<div className="flex flex-col bg-gray-700 rounded-lg px-4 max-w-sm mb-4 min-w-80 lg:min-h-max lg:mb-0">
+
+				<div
+					className={`flex flex-col bg-gray-700 rounded-lg px-4 pb-7 max-w-sm mb-4 min-w-80 lg:mb-0 ${
+						togglePer && toggleDesc && "md:max-h-524 lg:max-h-640"
+					}`}
+				>
 					<div className="flex py-6 justify-between text-lg">
 						<div className="font-bold">Total Asset</div>
 						<div className="font-bold">{formatCurrency(totalAssets, 4)} $</div>
@@ -490,7 +564,15 @@ const Assets = () => {
 										style={{ labels: { fill: "white", fontSize: 20 } }}
 									></VictoryPie>
 								</div>
-								<div className="text-base">
+
+								<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setTogglePer(!togglePer)}>
+									<span className="mr-1.5">Percentage</span>
+									<img
+										className={`w-4 h-2 my-auto transform ${!togglePer && "rotate-180"}`}
+										src={`/images/icon/bottom_arrow.png`}
+									/>
+								</button>
+								<div className={`text-base ${togglePer && "hidden"} overflow-auto scrollbar-hide max-h-72`}>
 									{balances.map(({ amount }, index) =>
 										amount > 0n ? (
 											<div className="flex" key={index}>
@@ -510,7 +592,16 @@ const Assets = () => {
 							</div>
 						</>
 					)}
-					<div className="mb-14 flex-1 bg-gray-700 rounded-lg max-w-sm">
+
+					<button className="flex justify-center w-full flex-1 mt-10" onClick={() => setToggleDesc(!toggleDesc)}>
+						<span className="my-auto mr-1.5">Balance</span>
+						<img className={`w-4 h-2 my-auto ${!togglePer && "rotate-180"}`} src={`/images/icon/bottom_arrow.png`} />
+					</button>
+					<div
+						className={`mb-14 bg-gray-700 rounded-lg max-w-sm transform ${
+							toggleDesc && "hidden"
+						} overflow-auto scrollbar-hide max-h-72`}
+					>
 						{balances.length > 0 &&
 							balances.map(({ currencyName, amount, balanceToUSD }, index) =>
 								amount > 0n ? (

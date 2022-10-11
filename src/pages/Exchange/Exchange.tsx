@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
+import { NotificationManager } from "react-notifications";
 
 import Order from "screens/Order";
 import CoinList from "screens/CoinList";
 import OrderHistories from "screens/OrderHistories";
 import Chart from "screens/Chart";
 import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
-import { NotificationManager } from "react-notifications";
-import { changeNetwork } from "lib/network";
 import { setLoading } from "reducers/loading";
+import { changeNetwork } from "lib/network";
 
 const Exchange = () => {
 	const dispatch = useDispatch();
@@ -41,6 +41,10 @@ const Exchange = () => {
 		dispatch(setLoading({ name: "balance", value: false }));
 	};
 
+	const closeCoinList = () => {
+		setIsCoinList(false);
+	};
+
 	useEffect(() => {
 		if (isConnect) {
 			if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
@@ -58,7 +62,7 @@ const Exchange = () => {
 			</div>
 
 			{isCoinList ? (
-				<CoinList coinListType={coinListType} selectedCoin={selectedCoin} />
+				<CoinList isCoinList={isCoinList} coinListType={coinListType} selectedCoin={selectedCoin} closeCoinList={closeCoinList} />
 			) : (
 				<>
 					<Order openCoinList={openCoinList} />

@@ -1,58 +1,143 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis, YAxis } from "recharts";
-import { getChartRates } from "lib/thegraph/api";
-import { formatDate, formatCurrency } from "lib";
-import { utils } from "ethers";
+import { useEffect, useState, useCallback } from "react";
 import { setLoading } from "reducers/loading";
+import CustomCandleStick from "screens/Chart/CandleStick";
+import axios from "axios";
+import { updatePrice, updateTooltip } from "reducers/rates";
+import { decimalSplit } from "lib/price/decimalSplit";
 
 const Chart = () => {
-	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
-	const [chartTime, setChartTime] = useState("24H");
-	const [data, setData] = useState([]);
-	const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
-	const [prices, setPrices] = useState<{
-		price?: string;
-		low?: string;
-		high?: string;
-		formatPrice?: string;
-		formatLow?: string;
-		formatHigh?: string;
-		timestamp?: number;
-		time?: string;
-	}>({});
-
 	const dispatch = useDispatch();
 
-	const loadingHandler = (toggle: boolean) => {
-		toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
+	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+	const { close, tooltip } = useSelector((state: RootState) => state.exchangeRates);
+
+	const [chartTime, setChartTime] = useState("15M");
+	const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
+	const [source, setSource] = useState([]);
+	const [destinate, setDestinate] = useState([]);
+
+	const loadingHandler = useCallback(
+		(toggle: boolean) => {
+			toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
+		},
+		[dispatch]
+	);
+
+	const setPrepareData = useCallback(async (data: any, key, sliceLength) => {
+		const title = [
+			"openTime",
+			"open",
+			"high",
+			"low",
+			"close",
+			"volume",
+			"closeTime",
+			"quoteAssetVolume",
+			"numberOfTrades",
+			"takerBuyBaseAssetVolume",
+			"takerBuyQuoteAssetVolume",
+			"ignore",
+		];
+
+		const dataList = data
+			? await data.data.slice(sliceLength, data.data.length).map((candle) => {
+					const result = { openClose: [] };
+					candle.forEach((name, idx) => {
+						if (idx === 1) {
+							result.openClose[0] = Number(name);
+						}
+
+						if (idx === 4) {
+							result.openClose[1] = Number(name);
+						}
+
+						if (idx === 0) {
+							result[title[idx]] = name;
+						} else {
+							result[title[idx]] = name;
+						}
+					});
+					return result;
+			  })
+			: [];
+
+		if (key === "source") {
+			setSource(dataList);
+		} else if (key === "destination") {
+			setDestinate(dataList);
+		}
+	}, []);
+
+	const color = tooltip.open < tooltip.close ? "long" : "short";
+
+	const runTimer = (url, symbol, interval, key, sliceLength) => {
+		setTimeout(async () => {
+			if (currencyNames[key] !== "pUSD") {
+				await axios
+					.get(url, {
+						headers: { "Access-Control-Allow-Origin": "*" },
+						params: { symbol: symbol, interval: interval },
+					})
+					.then((res) => {
+						setPrepareData(res, key, sliceLength);
+						loadingHandler(false);
+					});
+			}
+		}, 300000);
 	};
 
 	const init = useCallback(async () => {
-		const chartRate = await getChartRates({
-			currencyNames,
-			chartTime,
-			loadingHandler,
+		let interval = "";
+		let sliceLength = 0; // cutting data length
+
+		switch (chartTime) {
+			case "15M":
+				interval = "15m";
+				break;
+			case "4H":
+				interval = "4h";
+				break;
+			case "24H":
+				interval = "1d";
+				break;
+			case "3D":
+				interval = "3d";
+				break;
+			case "1W":
+				interval = "1w";
+				break;
+			case "1M":
+				interval = "1M";
+				break;
+			default:
+				interval = "15m";
+				break;
+		}
+
+		Object.keys(currencyNames).forEach(async (key) => {
+			loadingHandler(true);
+
+			const symbol = currencyNames[key].replace("p", "");
+			const url = "https://dex-api.peri.finance/api/v1/binance";
+			if (currencyNames[key] !== "pUSD") {
+				await axios
+					.get(url, {
+						headers: { "Access-Control-Allow-Origin": "*" },
+						params: { symbol: symbol, interval: interval },
+					})
+					.then((res) => {
+						setPrepareData(res, key, sliceLength);
+						loadingHandler(false);
+					});
+
+				// runTimer(url, symbol, interval, key, sliceLength);
+			} else {
+				setPrepareData(undefined, key, sliceLength);
+			}
 		});
-
-		setData(chartRate);
-		setPrices({ ...chartRate[chartRate.length - 1] });
-	}, [currencyNames, chartTime]);
-
-	const formatPrice = (e) => {
-		if (!isFinite(e)) {
-			return "0";
-		}
-
-		return formatCurrency(utils.parseEther(e.toString()).toBigInt(), 8);
-	};
-
-	const setPrice = (payload) => {
-		if (payload && payload[0] && payload[0].payload) {
-			setPrices(payload[0].payload);
-		}
-	};
+	}, [chartTime, currencyNames, setPrepareData]);
 
 	useEffect(() => {
 		if (selectedCoins.source.symbol && selectedCoins.destination.symbol) {
@@ -64,16 +149,12 @@ const Chart = () => {
 	}, [selectedCoins]);
 
 	useEffect(() => {
-		if (currencyNames) {
-			setData([]);
-			init();
+		loadingHandler(true);
 
-			// const timeout = setInterval(() => {
-			// 	init();
-			// }, 1000 * 60);
-			// return () => clearInterval(timeout);
+		if (currencyNames) {
+			init();
 		}
-	}, [currencyNames, chartTime]);
+	}, [currencyNames, chartTime, loadingHandler, init]);
 
 	return (
 		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
@@ -94,112 +175,106 @@ const Chart = () => {
 
 						<div className="hidden lg:flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
 							<span
+								className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("15M")}
+							>
+								15M
+							</span>
+							<span
+								className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
+								onClick={() => setChartTime("4H")}
+							>
+								4H
+							</span>
+							<span
 								className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("24H")}
 							>
 								24H
 							</span>
-							<span
+							{/* <span
 								className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("3D")}
 							>
 								3D
-							</span>
+							</span> */}
 							<span
 								className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("1W")}
 							>
 								1W
 							</span>
-							<span
+							{/* <span
 								className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
 								onClick={() => setChartTime("1M")}
 							>
 								1M
-							</span>
+							</span> */}
 						</div>
 					</div>
 				</div>
 
-				<div className="text-xl font-medium text-skyblue-500">
-					{prices?.formatPrice} {selectedCoins.source.symbol}
+				{/* TOOLTIP */}
+				<div className="flex items-center space-x-4">
+					<div className="text-xl font-medium text-skyblue-500 w-48">
+						{decimalSplit(close)} {selectedCoins.source.symbol}
+					</div>
+					<div className="space-x-3">
+						<span>
+							Open: <span className={`text-${color}-500`}>{tooltip.open}</span>
+						</span>
+						<span>
+							High: <span className={`text-${color}-500`}>{tooltip.high}</span>
+						</span>
+						<span>
+							Low: <span className={`text-${color}-500`}>{tooltip.low}</span>
+						</span>
+						<span>
+							Close: <span className={`text-${color}-500`}>{tooltip.close}</span>
+						</span>
+					</div>
 				</div>
-				{/* <div>{ formatCurrency(exchangeRates, 8)} (${formatCurrency(exchangeRates * sourceRate / (10n ** 18n), 2)})</div> */}
+
 				<div className="text-xs">
-					<ResponsiveContainer width="100%" height="100%" debounce={1} maxHeight={400} minHeight={"15rem"}>
-						<AreaChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-							<defs>
-								<linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-									<stop offset="5%" stopColor="#13DFFF" stopOpacity={0.8} />
-									<stop offset="95%" stopColor="#13DFFF" stopOpacity={0} />
-								</linearGradient>
-							</defs>
-							<Tooltip
-								labelStyle={{ color: "transparent" }}
-								contentStyle={{
-									background: "transparent",
-									borderColor: "transparent",
-									color: "#151515",
-								}}
-								itemStyle={{ color: "#000000" }}
-								position={{ y: 0 }}
-								content={({ active, payload, label }) => {
-									setPrice(payload);
-									// setPayload(payload);
-
-									return (
-										payload && (
-											<div className="bg-gray-300 p-2">
-												<div>
-													<span className="">High</span>: {payload[0]?.payload?.formatHigh}
-												</div>
-												<div>
-													<span className="">Low</span>: {payload[0]?.payload?.formatLow}
-												</div>
-												<div>
-													<span className="">Close</span>: {payload[0]?.payload?.formatPrice}
-												</div>
-												<div>{formatDate(payload[0]?.payload?.timestamp)}</div>
-											</div>
-										)
-									);
-								}}
-							></Tooltip>
-
-							<XAxis dataKey="time" />
-							<YAxis dataKey="price" domain={["dataMin", "dataMax"]} tickFormatter={(e) => formatPrice(e)} hide={true} />
-
-							{/* 라인 */}
-
-							<Area type="monotone" dataKey="price" fillOpacity={1} stroke="#13DFFF" fill="url(#colorUv)" />
-						</AreaChart>
-					</ResponsiveContainer>
+					<CustomCandleStick source={source} destinate={destinate} chartTime={chartTime} />
 				</div>
 				<div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
+					<span
+						className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("15M")}
+					>
+						15M
+					</span>
+					<span
+						className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
+						onClick={() => setChartTime("4H")}
+					>
+						4H
+					</span>
 					<span
 						className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("24H")}
 					>
 						24H
 					</span>
-					<span
+					{/* <span
 						className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("3D")}
 					>
 						3D
-					</span>
+					</span> */}
 					<span
 						className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("1W")}
 					>
 						1W
 					</span>
-					<span
+					{/* <span
 						className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
 						onClick={() => setChartTime("1M")}
 					>
 						1M
-					</span>
+					</span> */}
 				</div>
 			</div>
 		</div>
