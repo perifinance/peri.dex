@@ -125,6 +125,7 @@ const App = () => {
 
 	useEffect(() => {
 		setOnboard();
+
 		if (themeState === "dark") {
 			document.getElementsByTagName("html")[0].classList.add("dark");
 		}

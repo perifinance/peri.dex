@@ -21,7 +21,10 @@ export default {
 	1285: {
 		chainId: "0x505",
 		chainName: "moonriver",
-		rpcUrls: "https://moonriver.api.onfinality.io/rpc?apikey=96fac326-b64d-4479-8b8d-2bcf64d0f99f",
+		// rpcUrls: "https://moonriver.api.onfinality.io/rpc?apikey=96fac326-b64d-4479-8b8d-2bcf64d0f99f",
+		rpcUrls: false
+			? `https://moonriver.blastapi.io/fe1ee7ca-fcf8-4db2-9cd7-7246cded8a03`
+			: `https://moonriver.public.blastapi.io`,
 		blockExplorerUrls: "https://blockscout.moonriver.moonbeam.network/",
 	},
 	97: {
