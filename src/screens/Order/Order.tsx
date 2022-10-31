@@ -310,7 +310,16 @@ const Order = ({ openCoinList }) => {
 			<div className="w-full bg-gray-700 rounded-b-lg p-4">
 				<div className="flex py-1 justify-between w-full">
 					<div>Pay</div>
-					<div>Available: {formatCurrency(balance, 4)}</div>
+					<div className="flex items-center">
+						Available: {formatCurrency(balance, 4)}
+						<img
+							style={{ backgroundColor: "#4182F0" }}
+							className="m-1 p-1 w-4 rounded-full cursor-pointer box-border"
+							src={`/images/icon/refresh.svg`}
+							alt="refresh"
+							onClick={() => getSourceBalance()}
+						/>
+					</div>
 				</div>
 				{/* ${isError && 'border border-red-500'} */}
 				<div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
