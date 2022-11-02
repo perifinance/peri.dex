@@ -7,13 +7,6 @@ import axios from "axios";
 import { updatePrice, updateTooltip } from "reducers/rates";
 import { decimalSplit } from "lib/price/decimalSplit";
 
-const cutDecimals = (str) => {
-	const splitStr = str.split(".");
-	splitStr[1] = splitStr[1][1] === "0" ? splitStr[1][1].slice(0, 2) : splitStr[1][1].slice(0, 4);
-
-	return splitStr[1][3] === "0" || splitStr[1][2] === "0" ? splitStr[0] : splitStr.join(".");
-};
-
 const Chart = () => {
 	const dispatch = useDispatch();
 
@@ -25,11 +18,14 @@ const Chart = () => {
 	const [source, setSource] = useState([]);
 	const [destinate, setDestinate] = useState([]);
 
-	const loadingHandler = (toggle: boolean) => {
-		toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
-	};
+	const loadingHandler = useCallback(
+		(toggle: boolean) => {
+			toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
+		},
+		[dispatch]
+	);
 
-	const setPrepareData = async (data, key, sliceLength) => {
+	const setPrepareData = useCallback(async (data: any, key, sliceLength) => {
 		const title = [
 			"openTime",
 			"open",
@@ -45,62 +41,34 @@ const Chart = () => {
 			"ignore",
 		];
 
-		const dataList = await data.data.slice(sliceLength, data.data.length).map((candle) => {
-			const result = { openClose: [] };
-			candle.forEach((name, idx) => {
-				if (idx === 1) {
-					result.openClose[0] = Number(name);
-				}
+		const dataList = data
+			? await data.data.slice(sliceLength, data.data.length).map((candle) => {
+					const result = { openClose: [] };
+					candle.forEach((name, idx) => {
+						if (idx === 1) {
+							result.openClose[0] = Number(name);
+						}
 
-				if (idx === 4) {
-					result.openClose[1] = Number(name);
-				}
+						if (idx === 4) {
+							result.openClose[1] = Number(name);
+						}
 
-				if (idx === 0) {
-					result[title[idx]] = name;
-				} else {
-					result[title[idx]] = name;
-				}
-			});
-			return result;
-		});
-
-		const { open, high, low, close, openTime } = dataList[dataList.length - 1];
-		const date = new Date(Math.floor(openTime / 1000) * 1000);
-		const year = date.getFullYear();
-		const month = date.getMonth() + 1;
-		const day = date.getDate();
+						if (idx === 0) {
+							result[title[idx]] = name;
+						} else {
+							result[title[idx]] = name;
+						}
+					});
+					return result;
+			  })
+			: [];
 
 		if (key === "source") {
 			setSource(dataList);
-			dispatch(updatePrice({ close: dataList[dataList.length - 1].close }));
-			dispatch(
-				updateTooltip({
-					open: cutDecimals(open),
-					high: cutDecimals(high),
-					low: cutDecimals(low),
-					close: cutDecimals(close),
-					year,
-					month,
-					day,
-				})
-			);
 		} else if (key === "destination") {
 			setDestinate(dataList);
-			dispatch(updatePrice({ close: dataList[dataList.length - 1].close }));
-			dispatch(
-				updateTooltip({
-					open: cutDecimals(open),
-					high: cutDecimals(high),
-					low: cutDecimals(low),
-					close: cutDecimals(close),
-					year,
-					month,
-					day,
-				})
-			);
 		}
-	};
+	}, []);
 
 	const color = tooltip.open < tooltip.close ? "long" : "short";
 
@@ -122,7 +90,7 @@ const Chart = () => {
 
 	const init = useCallback(async () => {
 		let interval = "";
-		let sliceLength = -60;
+		let sliceLength = 0; // cutting data length
 
 		switch (chartTime) {
 			case "15M":
@@ -164,7 +132,9 @@ const Chart = () => {
 						loadingHandler(false);
 					});
 
-				runTimer(url, symbol, interval, key, sliceLength);
+				// runTimer(url, symbol, interval, key, sliceLength);
+			} else {
+				setPrepareData(undefined, key, sliceLength);
 			}
 		});
 	}, [chartTime, currencyNames, setPrepareData]);
@@ -183,12 +153,8 @@ const Chart = () => {
 
 		if (currencyNames) {
 			init();
-
-			dispatch(
-				updatePrice({ close: source.length === 0 ? destinate[destinate.length - 1]?.close : source[source.length - 1]?.close })
-			);
 		}
-	}, [currencyNames, chartTime]);
+	}, [currencyNames, chartTime, loadingHandler, init]);
 
 	return (
 		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
@@ -248,8 +214,9 @@ const Chart = () => {
 					</div>
 				</div>
 
+				{/* TOOLTIP */}
 				<div className="flex items-center space-x-4">
-					<div className="text-xl font-medium text-skyblue-500">
+					<div className="text-xl font-medium text-skyblue-500 w-48">
 						{decimalSplit(close)} {selectedCoins.source.symbol}
 					</div>
 					<div className="space-x-3">
@@ -265,9 +232,6 @@ const Chart = () => {
 						<span>
 							Close: <span className={`text-${color}-500`}>{tooltip.close}</span>
 						</span>
-						<span className="tracking-tighter">{`${tooltip.year} / ${
-							tooltip.month < 10 ? `0${tooltip.month}` : tooltip.month
-						} / ${tooltip.day < 10 ? `0${tooltip.day}` : tooltip.day}`}</span>
 					</div>
 				</div>
 

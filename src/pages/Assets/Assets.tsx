@@ -162,7 +162,6 @@ const Assets = () => {
 			let rates = await getLastRates({});
 			let balances: any = await getBalances({ networkId, address, rates });
 			setBalances(balances);
-
 			const totalAssets = balances.reduce((a, c) => a + c.balanceToUSD, 0n);
 			setTotalAssets(totalAssets);
 
