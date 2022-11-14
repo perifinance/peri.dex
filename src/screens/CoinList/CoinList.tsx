@@ -132,14 +132,14 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
 						></img>
 					</div>
 
-					<div className="py-3 text-sm mt-4 scrollbarOn max-h-640 lg:max-h-96">
+					<div className="py-1 text-sm mt-4 scrollbarOn max-h-640 lg:max-h-96" style={{ marginTop: "0" }}>
 						{filterCoinList &&
 							filterCoinList.length > 0 &&
 							filterCoinList.map((coin, index) => {
 								return (
 									<div
 										key={index}
-										className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 my-2 ${
+										className={`flex justify-start cursor-pointer text-gray-200 hover:bg-black-900 rounded-md px-2 py-2 mb-2 ${
 											selectedCoins[coinListType]?.id === coin.id && "bg-black-900"
 										}`}
 										onClick={() => selectedCoins[coinListType]?.id !== coin.id && selectedCoin(coin)}
