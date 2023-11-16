@@ -1,283 +1,272 @@
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
-import { useEffect, useState, useCallback } from "react";
 import { setLoading } from "reducers/loading";
 import CustomCandleStick from "screens/Chart/CandleStick";
 import axios from "axios";
 import { updatePrice, updateTooltip } from "reducers/rates";
 import { decimalSplit } from "lib/price/decimalSplit";
+import { getSafeSymbol } from "lib/coinList";
 
 const Chart = () => {
-	const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-	const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
-	const { close, tooltip } = useSelector((state: RootState) => state.exchangeRates);
+    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    const { close, tooltip } = useSelector((state: RootState) => state.exchangeRates);
 
-	const [chartTime, setChartTime] = useState("15M");
-	const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
-	const [source, setSource] = useState([]);
-	const [destinate, setDestinate] = useState([]);
+    const [chartTime, setChartTime] = useState("15M");
+    const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
+    const [source, setSource] = useState([]);
+    const [destinate, setDestinate] = useState([]);
+    const [isTimeSeriseList, setIsTimeSeriseList] = useState(false);
 
-	const loadingHandler = useCallback(
-		(toggle: boolean) => {
-			toggle ? dispatch(setLoading({ name: "balance", value: true })) : dispatch(setLoading({ name: "balance", value: false }));
-		},
-		[dispatch]
-	);
+    const timeSerise = { "15M": "15m", "4H": "4h", "24H": "1d", "1W": "1w" };
+    const color_tailwind = tooltip.open < tooltip.close ? "text-cyan-400" : "text-red-400";
 
-	const setPrepareData = useCallback(async (data: any, key, sliceLength) => {
-		const title = [
-			"openTime",
-			"open",
-			"high",
-			"low",
-			"close",
-			"volume",
-			"closeTime",
-			"quoteAssetVolume",
-			"numberOfTrades",
-			"takerBuyBaseAssetVolume",
-			"takerBuyQuoteAssetVolume",
-			"ignore",
-		];
+    const loadingHandler = useCallback(
+        (toggle: boolean) => {
+            toggle
+                ? dispatch(setLoading({ name: "balance", value: true }))
+                : dispatch(setLoading({ name: "balance", value: false }));
+        },
+        [dispatch]
+    );
 
-		const dataList = data
-			? await data.data.slice(sliceLength, data.data.length).map((candle) => {
-					const result = { openClose: [] };
-					candle.forEach((name, idx) => {
-						if (idx === 1) {
-							result.openClose[0] = Number(name);
-						}
+    const setPrepareData = useCallback(async (data: any, key, sliceLength) => {
+        const title = [
+            "openTime",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "closeTime",
+            "quoteAssetVolume",
+            "numberOfTrades",
+            "takerBuyBaseAssetVolume",
+            "takerBuyQuoteAssetVolume",
+            "ignore",
+        ];
 
-						if (idx === 4) {
-							result.openClose[1] = Number(name);
-						}
+        const dataList = data
+            ? await data.data.slice(sliceLength, data.data.length).map((candle) => {
+                  const result = { openClose: [] };
+                  candle.forEach((name, idx) => {
+                      if (idx === 1) {
+                          result.openClose[0] = Number(name);
+                      }
 
-						if (idx === 0) {
-							result[title[idx]] = name;
-						} else {
-							result[title[idx]] = name;
-						}
-					});
-					return result;
-			  })
-			: [];
+                      if (idx === 4) {
+                          result.openClose[1] = Number(name);
+                      }
 
-		if (key === "source") {
-			setSource(dataList);
-		} else if (key === "destination") {
-			setDestinate(dataList);
-		}
-	}, []);
+                      if (idx === 0) {
+                          result[title[idx]] = name;
+                      } else {
+                          result[title[idx]] = name;
+                      }
+                  });
+                  return result;
+              })
+            : [];
 
-	const color = tooltip.open < tooltip.close ? "long" : "short";
+        if (key === "source") {
+            setSource(dataList);
+        } else if (key === "destination") {
+            setDestinate(dataList);
+        }
+    }, []);
 
-	const runTimer = (url, symbol, interval, key, sliceLength) => {
-		setTimeout(async () => {
-			if (currencyNames[key] !== "pUSD") {
-				await axios
-					.get(url, {
-						headers: { "Access-Control-Allow-Origin": "*" },
-						params: { symbol: symbol, interval: interval },
-					})
-					.then((res) => {
-						setPrepareData(res, key, sliceLength);
-						loadingHandler(false);
-					});
-			}
-		}, 300000);
-	};
+    const runTimer = (url, symbol, interval, key, sliceLength) => {
+        setTimeout(async () => {
+            if (currencyNames[key] !== "pUSD") {
+                await axios
+                    .get(url, {
+                        headers: { "Access-Control-Allow-Origin": "*" },
+                        params: { symbol: symbol, interval: interval },
+                    })
+                    .then((res) => {
+                        setPrepareData(res, key, sliceLength);
+                        loadingHandler(false);
+                    });
+            }
+        }, 300000);
+    };
 
-	const init = useCallback(async () => {
-		let interval = "";
-		let sliceLength = 0; // cutting data length
+    const init = useCallback(async () => {
+        let interval = "";
+        let sliceLength = 0; // cutting data length
 
-		switch (chartTime) {
-			case "15M":
-				interval = "15m";
-				break;
-			case "4H":
-				interval = "4h";
-				break;
-			case "24H":
-				interval = "1d";
-				break;
-			case "3D":
-				interval = "3d";
-				break;
-			case "1W":
-				interval = "1w";
-				break;
-			case "1M":
-				interval = "1M";
-				break;
-			default:
-				interval = "15m";
-				break;
-		}
+        interval = timeSerise[chartTime];
 
-		Object.keys(currencyNames).forEach(async (key) => {
-			loadingHandler(true);
+        Object.keys(currencyNames).forEach(async (key) => {
+            loadingHandler(true);
 
-			const symbol = currencyNames[key].replace("p", "");
-			const url = "https://dex-api.peri.finance/api/v1/binance";
-			if (currencyNames[key] !== "pUSD") {
-				await axios
-					.get(url, {
-						headers: { "Access-Control-Allow-Origin": "*" },
-						params: { symbol: symbol, interval: interval },
-					})
-					.then((res) => {
-						setPrepareData(res, key, sliceLength);
-						loadingHandler(false);
-					});
+            const symbol = currencyNames[key].replace("p", "");
+            const url = "https://dex-api.peri.finance/api/v1/binance";
+            if (currencyNames[key] !== "pUSD") {
+                await axios
+                    .get(url, {
+                        headers: { "Access-Control-Allow-Origin": "*" },
+                        params: { symbol: symbol, interval: interval },
+                    })
+                    .then((res) => {
+                        setPrepareData(res, key, sliceLength);
+                        loadingHandler(false);
+                    });
 
-				// runTimer(url, symbol, interval, key, sliceLength);
-			} else {
-				setPrepareData(undefined, key, sliceLength);
-			}
-		});
-	}, [chartTime, currencyNames, setPrepareData]);
+                // runTimer(url, symbol, interval, key, sliceLength);
+            } else {
+                setPrepareData(undefined, key, sliceLength);
+            }
+        });
+    }, [chartTime, currencyNames, setPrepareData]);
 
-	useEffect(() => {
-		if (selectedCoins.source.symbol && selectedCoins.destination.symbol) {
-			setCurrencyNames({
-				source: selectedCoins.source.symbol,
-				destination: selectedCoins.destination.symbol,
-			});
-		}
-	}, [selectedCoins]);
+    useEffect(() => {
+        setCurrencyNames({
+            source: getSafeSymbol(selectedCoins.source.symbol),
+            destination: getSafeSymbol(selectedCoins.destination.symbol, false),
+        });
+    }, [selectedCoins]);
 
-	useEffect(() => {
-		loadingHandler(true);
+    useEffect(() => {
+        loadingHandler(true);
 
-		if (currencyNames) {
-			init();
-		}
-	}, [currencyNames, chartTime, loadingHandler, init]);
+        if (currencyNames) {
+            init();
+        }
+    }, [currencyNames, chartTime, loadingHandler, init]);
 
-	return (
-		<div className="grow bg-gray-700 rounded-lg p-4 lg:px-10 lg:py-8">
-			<div className="flex flex-col lg:justify-end">
-				<div className="flex space-x-5">
-					<div className="relative mt-1">
-						<img className="w-6 h-6" src={`/images/currencies/${selectedCoins.destination.symbol}.svg`} alt="currencies"></img>
-						<img
-							className="w-6 h-6 absolute bottom-1 left-4"
-							src={`/images/currencies/${selectedCoins.source.symbol}.svg`}
-							alt="currencies"
-						></img>
-					</div>
-					<div className="flex justify-between w-full">
-						<div className="text-xl font-medium">
-							{selectedCoins.destination.symbol} / {selectedCoins.source.symbol}
-						</div>
+    const seriseRef = useRef<HTMLDivElement>(null);
 
-						<div className="hidden lg:flex justify-between text-base text-gray-300 font-medium lg:justify-end lg:space-x-4 align-text-top">
-							<span
-								className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
-								onClick={() => setChartTime("15M")}
-							>
-								15M
-							</span>
-							<span
-								className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
-								onClick={() => setChartTime("4H")}
-							>
-								4H
-							</span>
-							<span
-								className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
-								onClick={() => setChartTime("24H")}
-							>
-								24H
-							</span>
-							{/* <span
-								className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
-								onClick={() => setChartTime("3D")}
-							>
-								3D
-							</span> */}
-							<span
-								className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
-								onClick={() => setChartTime("1W")}
-							>
-								1W
-							</span>
-							{/* <span
-								className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
-								onClick={() => setChartTime("1M")}
-							>
-								1M
-							</span> */}
-						</div>
-					</div>
-				</div>
+    const closeModalHandler = useCallback(
+        (e) => {
+            if (
+                isTimeSeriseList &&
+                e.target.id !== "series_caller" &&
+                !seriseRef.current.contains(e.target)
+            ) {
+                setIsTimeSeriseList(false);
+            }
+        },
+        [isTimeSeriseList]
+    );
 
-				{/* TOOLTIP */}
-				<div className="flex items-center space-x-4">
-					<div className="text-xl font-medium text-skyblue-500 w-48">
-						{decimalSplit(close)} {selectedCoins.source.symbol}
-					</div>
-					<div className="space-x-3">
-						<span>
-							Open: <span className={`text-${color}-500`}>{tooltip.open}</span>
-						</span>
-						<span>
-							High: <span className={`text-${color}-500`}>{tooltip.high}</span>
-						</span>
-						<span>
-							Low: <span className={`text-${color}-500`}>{tooltip.low}</span>
-						</span>
-						<span>
-							Close: <span className={`text-${color}-500`}>{tooltip.close}</span>
-						</span>
-					</div>
-				</div>
+    useEffect(() => {
+        window.addEventListener("click", closeModalHandler);
 
-				<div className="text-xs">
-					<CustomCandleStick source={source} destinate={destinate} chartTime={chartTime} />
-				</div>
-				<div className="flex justify-between text-base text-gray-300 font-bold lg:hidden">
-					<span
-						className={chartTime === "15M" ? `text-white cursor-pointer` : "cursor-pointer"}
-						onClick={() => setChartTime("15M")}
-					>
-						15M
-					</span>
-					<span
-						className={chartTime === "4H" ? `text-white cursor-pointer` : "cursor-pointer"}
-						onClick={() => setChartTime("4H")}
-					>
-						4H
-					</span>
-					<span
-						className={chartTime === "24H" ? `text-white cursor-pointer` : "cursor-pointer"}
-						onClick={() => setChartTime("24H")}
-					>
-						24H
-					</span>
-					{/* <span
-						className={chartTime === "3D" ? `text-white cursor-pointer` : "cursor-pointer"}
-						onClick={() => setChartTime("3D")}
-					>
-						3D
-					</span> */}
-					<span
-						className={chartTime === "1W" ? `text-white cursor-pointer` : "cursor-pointer"}
-						onClick={() => setChartTime("1W")}
-					>
-						1W
-					</span>
-					{/* <span
-						className={chartTime === "1M" ? `text-white cursor-pointer` : "cursor-pointer"}
-						onClick={() => setChartTime("1M")}
-					>
-						1M
-					</span> */}
-				</div>
-			</div>
-		</div>
-	);
+        return () => {
+            window.removeEventListener("click", closeModalHandler);
+        };
+    }, [closeModalHandler]);
+
+    return (
+        <div className="bg-gray-700 rounded-t-lg lg:rounded-lg lg:max-h-screen lg:px-5 lg:py-4 ">
+            <div className="flex flex-col">
+                <div className="relative flex justify-end mr-20 ">
+                    <div className="absolute z-20 mt-3 text-md">
+                        <button
+                            id="series_caller"
+                            className={`flex items-center justify-center hover:border border-gray-300 w-10 h-6
+                            text-gray-300 text-sky-200/80 font-medium rounded-md 
+                            ${isTimeSeriseList && " border"}`}
+                            onClick={() => setIsTimeSeriseList(!isTimeSeriseList)}
+                        >
+                            {chartTime}
+                            <img
+                                id="list-caller"
+                                alt="arrow"
+                                className={`w-2 h-1 pl-[2px] ${isTimeSeriseList && " hidden"}`}
+                                src={`/images/icon/bottom_arrow.png`}
+                            ></img>
+                        </button>
+                        <div
+                            className={`absolute items-center text-gray-300 font-medium bg-gray-700 w-8 ml-1
+                            shadow-sm shadow-slate-600 ${!isTimeSeriseList && "hidden"}`}
+                            ref={seriseRef}
+                        >
+                            <ul className="list-reset">
+                                {Object.keys(timeSerise).map((key) => (
+                                    <li
+                                        key={key}
+                                        className={`p-1 hover:text-sky-200/80 hover:bg-black-900 cursor-pointer ${
+                                            chartTime === key && "bg-black-900"
+                                        }`}
+                                        onClick={() => {
+                                            setChartTime(key);
+                                            setIsTimeSeriseList(!isTimeSeriseList);
+                                        }}
+                                    >
+                                        {key}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div className=" text-xs ml-3 lg:ml-0 ">
+                    <div className="lg:flex flex-col absolute z-10">
+                        <div className="flex space-x-1 p-1 lg:mr-5">
+                            <div className="flex flex-row items-end lg:justify-items-start h-8">
+                                <div className="w-10 h-6 relative mt-1">
+                                    <img
+                                        className="w-6 h-6 ml-1 absolute bottom-left z-1"
+                                        src={`/images/currencies/${getSafeSymbol(
+                                            selectedCoins.destination.symbol,
+                                            false
+                                        )}.svg`}
+                                        alt="currencies"
+                                    ></img>
+                                    <img
+                                        className="w-6 h-6 ml-4 absolute bottom-right z-10"
+                                        src={`/images/currencies/${getSafeSymbol(
+                                            selectedCoins.source.symbol
+                                        )}.svg`}
+                                        alt="currencies"
+                                    ></img>
+                                </div>
+                                <div className="flex flex-row items-end space-x-2 text-base font-medium tracking-tighter">
+                                    <span className="">
+                                        {getSafeSymbol(selectedCoins.destination.symbol, false)} /{" "}
+                                        {getSafeSymbol(selectedCoins.source.symbol)}
+                                    </span>
+                                    <span className="text-xs text-skyblue-500">
+                                        {decimalSplit(close)}{" "}
+                                        {getSafeSymbol(selectedCoins.source.symbol)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {/* TOOLTIP */}
+                        <div className="flex items-center h-5 text-[10px] space-x-2 justify-start mx-2 lg:ml-3 z-20">
+                            <span>
+                                <span className="font-medium">O:</span>
+                                <span className={color_tailwind}>{` ${tooltip.open}`}</span>
+                            </span>
+                            <span>
+                                <span className="font-medium">H:</span>
+                                <span className={color_tailwind}>{` ${tooltip.high}`}</span>
+                            </span>
+                            <span>
+                                <span className="font-medium">L:</span>
+                                <span className={color_tailwind}>{` ${tooltip.low}`}</span>
+                            </span>
+                            <span>
+                                <span className="font-medium">C:</span>
+                                <span className={color_tailwind}>{` ${tooltip.close}`}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div className="h-[22rem] lg:h-[30rem] z-2">
+                        <CustomCandleStick
+                            source={source}
+                            destinate={destinate}
+                            chartTime={chartTime}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
 export default Chart;

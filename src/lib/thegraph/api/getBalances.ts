@@ -56,7 +56,7 @@ export const getBalances = async ({ currencyName = undefined, networkId = undefi
 
 			await Promise.all(
 				pynths[networkId].map(async (pynth: any, idx: number) =>
-					getLastRates({ currencyName: pynth.symbol }).then(
+					getLastRates({ networkId, currencyName: pynth.symbol }).then(
 						async (rate) => (promises[idx] = await getBalance(address, pynth.symbol, 18, true, rate))
 					)
 				)

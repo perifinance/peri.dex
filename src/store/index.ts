@@ -1,4 +1,4 @@
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import { configureStore} from "@reduxjs/toolkit";
 import reducers from '../reducers';
 import {
 	persistStore,
@@ -9,15 +9,15 @@ import storage from 'redux-persist/lib/storage';
 
 const persistConfig  = {
 	key: 'app',
-	storage,
-	whitelist: ["theme"]
+	storage: storage,
+	whitelist: ["theme", "wallet"]
 }
 
 const persistedReducers = persistReducer(persistConfig, reducers);
 
 export const store = configureStore({
 	reducer: persistedReducers,
-	middleware: getDefaultMiddleware({
+	middleware: (getDefaultMiddleware) => getDefaultMiddleware({
 		serializableCheck: false
 	})
 });

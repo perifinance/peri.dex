@@ -1,5 +1,5 @@
 import { lastRate } from "../queries";
 
-export const getLastRates = ({ currencyName = null }) => {
-	return lastRate(currencyName);
+export const getLastRates = ({ networkId, currencyName = null }) => {
+	return lastRate(networkId, currencyName);
 };

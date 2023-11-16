@@ -1,19 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export type Loading = {
-	loadings: object;
+	loadings: Object;
 };
 
 const initialState: Loading = {
 	loadings: {
 		balance: false,
-		apy: false,
-		burnAble: false,
-		gasEstimate: false,
-		closeCurrentFeePeriod: false,
-		rewardData: false,
-		vestingData: false,
-		amountsToFitClaimable: false,
+		// chart: false,
+		// order: false,
 	},
 };
 

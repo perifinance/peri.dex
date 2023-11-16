@@ -9,3 +9,7 @@ export const getCoinList = (networkId) => {
     });
     return coinList;
 }
+
+export const getSafeSymbol = (symbol: string, isSource:boolean = true) => {
+    return symbol ? symbol : isSource ? "pUSD" : "pBTC";
+}

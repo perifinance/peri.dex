@@ -17,6 +17,10 @@ const api = {
 	80001: () => 3n
 }
 export const getNetworkFee = async (networkId): Promise<bigint> => {
-	const gasFee = await api[networkId]();
-    return BigInt(gasFee);
+	try {
+		const gasFee = await api[networkId]();
+		return BigInt(gasFee);
+	} catch (e) {}
+	
+    return BigInt(0);
 }

@@ -15,6 +15,8 @@ export const getBalancesNetworks = async (networks, currentWallet, name) => {
         1287: 'PeriFinance',
         80001: 'PeriFinanceToPolygon'
     };
+
+    
     networks.forEach(network => {
         const sources = perifinance.getSource({network: SUPPORTED_NETWORKS[network.id].toLowerCase()})[name === 'ProxyERC20'? ProxyERC20[network.id] : name];
         const provider = new providers.JsonRpcProvider(RPC_URLS[network.id], network.id);

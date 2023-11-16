@@ -1,9 +1,8 @@
-import React, { useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { NotificationContainer, NotificationManager } from "react-notifications";
 // import { getLastRates, getBalances } from 'lib/thegraph/api'
 import { RootState } from "reducers";
-import detectEthereumProvider from "@metamask/detect-provider";
 
 import { updateAddress, updateNetwork, updateIsConnect } from "reducers/wallet";
 // import { clearWallet, clearBalances } from 'reducers/wallet'
@@ -13,147 +12,151 @@ import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
 import { setAppReady } from "reducers/app";
 // import { changeNetwork } from 'lib/network'
 
-import { SUPPORTED_NETWORKS } from "lib/network";
-import { InitOnboard, onboard } from "lib/onboard/onboard";
+import { web3Onboard } from "lib/onboard/web3Onboard";
 import { contracts } from "lib/contract";
 import { getCoinList } from "lib/coinList";
 
 import Main from "./screens/Main";
 import "./App.css";
-import Loading from "components/loading";
 
 const App = () => {
-	const { address, networkId } = useSelector((state: RootState) => state.wallet);
-	const transaction = useSelector((state: RootState) => state.transaction);
-	const themeState = useSelector((state: RootState) => state.theme.theme);
+    const { address, networkId } = useSelector((state: RootState) => state.wallet);
+    const transaction = useSelector((state: RootState) => state.transaction);
+    const themeState = useSelector((state: RootState) => state.theme.theme);
 
-	const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-	const setOnboard = async () => {
-		let networkId = 1285; //Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
-		try {
-			// @ts-ignore
-			networkId = Number((await detectEthereumProvider()).networkVersion);
-		} catch (e) {}
+    const setOnboard = async () => {
+        // let networkId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+        // try {
+        //     // @ts-ignore
+        //     networkId = Number((await detectEthereumProvider()).networkVersion);
+        // } catch (e) {}
 
-		// console.log('networkId', networkId);
+        // console.log('setOnboard', networkId);
+        // let netkId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 
-		contracts.init(networkId);
-		dispatch(setAppReady());
-		dispatch(updateNetwork({ networkId: networkId }));
-		try {
-			InitOnboard(
-				networkId,
-				{
-					wallet: async (wallet) => {
-						if (wallet.provider) {
-							contracts.wallet = wallet;
-							localStorage.setItem("selectedWallet", wallet.name);
-						} else {
-							contracts.clear();
-						}
-					},
-					address: async (newAddress) => {
-						if (newAddress) {
-							contracts.connect(newAddress);
-							dispatch(updateIsConnect(true));
-							dispatch(updateAddress({ address: newAddress }));
-						}
-					},
-					network: async (network) => {
-						if (network) {
-							contracts.init(network);
-							onboard.config({ networkId: network });
+        // contracts.init(networkId);
+        
+        // dispatch(updateNetwork({ networkId: networkId }));
+        try {
+            web3Onboard.init(
+                {
+                    wallet: async (wallet) => {
+                        if (wallet?.provider !== undefined) {
+                            contracts.wallet = wallet;
+                            localStorage.setItem("selectedWallet", wallet.label);
+                        } else {
+                            contracts.clear();
+                        }
+                    },
+                    address: async (newAddress) => {
 
-							dispatch(updateNetwork({ networkId: network }));
-							if (SUPPORTED_NETWORKS[network]) {
-								contracts.connect(address);
-							} else {
-								// NotificationManager.warning(`This network is not supported. Please change to moonbase network`, 'ERROR');
-								// onboard.walletReset();
-								// onboard.config({ networkId: network });
-								dispatch(updateNetwork({ networkId: network }));
-								// dispatch(updateIsConnect(false));
-								// localStorage.removeItem('selectedWallet');
-								// dispatch(clearWallet());
-								// changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID)
-							}
-						}
-					},
-				},
-				themeState === "dark"
-			);
-		} catch (e) {
-			console.log(e);
-			localStorage.clear();
-			// window.location.reload()
-		}
-		const selectedWallet = localStorage.getItem("selectedWallet");
+                        console.log('contract connect call in address', newAddress);
+                        
+                        try {
+                            if (newAddress === undefined) {
+                                dispatch(updateIsConnect(false));
+                                dispatch(updateAddress({ address: null }));
+                            } else {
+                                contracts.connect(newAddress);
+                                dispatch(updateIsConnect(true));
+                                dispatch(updateAddress({ address: newAddress }));
+                            }
+                        } catch (err) {
+                            console.log(err);
+                        }
+                    },
+                    network: async (network) => {
+                        const newNetworkId = Number(network);
 
-		if (selectedWallet) {
-			try {
-				await onboard.walletSelect(selectedWallet);
-				await onboard.walletCheck();
-			} catch (e) {
-				console.log(e);
-			}
-		}
-	};
+                        console.log('contract init call in network', networkId, newNetworkId);
 
-	const getState = useCallback(async () => {
-		await contracts.provider.once(transaction.hash, async (transactionState) => {
-			if (transactionState.status !== 1) {
-				NotificationManager.remove(NotificationManager.listNotify[0]);
-				NotificationManager.warning(`${transaction.type} error`, "ERROR");
-			} else {
-				NotificationManager.remove(NotificationManager.listNotify[0]);
-				NotificationManager.success(`${transaction.type} success`, "SUCCESS");
-				if (transaction.action) {
-					await transaction.action();
-				}
-				dispatch(resetTransaction());
-			}
-		});
-	}, [transaction, dispatch]);
+                        try{
+                            contracts.init(newNetworkId);
+                            dispatch(updateNetwork({ networkId: newNetworkId}));
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    },
+                },
+                themeState,
+                false
+            );
+        } catch (e) {
+            console.log(e);
+            localStorage.clear();
+            // window.location.reload()
+        }
+        const selectedWallet = localStorage.getItem("selectedWallet");
 
-	useEffect(() => {
-		if (transaction.hash) {
-			getState();
-			NotificationManager.info(transaction.message, "In progress", 1000000);
-		}
-	}, [getState, transaction]);
+        if (selectedWallet) {
+            try {
+                await web3Onboard.connect(selectedWallet);
+                
+            } catch (e) {
+                console.log(e);
+            }
+        }
 
-	useEffect(() => {
-		setOnboard();
+        dispatch(setAppReady());
+    };
 
-		if (themeState === "dark") {
-			document.getElementsByTagName("html")[0].classList.add("dark");
-		}
-		// eslint-disable-next-line
-	}, []);
+    const getState = useCallback(async () => {
+        await contracts.provider.once(transaction.hash, async (transactionState) => {
+            if (transactionState.status !== 1) {
+                NotificationManager.remove(NotificationManager.listNotify[0]);
+                NotificationManager.warning(`${transaction.type} failed`, "ERROR");
+            } else {
+                NotificationManager.remove(NotificationManager.listNotify[0]);
+                NotificationManager.success(`${transaction.type} succeeded`, "SUCCESS");
+                if (transaction.action) {
+                    await transaction.action();
+                }
+                dispatch(resetTransaction());
+            }
+        });
+    }, [transaction, dispatch]);
 
-	const init = useCallback(() => {
-		try {
-			const coinList = getCoinList(networkId);
-			dispatch(initCoinList(coinList));
-			dispatch(setSourceCoin(coinList[0]));
-			dispatch(setDestinationCoin(coinList[1]));
-		} catch (e) {}
-	}, [networkId, dispatch]);
+    useEffect(() => {
+        if (transaction.hash) {
+            getState();
+            NotificationManager.info(transaction.message, "In progress", 1000000);
+        }
+    }, [getState, transaction]);
 
-	useEffect(() => {
-		if (networkId) {
-			init();
-		}
-	}, [init, networkId]);
+    useEffect(() => {
+        setOnboard();
 
-	return (
-		<div>
-			{/* <Loading></Loading> */}
-			<Main></Main>
-			<NotificationContainer />
-		</div>
-	);
+        if (themeState === "dark") {
+            document.getElementsByTagName("html")[0].classList.add("dark");
+        }
+        // eslint-disable-next-line
+    }, []);
+
+    const init = useCallback(() => {
+        console.log('init', networkId);
+        try {
+            const coinList = getCoinList(networkId);
+            dispatch(initCoinList(coinList));
+            dispatch(setSourceCoin(coinList[0]));
+            dispatch(setDestinationCoin(coinList[1]));
+        } catch (e) {}
+    }, [networkId, dispatch]);
+
+    useEffect(() => {
+        if (networkId) {
+            init();
+        }
+    }, [init, networkId]);
+
+    return (
+        <div>
+            {/* <Loading></Loading> */}
+            <Main></Main>
+            <NotificationContainer />
+        </div>
+    );
 };
 
 export default App;

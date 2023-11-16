@@ -1,21 +1,23 @@
 // ? LightWeight Chart Old DOCS https://tradingview.github.io/lightweight-charts/docs/api/interfaces/TimeScaleOptions#barspacing
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Chart from "@qognicafinance/react-lightweight-charts";
 import { updatePrice, updateTooltip } from "reducers/rates";
-import { useDispatch, useSelector } from "react-redux";
-import { decimalSplit } from "lib/price/decimalSplit";
-import { RootState } from "reducers";
-import { setLoading } from "reducers/loading";
+import { useDispatch, /* useSelector */ } from "react-redux";
+import { decimalSplit, /* getPrecision */ } from "lib/price/decimalSplit";
+// import { RootState } from "reducers";
+// import { setLoading } from "reducers/loading";
 
 const LWchart = ({ chart = [], chartTime, lastCandle }) => {
 	const dispatch = useDispatch();
+	// const [precision, setPrecision] = useState(0); 
+	// const [trackingMode, setTrackingMode] = useState(false);
 
 	const options = {
 		alignLabels: false,
 		timeScale: {
 			rightOffset: 3,
-			barSpacing: 15.5,
+			barSpacing: 10.5,
 			// lockVisibleTimeRangeOnResize: false,
 			// rightBarStaysOnScroll: false,
 			// borderVisible: false,
@@ -67,6 +69,7 @@ const LWchart = ({ chart = [], chartTime, lastCandle }) => {
 			touch: true,
 			mouse: true,
 		},
+		// trackingMouseMove: trackingMode,
 	};
 
 	useEffect(() => {
@@ -84,9 +87,24 @@ const LWchart = ({ chart = [], chartTime, lastCandle }) => {
 		}
 	}, [chart, dispatch]);
 
+	// const mounted = useRef(false);
+	// useEffect(() => {
+	// 	if  (!mounted.current) {
+	// 		mounted.current = true;
+	// 		console.log("mounted", mounted.current);
+	// 	} else if (lastCandle) {
+	// 		console.log("lastCandle", lastCandle);
+	// 		const pre = getPrecision(lastCandle.close);
+	// 		setPrecision(pre);
+	// 		setTrackingMode(!trackingMode);
+	// 	}
+	// }, [lastCandle]);
+
 	let throttled;
-	const handleCrosshairMoved = useCallback((param, lastCandle = {}) => {
-		if (!param.point || param.seriesPrices.size < 1) {
+	const handleCrosshairMoved = useCallback((param, lastCandle = undefined) => {
+		
+		if ((!param.point || param.seriesPrices.size < 1) && lastCandle) {
+			// console.log("param", param, "lastCandle", lastCandle);
 			dispatch(updatePrice({ close: lastCandle.close }));
 			dispatch(
 				updateTooltip({
@@ -122,21 +140,33 @@ const LWchart = ({ chart = [], chartTime, lastCandle }) => {
 		<Chart
 			options={options}
 			candlestickSeries={[{ data: chart }]}
-			autoWidth
-			height={380}
+			autoWidth 
+			autoHeight
+			// height={380}
 			onCrosshairMove={(param) => handleCrosshairMoved(param, chart[chart.length - 1])}
 			chartRef={(chart) => {
-				chart.timeScale().fitContent();
-				// chart.timeScale().scrollToPosition(2, true);
+				
 				chart.addCandlestickSeries({
 					priceFormat: {
 						type: "custom",
 						formatter: (priceValue) => {
 							return decimalSplit(priceValue);
 						},
-						minMove: 0.0000000001,
+						// precision: precision,
+						minMove: 0.0000000001, //Math.pow(10, precision * (-1)),
 					},
 				});
+
+				// Apply the custom priceFormatter to the chart
+				chart.applyOptions({
+					rightPriceScale: {
+						scaleMargins: {
+							top: 0.2, // leave some space for the legend
+							bottom: 0.05,
+						},
+					},
+				});
+
 			}}
 		/>
 	);

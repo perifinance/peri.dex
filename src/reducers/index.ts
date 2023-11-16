@@ -18,7 +18,7 @@ import selectedCoin from "./coin/selectedCoin";
 import chart from "./chart/chart";
 import app from "./app/app";
 
-const reducer = combineReducers({
+const reducers = combineReducers({
 	app,
 	theme,
 	wallet,
@@ -32,8 +32,8 @@ const reducer = combineReducers({
 	chart,
 });
 
-export type RootState = ReturnType<typeof reducer>;
+export type RootState = ReturnType<typeof reducers>;
 
-export default reducer;
+export default reducers;
 
 // export default reducer;

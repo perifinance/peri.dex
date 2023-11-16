@@ -4,11 +4,11 @@ header {
     justify-content: space-between;
 }
 
-
+/* 
 .corner img {
+    content: url(./logo/logo.svg);
     object-fit: contain;
-    content:url(./logo/logo.svg);
-}
+} */
 
 /* @media (min-width: 640px) {
     .corner img {

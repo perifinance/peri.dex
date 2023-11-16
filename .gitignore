@@ -34,3 +34,6 @@ yarn-debug.log*
 yarn-error.log*
 
 /.vscode
+
+memo.test
+*_back.*
