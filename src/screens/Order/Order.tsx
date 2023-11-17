@@ -106,9 +106,12 @@ const Order = ({ openCoinList }) => {
     const validationCheck = (value) => {
         try {
             setIsValidation(false);
+            setValidationMessage("Make profit, earn rewards!");
+
             if (!isConnect) {
                 setValidationMessage("Please connect your wallet");
             } else if (!isExchageNetwork(networkId)) {
+                console.log("validationCheck", networkId)
                 setValidationMessage(
                     `You just connected an unsupported netowork. Please change to one of the PERI DEX supported networks`
                 );
@@ -123,7 +126,6 @@ const Order = ({ openCoinList }) => {
                 setValidationMessage("Cannot exchange same currencies");
             } else {
                 setIsValidation(true);
-                setValidationMessage("Make profit, earn rewards!");
             }
         } catch (e) {
             console.log(e);
@@ -322,12 +324,13 @@ const Order = ({ openCoinList }) => {
             } else {
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
                 setPayAmount("0");
-                validationCheck("0");
+                
                 setPayAmountToUSD(0n);
                 setReceiveAmount(0n);
                 setBalance(0n);
                 setPer(0n);
             }
+            validationCheck("0");
         }
     }, [isReady, networkId, isConnect, address, selectedCoins]);
 

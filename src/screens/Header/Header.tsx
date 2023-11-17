@@ -8,6 +8,7 @@ import { web3Onboard } from "lib/onboard";
 import { changeNetwork, SUPPORTED_NETWORKS, isExchageNetwork, MAINNET, TESTNET } from "lib/network";
 import "./Header.css";
 import { networkInfo } from "configure/networkInfo";
+import { resetBridgeStatus } from "reducers/bridge/bridge";
 // import { get } from "http";
 // const networkColor = {
 //     80001: "#53cbc9",
@@ -65,6 +66,7 @@ const Header = () => {
         if (isNaN(networkId) || networkId === null) return;
         const networks = Object.keys(MAINNET).includes(networkId.toString()) ? MAINNET : TESTNET;
         setNetworks(networks);
+        dispatch(resetBridgeStatus());
     }, [networkId]);
 
     const onDisConnect = () => {
@@ -73,6 +75,7 @@ const Header = () => {
         dispatch(clearWallet());
         dispatch(clearBalances());
         dispatch(updateIsConnect(false));
+        dispatch(resetBridgeStatus());
     };
 
     useEffect(() => {
@@ -188,6 +191,7 @@ const Header = () => {
                                             onClick={() => {
                                                 changeNetwork(key);
                                                 setIsNetworkList(false);
+                                                dispatch(resetBridgeStatus());
                                             }}
                                         >
                                             <div

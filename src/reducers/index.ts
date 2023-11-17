@@ -17,6 +17,7 @@ import coinList from "./coin/coinList";
 import selectedCoin from "./coin/selectedCoin";
 import chart from "./chart/chart";
 import app from "./app/app";
+import bridge from "./bridge/bridge";
 
 const reducers = combineReducers({
 	app,
@@ -30,6 +31,7 @@ const reducers = combineReducers({
 	coinList,
 	selectedCoin,
 	chart,
+	bridge,
 });
 
 export type RootState = ReturnType<typeof reducers>;

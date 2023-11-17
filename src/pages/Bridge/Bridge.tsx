@@ -20,8 +20,11 @@ const Bridge = () => {
             </div>
 
             <div className="w-full ">
-                <div className="flex font-medium text-base">
-                    {pages.map((page, index) => {
+                <div className="flex font-medium text-lg">
+                    <div className="w-full pt-4 px-9 font-semibold text-center lg:text-left rounded-t-lg bg-gray-700">
+                        Bridge
+                    </div>
+                    {/* {pages.map((page, index) => {
                         return (
                             <div
                                 key={index}
@@ -36,7 +39,7 @@ const Bridge = () => {
                                 </Link>
                             </div>
                         );
-                    })}
+                    })} */}
                 </div>
                 {location.pathname.includes("submit") ? <Submit></Submit> : <Receive></Receive>}
             </div>

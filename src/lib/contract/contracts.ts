@@ -139,6 +139,8 @@ export const contracts: Contracts = {
         try {
             this.signer = new providers.Web3Provider(this.wallet.provider).getSigner(address);
 
+            if (this.signers === undefined) { return; }
+
             Object.keys(this.addressList).forEach((name) => {
                 // console.log(name, naming[name]);
                 if (naming[name]) {
@@ -146,7 +148,7 @@ export const contracts: Contracts = {
                         typeof naming[name] === "string"
                             ? this.sources[naming[name]]
                             : this.sources[naming[name][this.chainId]];
-					console.log(name, this.addressList[name], this.signers);
+					// console.log(name, this.addressList[name], this.signers);
                     this.signers[name] = new ethers.Contract(
                         this.addressList[name].address,
                         source ? source.abi : ERC20.abi,

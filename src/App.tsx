@@ -103,19 +103,24 @@ const App = () => {
     };
 
     const getState = useCallback(async () => {
-        await contracts.provider.once(transaction.hash, async (transactionState) => {
-            if (transactionState.status !== 1) {
-                NotificationManager.remove(NotificationManager.listNotify[0]);
-                NotificationManager.warning(`${transaction.type} failed`, "ERROR");
-            } else {
-                NotificationManager.remove(NotificationManager.listNotify[0]);
-                NotificationManager.success(`${transaction.type} succeeded`, "SUCCESS");
-                if (transaction.action) {
-                    await transaction.action();
+        try {
+            await contracts.provider.once(transaction.hash, async (transactionState) => {
+                if (transactionState.status !== 1) {
+                    NotificationManager.remove(NotificationManager.listNotify[0]);
+                    NotificationManager.warning(`${transaction.type} failed`, "ERROR");
+                } else {
+                    NotificationManager.remove(NotificationManager.listNotify[0]);
+                    NotificationManager.success(`${transaction.type} succeeded`, "SUCCESS");
+                    if (transaction.action) {
+                        await transaction.action();
+                    }
+                    dispatch(resetTransaction());
                 }
-                dispatch(resetTransaction());
-            }
-        });
+            });
+        } catch (error) {
+            console.log(error);
+        }
+        
     }, [transaction, dispatch]);
 
     useEffect(() => {

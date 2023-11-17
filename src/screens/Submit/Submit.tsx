@@ -15,6 +15,14 @@ import pynths from "configure/coins/bridge";
 import { setLoading } from "reducers/loading";
 import { is } from "date-fns/locale";
 import { on } from "events";
+import BridgeStatus from "./BridgeStatus";
+import {
+    Pending,
+    resetBridgeStatus,
+    setBridging,
+    setObsolete,
+    updateStep,
+} from "reducers/bridge/bridge";
 // import init from "@web3-onboard/core";
 // import { set } from "date-fns";
 // import { wallet } from 'reducers/wallet';
@@ -22,8 +30,20 @@ import { on } from "events";
 const zeroSignature =
     "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
+const btnBridgeMsg = {
+    0: "Submit",
+    1: "Processing",
+    2: "Receive",
+    3: "Processing",
+};
+
+const contractName = {
+    PERI: "PeriFinance",
+    pUSD: "pUSD",
+};
+
 const Submit = () => {
-    const { isReady } = useSelector((state: RootState) => state.app);
+    const { step, pendingCoins } = useSelector((state: RootState) => state.bridge);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [payAmount, setPayAmount] = useState("0");
     const [per, setPer] = useState(0n);
@@ -50,24 +70,38 @@ const Submit = () => {
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
     const [gasPrice, setGasPrice] = useState(0n);
     const [signature, setSignature] = useState(zeroSignature);
-    const [isPending, setIsPending] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState("");
     const dispatch = useDispatch();
 
     const validationCheck = () => {
+        console.log("validationCheck", Number(step));
         setIsValidation(false);
         if (!isConnect) {
             setValidationMessage("Please connect your wallet");
-        } else if (selectedFromNetwork && networkId !== selectedFromNetwork?.id) {
-            setValidationMessage("Please enter numbers only!");
-        } else if (selectedToNetwork?.id === undefined || selectedToNetwork?.id === 0) {
-            setValidationMessage("Please select destination network");
-        } else if (payAmount === "" || payAmount === "0") {
-            setValidationMessage("Please enter the amount you want to bridge");
+        } else if (Number(step) === 0) {
+            if (selectedFromNetwork && networkId !== selectedFromNetwork?.id) {
+                setValidationMessage("Please enter numbers only!");
+            } else if (selectedToNetwork?.id === undefined || selectedToNetwork?.id === 0) {
+                setValidationMessage("Please select destination network");
+            } else if (payAmount === "" || payAmount === "0") {
+                setValidationMessage("Please enter the amount you want to bridge");
+            } else {
+                setValidationMessage("Try to bridge PERI or pUSD to other networks");
+                setIsValidation(true);
+            }
+        } else if (Number(step) === 2) {
+            const currentAsset = pendingCoins.filter((item) => item.coin === selectedCoin.name)[0];
+            // console.log("validationCheck", currentAsset, selectedCoin);
+            if (!currentAsset || currentAsset.pendings.length === 0) {
+                setValidationMessage("Please change the token you want to proceed");
+            } else {
+                setValidationMessage("Please receive your bridged asset");
+                setIsValidation(true);
+            }
         } else {
-            setValidationMessage("Try to bridge PERI or pUSD to other networks");
-            setIsValidation(true);
+            setValidationMessage("Please wait for the bridge to complete");
         }
     };
 
@@ -113,29 +147,63 @@ const Submit = () => {
         if (!chainId) {
             return;
         }
-
-        dispatch(setLoading({ name: "balance", value: true }));
-
-        await changeNetwork(chainId);
-        dispatch(setLoading({ name: "balance", value: false }));
+        try {
+            dispatch(setLoading({ name: "balance", value: true }));
+            await changeNetwork(chainId);
+            dispatch(resetBridgeStatus());
+            dispatch(setLoading({ name: "balance", value: false }));
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const getBridgeTransferGasCost = async () => {
         return await contracts.SystemSettings?.bridgeTransferGasCost();
     };
 
-    const getGasEstimate = async () => {
+    const getBridgeClaimGasCost = async () => {
+        let cost = await contracts.SystemSettings.bridgeClaimGasCost();
+        // console.log("bridge claim gas cost", cost);
+        return cost;
+    };
+
+    const getGasEstimate = async (cost: string) => {
         let gasLimit = 600000n;
-        const contractName = {
-            PERI: "PeriFinance",
-            pUSD: "pUSD",
-        };
+
+        if (cost === null || cost === "0" || payAmount === null || payAmount === "0")
+            return 6000000n;
+
+        if (contracts.signers[contractName[selectedCoin.name]] === undefined) {
+            return 6000000n;
+        }
+
         try {
-            let rsv = utils.splitSignature(signature);
-            let cost = (await getBridgeTransferGasCost())?.toString();
-            // let limit = (await contracts.signers[contractName[selectedCoin.name]].estimateGas.overchainTransfer(utils.parseEther(payAmount), selectedToNetwork.id, [rsv.r, rsv.s, rsv.v], {value: cost}));
-            // console.log(limit);
-            // gasLimit = BigInt(limit);
+            let tmpGasLimit;
+            if (Number(step) === 2) {
+                tmpGasLimit = await contracts.signers[
+                    contractName[selectedCoin.name]
+                ].estimateGas.claimAllBridgedAmounts({
+                    value: cost,
+                });
+            } else if (Number(step) === 0) {
+                let rsv = utils.splitSignature(signature);
+
+                tmpGasLimit = await contracts.signers[
+                    contractName[selectedCoin.name]
+                ].estimateGas.overchainTransfer(
+                    utils.parseEther(payAmount),
+                    selectedToNetwork.id,
+                    [rsv.r, rsv.s, rsv.v],
+                    { value: cost }
+                );
+            }
+
+            console.log("gasLimit", gasLimit);
+            if (!gasLimit) {
+                return 6000000n;
+            }
+
+            gasLimit = BigInt(tmpGasLimit);
         } catch (e) {
             console.log(e);
         }
@@ -143,27 +211,41 @@ const Submit = () => {
     };
 
     const getGasPrice = async () => {
-        const gasPrice = await getNetworkFee(selectedFromNetwork.id);
-        const gasLimit = await getGasEstimate();
-        const rate = await getNetworkPrice(networkId);
+        if (step !== 0 && step !== 2) {
+            return;
+        }
 
-        setGasPrice(gasPrice);
-        setNetworkFeePrice((rate * gasPrice * gasLimit) / 10n ** 9n);
+        try {
+            const cost =
+                Number(step) === 0
+                    ? await getBridgeTransferGasCost()
+                    : Number(step) === 2
+                    ? await getBridgeClaimGasCost()
+                    : 0n;
+            const gasPrice = await getNetworkFee(selectedFromNetwork.id);
+            const gasLimit = cost ? await getGasEstimate(cost.toString()) : 6000000n;
+            const rate = await getNetworkPrice(networkId);
+
+            setGasPrice(gasPrice);
+            setNetworkFeePrice((rate * gasPrice * gasLimit) / 10n ** 9n);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
-    const bridgeConfirm = async () => {
-        // dispatch(setLoading({ name: "balance", value: true }));
-
+    const bridgeSubmit = async () => {
         if (!isValidation) {
             NotificationManager.warning(validationMessage);
             return;
         }
-        setIsPending(true);
 
-        const contractName = {
-            PERI: "PeriFinance",
-            pUSD: "pUSD",
-        };
+        if (contracts.signers[contractName[selectedCoin.name]] === undefined) {
+            NotificationManager.warning("Please refresh it and try it again.");
+            return;
+        }
+
+        setIsProcessing(true);
+        dispatch(updateStep(1));
 
         const messageHash = utils.solidityKeccak256(
             ["bytes"],
@@ -176,21 +258,22 @@ const Submit = () => {
             setSignature(mySignature);
 
             console.log("mySignature", mySignature);
+            const cost = (await getBridgeTransferGasCost()).toString();
+            if (cost === null || cost === undefined) {
+                NotificationManager.warning("Please refresh it and try it again.");
+                setIsProcessing(false);
+                return;
+            }
+
             const transactionSettings = {
                 gasPrice: ((await getNetworkFee(selectedFromNetwork.id)) * 10n ** 9n).toString(),
-                gasLimit: (await getGasEstimate()).toString(),
-                value: (await getBridgeTransferGasCost()).toString(),
+                gasLimit: (await getGasEstimate(cost)).toString(),
+                value: cost,
             };
             if (mySignature === zeroSignature) throw Error("Bridge need signature");
 
             let transaction;
             let rsv = utils.splitSignature(mySignature);
-
-            console.log(
-                "contractName[selectedCoin.name]",
-                contractName[selectedCoin.name],
-                contracts.signers[contractName[selectedCoin.name]]
-            );
 
             transaction = await contracts.signers[
                 contractName[selectedCoin.name]
@@ -208,7 +291,11 @@ const Submit = () => {
                     action: () => {
                         initBalances();
                         setPayAmount("0");
-                        setIsPending(false);
+                        // dispatch(updateStep(2));
+                        // dispatch(setObsolete(true));
+                        dispatch(setBridging());
+                        changeNetwork(selectedToNetwork.id);
+                        setIsProcessing(false);
                     },
                 })
             );
@@ -216,9 +303,73 @@ const Submit = () => {
             // dispatch(setLoading({ name: "balance", value: false }));
         } catch (e) {
             console.log(e);
-            setIsPending(false);
+            dispatch(updateStep(0));
+            setIsProcessing(false);
         }
-        // dispatch(setLoading({ name: "balance", value: false }));
+    };
+
+    const bridgeReceive = async () => {
+        if (!isValidation) {
+            NotificationManager.warning(validationMessage);
+            return;
+        }
+
+        if (contracts.signers[contractName[selectedCoin.name]] === undefined) {
+            NotificationManager.warning("Please refresh it and try it again.");
+            return;
+        }
+
+        setIsProcessing(true);
+        dispatch(updateStep(3));
+
+        try {
+            const cost = (await getBridgeClaimGasCost()).toString();
+            if (cost === null || cost === undefined) {
+                NotificationManager.warning("Please refresh it and try it again.");
+                setIsProcessing(false);
+                return;
+            }
+
+            const transactionSettings = {
+                gasPrice: ((await getNetworkFee(networkId)) * 10n ** 9n).toString(),
+                gasLimit: (await getGasEstimate(cost)).toString(),
+                value: cost,
+            };
+
+            console.log(contractName[selectedCoin.name], networkId, transactionSettings);
+
+            let transaction;
+            transaction = await contracts.signers[
+                contractName[selectedCoin.name]
+            ].claimAllBridgedAmounts(transactionSettings);
+            dispatch(
+                updateTransaction({
+                    hash: transaction.hash,
+                    message: `Finishing ${selectedCoin.name} cross-chain transfer...`,
+                    type: "Cross-Chain Claim",
+                    action: () => {
+                        // dispatch(updateStep(0));
+                        dispatch(resetBridgeStatus());
+                        dispatch(setObsolete(true));
+                        setIsProcessing(false);
+                    },
+                })
+            );
+        } catch (e) {
+            console.error(e);
+            dispatch(updateStep(2));
+            setIsProcessing(false);
+        }
+    };
+
+    const bridgeConfirm = async () => {
+        if (Number(step) == 0) {
+            bridgeSubmit();
+        } else if (step === 2) {
+            bridgeReceive();
+        } else {
+            NotificationManager.warning("Please wait for the bridge to complete");
+        }
     };
 
     const networkSwap = () => {
@@ -293,8 +444,20 @@ const Submit = () => {
     };
 
     useEffect(() => {
+        setSelectedFromNetwork({ id: networkId, name: SUPPORTED_NETWORKS[networkId] });
+    }, [networkId]);
+
+    useEffect(() => {
         validationCheck();
-    }, [isConnect, initBridge, selectedFromNetwork, selectedToNetwork, selectedCoin, payAmount]);
+    }, [
+        step,
+        isConnect,
+        initBridge,
+        selectedFromNetwork,
+        selectedToNetwork,
+        selectedCoin,
+        payAmount,
+    ]);
 
     useEffect(() => {
         if (isConnect && initBridge && address) {
@@ -394,7 +557,9 @@ const Submit = () => {
                                 className="flex p-3 font-semibold bg-black-900 rounded-md justify-between cursor-pointer"
                                 onClick={() => setIsFromNetworkList(!isFromNetworkList)}
                             >
-                                <span id="from_caller" className="mx-1">{selectedFromNetwork?.name}</span>
+                                <span id="from_caller" className="mx-1">
+                                    {selectedFromNetwork?.name}
+                                </span>
                                 <svg
                                     id="from_caller"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -458,7 +623,9 @@ const Submit = () => {
                                 className="flex p-3 font-semibold bg-black-900 rounded-md justify-between cursor-pointer"
                                 onClick={() => setIsToNetworkList(!isToNetworkList)}
                             >
-                                <span id="to_caller" className="mx-1">{selectedToNetwork?.name}</span>
+                                <span id="to_caller" className="mx-1">
+                                    {selectedToNetwork?.name}
+                                </span>
                                 <svg
                                     id="to_caller"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -578,6 +745,7 @@ const Submit = () => {
                                                         onClick={() => {
                                                             setSelectedCoin(coin);
                                                             setIsCoinList(false);
+                                                            dispatch(resetBridgeStatus());
                                                         }}
                                                     >
                                                         <p
@@ -609,7 +777,7 @@ const Submit = () => {
                         </div>
                         <div className="flex items-center my-3 lg:mt-8">
                             <div className="flex flex-col pt-3 w-full">
-                                <div className="flex justify-between">
+                                <div className="flex justify-between ">
                                     <input
                                         className="cursor-pointer w-full mr-1"
                                         type="range"
@@ -619,7 +787,7 @@ const Submit = () => {
                                         onChange={(e) => setPerAmount(BigInt(e.target.value))}
                                     />
                                 </div>
-                                <div className="flex flex-row justify-between text-xs text-gray-400 w-full">
+                                <div className="flex flex-row justify-between text-xs w-full">
                                     <span
                                         className={`base-1/5 last:text-left cursor-pointer ${
                                             per === 0n && "text-blue-600"
@@ -662,7 +830,7 @@ const Submit = () => {
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex items-center self-end h-8 border border-gray-200 rounded-md text-sm ml-1 px-1 bg-black-900">
+                            <div className="flex items-center self-end h-8 border border-blue-200/50 rounded-md text-sm ml-1 px-1 bg-black-900">
                                 <input
                                     className="w-6 bg-black-900 outline-none"
                                     type="number"
@@ -682,50 +850,60 @@ const Submit = () => {
                     </div>
                 </div>
             </div>
-            <div className="mt-10">
-                <div className="flex justify-between w-full lg:justify-center">
-                    <span className="mr-3">Network Fee:</span>
-                    <div className="flex flex-nowrap items-center">
-                        <span className="font-medium">{gasPrice.toString()} GWEI</span>
-                        <span className="font-light text-xs tracking-tighter">{` ($${formatCurrency(
-                            networkFeePrice,
-                            5
-                        )}) `}</span>
+            <div className="flex flex-col-reverse items-center lg:flex-row justify-between lg:space-x-2 xl:space-x-4">
+                <div className="flex flex-col justify-start w-full basis-2/3 lg:basis-1/3 my-6">
+                    {/* <div className="mt-0"> */}
+                    <div className="flex justify-between w-full lg:justify-center mt-1 text-[11px]">
+                        <span className="font-medium mr-3">Network Fee:</span>
+                        <div className="flex flex-nowrap items-center">
+                            <span className="font-medium">{gasPrice.toString()} GWEI</span>
+                            <span className="font-light tracking-tighter">{` ($${formatCurrency(
+                                networkFeePrice,
+                                5
+                            )}) `}</span>
+                        </div>
                     </div>
+                    {/* </div> */}
+
+                    <button
+                        className="btn-base flex flex-row items-center my-4 py-2 w-full text-inherent lg:w-48 lg:mx-auto"
+                        onClick={() => bridgeConfirm()}
+                        disabled={isProcessing}
+                    >
+                        <div className="flex basis-1/3 justify-end pr-2">
+                            {isProcessing && (
+                                <svg
+                                    className="animate-spin h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                            )}
+                        </div>
+                        <span className="basis-1/3 text-lg">{btnBridgeMsg[step as number]}</span>
+                    </button>
+                </div>
+                <div className="flex w-full lg:basis-2/3">
+                    <BridgeStatus
+                        selectedCoin={selectedCoin.name}
+                        setIsProcessing={setIsProcessing}
+                    />
                 </div>
             </div>
-
-            <button
-                className="btn-base flex flex-row items-center my-6 py-2 w-full text-inherent lg:w-80 lg:mx-auto"
-                onClick={() => bridgeConfirm()}
-                disabled={isPending}
-            >
-                <div className="flex basis-1/3 justify-end pr-2">
-                    {isPending && (
-                        <svg
-                            className="animate-spin h-5 w-5 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                            ></circle>
-                            <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                    )}
-                </div>
-                <span className="basis-1/3 text-lg">Confirm</span>
-            </button>
             <div className="bg-black-900 w-full text-center break-wards text-cyan-300/70 rounded-lg text-xs font-medium p-2">
                 {validationMessage}
             </div>
@@ -733,8 +911,7 @@ const Submit = () => {
             <div className="w-auto text-gray-300 items-center p-2">
                 <span className="text-lg font-bold pb-4">Notice</span>
                 <p className="leading-tight">
-                    It may take up to 10 minutes before the bridged tokens appearing on ‘Receive’
-                    tab.
+                    It may take up to 10 minutes before the step 2 is processed. Please be patient.
                 </p>
             </div>
         </div>
