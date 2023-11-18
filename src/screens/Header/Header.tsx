@@ -66,7 +66,7 @@ const Header = () => {
         if (isNaN(networkId) || networkId === null) return;
         const networks = Object.keys(MAINNET).includes(networkId.toString()) ? MAINNET : TESTNET;
         setNetworks(networks);
-        dispatch(resetBridgeStatus());
+        dispatch(resetBridgeStatus(networkId));
     }, [networkId]);
 
     const onDisConnect = () => {
@@ -75,7 +75,7 @@ const Header = () => {
         dispatch(clearWallet());
         dispatch(clearBalances());
         dispatch(updateIsConnect(false));
-        dispatch(resetBridgeStatus());
+        dispatch(resetBridgeStatus(networkId));
     };
 
     useEffect(() => {
@@ -180,7 +180,7 @@ const Header = () => {
                             <div
                                 className={`absolute top-0 left-0 rounded-b-md bg-gray-700 shadow-sm shadow-slate-600 hover:shadow-slate-300/70 px-3 -mx-1 mt-9 ${
                                     isNetworkList ? "block" : "hidden"
-                                } text-sm z-10`}
+                                } text-sm z-40`}
                                 ref={netRef}
                             >
                                 <ul className="w-min py-1">
@@ -191,7 +191,7 @@ const Header = () => {
                                             onClick={() => {
                                                 changeNetwork(key);
                                                 setIsNetworkList(false);
-                                                dispatch(resetBridgeStatus());
+                                                dispatch(resetBridgeStatus(networkId));
                                             }}
                                         >
                                             <div
@@ -278,7 +278,7 @@ const Header = () => {
             </div>
             {isMenuList && (
                 <div
-                    className="absolute right-4 mt-40 ml-2 py-2 w-32 bg-gray-500 rounded-md shadow-md shadow-slate-500 z-20"
+                    className="absolute right-6 mt-[168px] ml-2 py-2 w-32 bg-gray-700 rounded-md shadow-md shadow-slate-500 z-50"
                     ref={menuRef}
                 >
                     {/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">

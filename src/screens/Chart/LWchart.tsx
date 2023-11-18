@@ -121,7 +121,9 @@ const LWchart = ({ chart = [], chartTime, lastCandle }) => {
 			throttled = setTimeout(() => {
 				throttled = null;
 
-				const obj = param.seriesPrices.entries().next().value[1];
+				const obj = param.seriesPrices.entries().next()?.value[1];
+				if (!obj) { return; }
+				
 				dispatch(updatePrice({ close: decimalSplit(obj.close) }));
 				dispatch(
 					updateTooltip({

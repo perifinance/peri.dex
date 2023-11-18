@@ -1,29 +1,30 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { it } from "date-fns/locale";
 
-export type Pending = {
+export type OnSendCoin = {
+    destChainId: Number;
     srcChainId: Number;
-    amount: bigint;
+    coin: string;
 };
 
 export type PendingCoin = {
     coin: string;
     total: bigint;
-    pendings: Array<Pending>;
+    pendings: any;
 };
 
 type BridgingStatus = {
     obsolete: boolean;
     step: Number;
     pendingCoins: Array<PendingCoin>;
-    isBridging: boolean;
+    onSendCoins: Array<OnSendCoin>;
 };
 
 const initialState: BridgingStatus = {
     obsolete: false,
     step: 0,
     pendingCoins: [],
-    isBridging: false,
+    onSendCoins: [],
 };
 
 export const bridgeState = createSlice({
@@ -47,18 +48,32 @@ export const bridgeState = createSlice({
         setObsolete: (state, actions: PayloadAction<boolean>) => {
             state.obsolete = actions.payload;
         },
-        setBridging: (state) => {
-            state.isBridging = true;
-        }, 
-        resetBridgeStatus: (state) => {
+        setOnSendCoin: (state, actions: PayloadAction<OnSendCoin>) => {
+            state.onSendCoins = state.onSendCoins.filter((item) => {
+                return item.destChainId !== actions.payload.destChainId && item.coin !== actions.payload.coin;
+            });
+
+            if (actions.payload.srcChainId !== 0) {
+                state.onSendCoins.push(actions.payload);
+            }
+        },
+        resetBridgeStatus: (state, actions: PayloadAction<Number>) => {
+            const idx = state.onSendCoins.findIndex((item) => {
+                return item.destChainId === actions.payload;
+            });
+            state.step = idx !== -1 ? 1 : 0;
             state.obsolete = true;
-            state.step = state.isBridging?1:0;
-            state.pendingCoins = []; 
-            state.isBridging = false;
-        }
+            state.pendingCoins = [];
+        },
     },
 });
 
-export const { setBridging, setObsolete, updateStep, updateBridgeStatus, resetBridgeStatus } = bridgeState.actions;
+export const {
+    setOnSendCoin,
+    setObsolete,
+    updateStep,
+    updateBridgeStatus,
+    resetBridgeStatus,
+} = bridgeState.actions;
 
 export default bridgeState.reducer;

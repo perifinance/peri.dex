@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { BrowserRouter as Router, Switch, Route, Link, Redirect } from "react-router-dom";
+import /* React, */ { useEffect } from "react";
+import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 
 import Header from "../Header";
 import Assets from "pages/Assets";
@@ -7,7 +7,7 @@ import Exchange from "pages/Exchange";
 import Futures from "pages/Futures";
 import Bridge from "pages/Bridge";
 import Loading from "components/loading";
-import { setLoading } from "reducers/loading/loading";
+// import { setLoading } from "reducers/loading/loading";
 import { contracts } from "lib/contract";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
@@ -64,7 +64,7 @@ const Main = () => {
                     }
                 });
 
-                dispatch(updateBridgeStatus({ coin:key, total: totalAmount, pendings: promiseData }));
+                dispatch(updateBridgeStatus({ coin:key, total: totalAmount, pendings: returnValue }));
 
             });
         } catch (e) {
@@ -76,29 +76,35 @@ const Main = () => {
     useEffect(() => {
         console.log('useEffect obsolete', obsolete);
         getInboundings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [obsolete]);
 
     useEffect(() => {
         if (isNaN(networkId) || networkId === 0 || networkId === undefined) { return; }
 
-        // getInboundings();
+        const timeout = setTimeout(() => {
+            getInboundings();
+        }, 1000);
+        
         const setIntervals = setInterval(() => {
             getInboundings();
         }, 1000 * 60);
 
 
         if (!isConnect) {
+            clearTimeout(timeout);
             clearInterval(setIntervals);
         }
 
         return () => clearInterval(setIntervals);
         
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, networkId]);
 
     return (
         <div className="text-sm dark:text-inherent dark:bg-black-900 font-Montserrat font-normal">
             <Loading></Loading>
-            <div className="container mx-auto p-5 min-h-screen space-y-7 lg:space-y-10">
+            <div className="container mx-auto p-5 min-h-screen space-y-2 lg:space-y-10">
                 <Router>
                     <Header></Header>
                     <Switch>

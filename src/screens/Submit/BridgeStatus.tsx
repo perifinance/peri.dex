@@ -17,9 +17,9 @@ const BridgeStatus = ({selectedCoin, setIsProcessing} : IBridgeStatus) => {
     const [pendingCoin, setPendingCoin] = React.useState<PendingCoin>(null);
     const dispatch = useDispatch();
     const statusMsg = {
-        0: "Starting and signing the bridge transaction",
-        1: "Moving your asset to the targe network",
-        2: "Singing the claiming transaction"
+        0: "Start and sign the bridge transaction",
+        1: "Move the asset to the target network",
+        2: "Sign the asset-claim transaction"
     }
 
     // const pendingCoin = pendingCoins.filter((item) => item.coin === selectedCoin)[0];
@@ -33,45 +33,49 @@ const BridgeStatus = ({selectedCoin, setIsProcessing} : IBridgeStatus) => {
         }
 
         const currentAsset = pendingCoins.filter((item) => item.coin === selectedCoin)[0];
-        // console.log('useEffect currentAsset', currentAsset);
         setPendingCoin(currentAsset);
 
-        if (!currentAsset || currentAsset.coin !== selectedCoin) { return; }
 
-        if (currentAsset.pendings.length > 0){
+        if (!currentAsset || currentAsset.coin !== selectedCoin) { 
+            if (Number(step) > 1) { dispatch(updateStep(0)); }
+            return; 
+        }
+
+        console.log('useEffect step, currentAsset', step, currentAsset);
+        if (currentAsset.total > 0){
             if (Number(step) < 2) {
                 dispatch(updateStep(2));
                 setIsProcessing(false);
-            }
+            } 
         }
         
     }, [pendingCoins, selectedCoin]);
 
     return (
         <div className="flex flex-col w-full">
-            {(pendingCoin?.pendings.length > 0) && 
+            {(pendingCoin?.total > 0) && 
             <div className="flex flex-col mx-2 text-[10px] font-medium overflow-y-scroll rounded-lg text-center bscrollbar-hide">
                 <div className="flex flex-row space-x-1 h-6 border border-slate-900/40 rounded-t-lg bg-black-900/30">
-                    {Object.values(pendingCoin.pendings).map((pending, idx) => (
+                    {Object.keys(pendingCoin.pendings).map((key, idx) => (
                         <div
                             className="py-1 w-full  "
                             key={`rec_net_${idx}`}
                         >
-                            {networkInfo[pending.srcChainId.toString()]?.chainName}{" "}
+                            {networkInfo[key]?.chainName}{" "}
                         </div>
                     ))}
                 </div>
                 <div className="flex flex-row space-x-1 h-6 border-2 border-black-900/50 rounded-b-lg">
-                    {Object.values(pendingCoin.pendings).map((pending, idx) => (
+                    {Object.values(pendingCoin.pendings).map((amount, idx) => (
                         <div
                             key={`amount_${idx}`}
                             className={`py-1 w-full ${
-                                pending && "text-red-700"
+                                amount && "text-red-700"
                             }`}
                         >
                             <span className="pl-1">
-                                {pending
-                                    ? `${pending ? formatCurrency(pending.amount, 4) : 0} ${
+                                {amount
+                                    ? `${amount ? formatCurrency(amount, 4) : 0} ${
                                         selectedCoin
                                     }` : 0
                                 }
@@ -135,7 +139,7 @@ const BridgeStatus = ({selectedCoin, setIsProcessing} : IBridgeStatus) => {
                     </ul>
                 </div>
                 <div className="relative flex flex-col items-start bg-black-600 mx-[16px] my-[36px] z-0">
-                <span className={`flex w-[1px] h-[60px] z-1 ${(step as number) >= 2 && "bg-cyan-400"} ${(step as number) < 2 && "bg-gray-400/50"}`}/>
+                    <span className={`flex w-[1px] h-[60px] z-1 ${(step as number) >= 2 && "bg-cyan-400"} ${(step as number) < 2 && "bg-gray-400/50"}`}/>
                     <span className={`flex w-[1px] h-[60px] z-1 ${(step as number) === 3 && "bg-cyan-400"} ${(step as number) < 3 && "bg-gray-400/50"}`}/>
                 </div>
             </div>

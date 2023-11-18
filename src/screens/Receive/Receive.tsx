@@ -172,6 +172,9 @@ const Receive = (_altclassName) => {
                         getInboundings();
                         setIsPending(false);
                     },
+                    error: () => {
+                        setIsPending(false);
+                    }
                 })
             );
         } catch (e) {

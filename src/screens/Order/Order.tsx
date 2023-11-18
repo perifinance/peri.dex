@@ -242,6 +242,9 @@ const Order = ({ openCoinList }) => {
                         setReceiveAmount(0n);
                         setIsPending(false);
                     },
+                    error() {
+                        setIsPending(false);
+                    },
                 })
             );
         } catch (e) {
@@ -431,6 +434,7 @@ const Order = ({ openCoinList }) => {
                             changePayAmount(e.target.value);
                             setPer(0n);
                         }}
+                        onFocus={(e) => e.target.select()}
                     />
                 </div>
 

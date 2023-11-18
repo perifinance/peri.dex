@@ -65,7 +65,7 @@ const Exchange = () => {
 
     return (
         <div className="flex flex-col lg:flex-row lg:justify-between lg:space-x-2 xl:space-x-4">
-            <div className={`-mt-6 lg:mt-0 lg:flex lg:grow lg:flex-col`}>
+            <div className={`lg:flex lg:grow lg:flex-col`}>
                 <Chart />
                 <div className=" hidden lg:flex ">
                     <OrderHistories />

@@ -13,16 +13,10 @@ import { NotificationManager } from "react-notifications";
 import { /* ethers, providers, */ utils } from "ethers";
 import pynths from "configure/coins/bridge";
 import { setLoading } from "reducers/loading";
-import { is } from "date-fns/locale";
-import { on } from "events";
+// import { is } from "date-fns/locale";
+// import { on } from "events";
 import BridgeStatus from "./BridgeStatus";
-import {
-    Pending,
-    resetBridgeStatus,
-    setBridging,
-    setObsolete,
-    updateStep,
-} from "reducers/bridge/bridge";
+import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
 // import init from "@web3-onboard/core";
 // import { set } from "date-fns";
 // import { wallet } from 'reducers/wallet';
@@ -35,11 +29,6 @@ const btnBridgeMsg = {
     1: "Processing",
     2: "Receive",
     3: "Processing",
-};
-
-const contractName = {
-    PERI: "PeriFinance",
-    pUSD: "pUSD",
 };
 
 const Submit = () => {
@@ -126,9 +115,7 @@ const Submit = () => {
 
     const getBalance = () => {
         if (selectedFromNetwork) {
-            return networks.find((e) => selectedFromNetwork.id === e.id)?.balance[
-                selectedCoin?.name
-            ];
+            return networks.find((e) => selectedFromNetwork.id === e.id)?.balance[selectedCoin?.name];
         }
         return 0n;
     };
@@ -150,7 +137,7 @@ const Submit = () => {
         try {
             dispatch(setLoading({ name: "balance", value: true }));
             await changeNetwork(chainId);
-            dispatch(resetBridgeStatus());
+            dispatch(resetBridgeStatus(networkId));
             dispatch(setLoading({ name: "balance", value: false }));
         } catch (error) {
             console.log(error);
@@ -170,27 +157,20 @@ const Submit = () => {
     const getGasEstimate = async (cost: string) => {
         let gasLimit = 600000n;
 
-        if (cost === null || cost === "0" || payAmount === null || payAmount === "0")
-            return 6000000n;
-
-        if (contracts.signers[contractName[selectedCoin.name]] === undefined) {
+        if (cost === null || cost === "0" || payAmount === null || payAmount === "0") {
+            console.log("payAmount", payAmount);
             return 6000000n;
         }
-
         try {
             let tmpGasLimit;
             if (Number(step) === 2) {
-                tmpGasLimit = await contracts.signers[
-                    contractName[selectedCoin.name]
-                ].estimateGas.claimAllBridgedAmounts({
+                tmpGasLimit = await contracts.signers[selectedCoin.contract].estimateGas.claimAllBridgedAmounts({
                     value: cost,
                 });
             } else if (Number(step) === 0) {
                 let rsv = utils.splitSignature(signature);
 
-                tmpGasLimit = await contracts.signers[
-                    contractName[selectedCoin.name]
-                ].estimateGas.overchainTransfer(
+                tmpGasLimit = await contracts.signers[selectedCoin.contract].estimateGas.overchainTransfer(
                     utils.parseEther(payAmount),
                     selectedToNetwork.id,
                     [rsv.r, rsv.s, rsv.v],
@@ -239,7 +219,7 @@ const Submit = () => {
             return;
         }
 
-        if (contracts.signers[contractName[selectedCoin.name]] === undefined) {
+        if (contracts.signers[selectedCoin.contract] === undefined) {
             NotificationManager.warning("Please refresh it and try it again.");
             return;
         }
@@ -270,14 +250,16 @@ const Submit = () => {
                 gasLimit: (await getGasEstimate(cost)).toString(),
                 value: cost,
             };
-            if (mySignature === zeroSignature) throw Error("Bridge need signature");
+
+            if (mySignature === zeroSignature) {
+                NotificationManager.warning("Signature is not valid. Please refresh it and try it again.");
+                return;
+            }
 
             let transaction;
             let rsv = utils.splitSignature(mySignature);
 
-            transaction = await contracts.signers[
-                contractName[selectedCoin.name]
-            ].overchainTransfer(
+            transaction = await contracts.signers[selectedCoin.contract].overchainTransfer(
                 utils.parseEther(payAmount),
                 selectedToNetwork.id,
                 [rsv.r, rsv.s, rsv.v],
@@ -289,13 +271,21 @@ const Submit = () => {
                     message: `Bridging ${payAmount} ${selectedCoin.name} to ${selectedToNetwork.name}...`,
                     type: `Cross-Chain Bridge`,
                     action: () => {
-                        initBalances();
                         setPayAmount("0");
-                        // dispatch(updateStep(2));
-                        // dispatch(setObsolete(true));
-                        dispatch(setBridging());
+                        dispatch(
+                            setOnSendCoin({
+                                destChainId: selectedToNetwork.id,
+                                srcChainId: networkId,
+                                coin: selectedCoin.name,
+                            })
+                        );
                         changeNetwork(selectedToNetwork.id);
+                        initBalances();
+                    },
+                    error: () => {
+                        dispatch(updateStep(0));
                         setIsProcessing(false);
+                        NotificationManager.warning("Transaction failed. Please refresh it and try it again.");
                     },
                 })
             );
@@ -305,6 +295,7 @@ const Submit = () => {
             console.log(e);
             dispatch(updateStep(0));
             setIsProcessing(false);
+            NotificationManager.warning("Exception occurred. Please refresh it and try it again.");
         }
     };
 
@@ -314,7 +305,7 @@ const Submit = () => {
             return;
         }
 
-        if (contracts.signers[contractName[selectedCoin.name]] === undefined) {
+        if (contracts.signers[selectedCoin.contract] === undefined) {
             NotificationManager.warning("Please refresh it and try it again.");
             return;
         }
@@ -336,34 +327,51 @@ const Submit = () => {
                 value: cost,
             };
 
-            console.log(contractName[selectedCoin.name], networkId, transactionSettings);
+            console.log(selectedCoin.contract, networkId, transactionSettings);
 
             let transaction;
-            transaction = await contracts.signers[
-                contractName[selectedCoin.name]
-            ].claimAllBridgedAmounts(transactionSettings);
+            transaction = await contracts.signers[selectedCoin.contract].claimAllBridgedAmounts(transactionSettings);
             dispatch(
                 updateTransaction({
                     hash: transaction.hash,
                     message: `Finishing ${selectedCoin.name} cross-chain transfer...`,
                     type: "Cross-Chain Claim",
                     action: () => {
-                        // dispatch(updateStep(0));
-                        dispatch(resetBridgeStatus());
+                        dispatch(setOnSendCoin({ destChainId: networkId, srcChainId: 0, coin: selectedCoin.name }));
+                        dispatch(resetBridgeStatus(networkId));
                         dispatch(setObsolete(true));
+                        initBalances();
                         setIsProcessing(false);
+                    },
+                    error: () => {
+                        dispatch(updateStep(2));
+                        setIsProcessing(false);
+                        NotificationManager.warning("Transaction failed. Please refresh it and try it again.");
                     },
                 })
             );
         } catch (e) {
             console.error(e);
+            NotificationManager.warning(`Exception occurred. Please refresh it and try it again.${e.code}`);
             dispatch(updateStep(2));
             setIsProcessing(false);
         }
     };
 
-    const bridgeConfirm = async () => {
-        if (Number(step) == 0) {
+    const onExecute = async () => {
+        // for test only
+        /*************************************************/
+        // const costSubmit = await getBridgeTransferGasCost()
+        // const costClaim = await getBridgeClaimGasCost()
+
+        // console.log("cost", costSubmit, costClaim);
+
+        // const gasLimit = await getGasEstimate(costSubmit);
+        // console.log("gasLimit", gasLimit);
+        /*************************************************/
+        // return;
+
+        if (Number(step) === 0) {
             bridgeSubmit();
         } else if (step === 2) {
             bridgeReceive();
@@ -449,15 +457,7 @@ const Submit = () => {
 
     useEffect(() => {
         validationCheck();
-    }, [
-        step,
-        isConnect,
-        initBridge,
-        selectedFromNetwork,
-        selectedToNetwork,
-        selectedCoin,
-        payAmount,
-    ]);
+    }, [step, isConnect, initBridge, selectedFromNetwork, selectedToNetwork, selectedCoin, payAmount]);
 
     useEffect(() => {
         if (isConnect && initBridge && address) {
@@ -510,27 +510,15 @@ const Submit = () => {
 
     const closeModalHandler = useCallback(
         (e) => {
-            if (
-                isFromNetworkList &&
-                e.target.id !== "from_caller" &&
-                !fromRef.current.contains(e.target)
-            ) {
+            if (isFromNetworkList && e.target.id !== "from_caller" && !fromRef.current.contains(e.target)) {
                 setIsFromNetworkList(false);
             }
 
-            if (
-                isToNetworkList &&
-                e.target.id !== "to_caller" &&
-                !toRef.current.contains(e.target)
-            ) {
+            if (isToNetworkList && e.target.id !== "to_caller" && !toRef.current.contains(e.target)) {
                 setIsToNetworkList(false);
             }
 
-            if (
-                isCoinList &&
-                e.target.id !== "coin_caller" &&
-                !availableRef.current.contains(e.target)
-            ) {
+            if (isCoinList && e.target.id !== "coin_caller" && !availableRef.current.contains(e.target)) {
                 setIsCoinList(false);
             }
         },
@@ -546,9 +534,9 @@ const Submit = () => {
     }, [closeModalHandler]);
 
     return (
-        <div className="flex flex-col bg-gray-700 p-4">
+        <div className="flex flex-col bg-gray-700 px-4 py-2">
             <div className="flex flex-col lg:flex-row  lg:space-x-3">
-                <div className="basis-1/3 flex flex-col items-start m-2 w-full">
+                <div className="basis-2/5 flex flex-col items-start m-2 w-full">
                     <div className="w-full">
                         <div className="text-xs pl-1">Source</div>
                         <div className="py-1 relative">
@@ -588,8 +576,7 @@ const Submit = () => {
                                         <li key={index} onClick={() => onSelectSouceChain(network)}>
                                             <p
                                                 className={`p-2 block hover:bg-black-900 cursor-pointer ${
-                                                    selectedFromNetwork?.name === network?.name &&
-                                                    "bg-black-900"
+                                                    selectedFromNetwork?.name === network?.name && "bg-black-900"
                                                 }`}
                                             >
                                                 {network?.name}
@@ -606,11 +593,7 @@ const Submit = () => {
                         onClick={() => networkSwap()}
                     >
                         <div className="transform-gpu m-auto">
-                            <img
-                                className="w-4 h-5 align-middle"
-                                src={"/images/icon/exchange.png"}
-                                alt="netswap"
-                            />
+                            <img className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"} alt="netswap" />
                         </div>
                     </div>
 
@@ -654,10 +637,7 @@ const Submit = () => {
                                         .filter((e) => {
                                             return (
                                                 selectedFromNetwork?.id !== e.id &&
-                                                !(
-                                                    selectedCoin?.name === "pUSD" &&
-                                                    (e.id === 5 || e.id === 1)
-                                                )
+                                                !(selectedCoin?.name === "pUSD" && (e.id === 5 || e.id === 1))
                                             );
                                         })
                                         .map((network, index) => (
@@ -670,8 +650,7 @@ const Submit = () => {
                                             >
                                                 <p
                                                     className={`p-2 block hover:bg-black-900 cursor-pointer ${
-                                                        selectedToNetwork?.name === network?.name &&
-                                                        "bg-black-900"
+                                                        selectedToNetwork?.name === network?.name && "bg-black-900"
                                                     }`}
                                                 >
                                                     {network?.name}
@@ -683,13 +662,10 @@ const Submit = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex basis-2/3 flex-col w-full m-2 ">
+                <div className="flex basis-3/5 flex-col w-full m-2 ">
                     <div className="flex pb-1 ml-1 justify-between w-full text-xs">
                         <span>{`Available `}</span>
-                        <span className="mx-1 font-medium">{` ${formatCurrency(
-                            getBalance(),
-                            4
-                        )}`}</span>
+                        <span className="mx-1 font-medium">{` ${formatCurrency(getBalance(), 4)}`}</span>
                     </div>
                     <div className="flex flex-col w-full">
                         <div className="flex lg:rounded-md bg-black-900 justify-between w-full">
@@ -733,10 +709,7 @@ const Submit = () => {
                                 >
                                     <ul className="list-reset">
                                         {pynths.map((coin) => {
-                                            if (
-                                                (networkId === 1 || networkId === 5) &&
-                                                coin.name === "pUSD"
-                                            )
+                                            if ((networkId === 1 || networkId === 5) && coin.name === "pUSD")
                                                 return <></>;
                                             else
                                                 return (
@@ -745,13 +718,12 @@ const Submit = () => {
                                                         onClick={() => {
                                                             setSelectedCoin(coin);
                                                             setIsCoinList(false);
-                                                            dispatch(resetBridgeStatus());
+                                                            dispatch(resetBridgeStatus(networkId));
                                                         }}
                                                     >
                                                         <p
                                                             className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
-                                                                selectedCoin?.name === coin?.name &&
-                                                                "bg-black-900"
+                                                                selectedCoin?.name === coin?.name && "bg-black-900"
                                                             }`}
                                                         >
                                                             <img
@@ -773,6 +745,7 @@ const Submit = () => {
                                 type="text"
                                 value={payAmount}
                                 onChange={(e) => setPayAmount(e.target.value)}
+                                onFocus={(e) => e.target.select()}
                             />
                         </div>
                         <div className="flex items-center my-3 lg:mt-8">
@@ -838,9 +811,7 @@ const Submit = () => {
                                     value={per.toString()}
                                     onChange={(e) =>
                                         setPerAmount(
-                                            Number(e.target.value) > 100
-                                                ? BigInt("100")
-                                                : BigInt(e.target.value)
+                                            Number(e.target.value) > 100 ? BigInt("100") : BigInt(e.target.value)
                                         )
                                     }
                                 />
@@ -851,7 +822,7 @@ const Submit = () => {
                 </div>
             </div>
             <div className="flex flex-col-reverse items-center lg:flex-row justify-between lg:space-x-2 xl:space-x-4">
-                <div className="flex flex-col justify-start w-full basis-2/3 lg:basis-1/3 my-6">
+                <div className="flex flex-col justify-start w-full basis-2/5 my-6">
                     {/* <div className="mt-0"> */}
                     <div className="flex justify-between w-full lg:justify-center mt-1 text-[11px]">
                         <span className="font-medium mr-3">Network Fee:</span>
@@ -867,7 +838,7 @@ const Submit = () => {
 
                     <button
                         className="btn-base flex flex-row items-center my-4 py-2 w-full text-inherent lg:w-48 lg:mx-auto"
-                        onClick={() => bridgeConfirm()}
+                        onClick={() => onExecute()}
                         disabled={isProcessing}
                     >
                         <div className="flex basis-1/3 justify-end pr-2">
@@ -897,11 +868,8 @@ const Submit = () => {
                         <span className="basis-1/3 text-lg">{btnBridgeMsg[step as number]}</span>
                     </button>
                 </div>
-                <div className="flex w-full lg:basis-2/3">
-                    <BridgeStatus
-                        selectedCoin={selectedCoin.name}
-                        setIsProcessing={setIsProcessing}
-                    />
+                <div className="flex w-full lg:basis-3/5">
+                    <BridgeStatus selectedCoin={selectedCoin.name} setIsProcessing={setIsProcessing} />
                 </div>
             </div>
             <div className="bg-black-900 w-full text-center break-wards text-cyan-300/70 rounded-lg text-xs font-medium p-2">

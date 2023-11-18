@@ -2,13 +2,18 @@ let pynths = [
     {
         id: 0,
         name: "pUSD",
-        contract: 'pUSD'
-    }, {
+        contract: "pUSD",
+    },
+    {
         id: 1,
         name: "PERI",
-        contract: 'periFinance'
-    }
-]
+        contract: "periFinance",
+    },
+];
 
-    
-export default pynths
+export const BridgeStateContract = {
+    PERI: "BridgeState",
+    pUSD: "BridgeStatepUSD",
+};
+
+export default pynths;

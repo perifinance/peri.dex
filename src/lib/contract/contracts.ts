@@ -74,7 +74,7 @@ type Contracts = {
         SystemSettings?: any;
         pUSD?: any;
     };
-	addressList?: any;
+    addressList?: any;
 };
 
 export const contracts: Contracts = {
@@ -86,7 +86,6 @@ export const contracts: Contracts = {
     init(networkId) {
         try {
             if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
-                console.error("contract init parameter error: networkId is not defined");
                 return false;
             }
             this.chainId = networkId;
@@ -139,7 +138,9 @@ export const contracts: Contracts = {
         try {
             this.signer = new providers.Web3Provider(this.wallet.provider).getSigner(address);
 
-            if (this.signers === undefined) { return; }
+            if (this.signer === undefined || this.signers === null || this.signers === undefined) {
+                return;
+            }
 
             Object.keys(this.addressList).forEach((name) => {
                 // console.log(name, naming[name]);
@@ -148,7 +149,7 @@ export const contracts: Contracts = {
                         typeof naming[name] === "string"
                             ? this.sources[naming[name]]
                             : this.sources[naming[name][this.chainId]];
-					// console.log(name, this.addressList[name], this.signers);
+                    // console.log(name, this.addressList[name], this.signers);
                     this.signers[name] = new ethers.Contract(
                         this.addressList[name].address,
                         source ? source.abi : ERC20.abi,
@@ -163,7 +164,6 @@ export const contracts: Contracts = {
                     }
                 }
             });
-            
         } catch (e) {
             console.error("contract connect ERROR:", e);
         }
@@ -172,7 +172,7 @@ export const contracts: Contracts = {
     clear() {
         this.signer = null;
         this.signers = null;
-		this.wallet = null;
-		this.provider = null;
+        this.wallet = null;
+        this.provider = null;
     },
 };
