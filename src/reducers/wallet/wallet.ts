@@ -6,7 +6,7 @@ export interface WalletState {
     networkName?: string;
     networkId?: number;
     isConnect?: boolean;
-};
+}
 
 const initialState: WalletState = {
     address: null,
@@ -20,7 +20,7 @@ export const wallet = createSlice({
     initialState,
     reducers: {
         updateAddress(state, actions: PayloadAction<WalletState>) {
-			state.address = actions.payload.address;
+            return { ...state, address: actions.payload.address };
         },
         updateNetwork(state, actions: PayloadAction<WalletState>) {
             const networkName =
@@ -28,20 +28,15 @@ export const wallet = createSlice({
                     ? "ETHEREUM"
                     : SUPPORTED_NETWORKS[actions.payload.networkId];
 
-			state.networkId = actions.payload.networkId;
-			state.networkName = networkName;
-
-            // console.log(`redicers Out -> state.networkId:${state.networkId} actions.payload.networkId:${actions.payload.networkId}`);
+            return { ...state, networkId: actions.payload.networkId, networkName: networkName };
         },
 
         updateIsConnect(state, actions: PayloadAction<boolean>) {
-
-            state.isConnect = actions.payload;
+            return { ...state, isConnect: actions.payload };
         },
 
         clearWallet(state) {
-			state.address = null;
-			state.isConnect = false;
+            return { ...state, address: null, isConnect: false };
         },
     },
 });

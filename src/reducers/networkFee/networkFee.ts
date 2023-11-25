@@ -1,22 +1,21 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type NetworkFeeState = {
-	gasPrice: bigint
-}
+    gasPrice: bigint;
+};
 
 const initialState: NetworkFeeState = {
-	gasPrice: 0n
-}
-
+    gasPrice: 0n,
+};
 
 export const NetworkFeeSlice = createSlice({
-	name: 'networkFee',
-	initialState,
-	reducers: {
-		updateNetworkFee(state, actions: PayloadAction<NetworkFeeState>) {
-			state.gasPrice = actions.payload.gasPrice;
-		},
-	},
+    name: "networkFee",
+    initialState,
+    reducers: {
+        updateNetworkFee(state, actions: PayloadAction<NetworkFeeState>) {
+            return { ...state, gasPrice: actions.payload.gasPrice };
+        },
+    },
 });
 
 export const { updateNetworkFee } = NetworkFeeSlice.actions;

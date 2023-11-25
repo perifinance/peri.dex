@@ -4,6 +4,7 @@ import { RootState } from "reducers";
 import pynthsCategories from "configure/coins/pynthsCategories";
 import { updateCoin } from "reducers/coin/coinList";
 import "./coinList.css";
+// import { resetChartData } from "reducers/chart/chart";
 
 interface ICoinList {
     isCoinList?: Boolean;
@@ -161,9 +162,12 @@ const CoinList = ({ isCoinList, coinListType, selectedCoin, closeCoinList }: ICo
                                             selectedCoins[coinListType]?.id === coin?.id &&
                                             "bg-black-900"
                                         }`}
-                                        onClick={() =>
-                                            selectedCoins[coinListType]?.id !== coin?.id &&
-                                            selectedCoin(coin)
+                                        onClick={() => {
+                                            if (selectedCoins[coinListType]?.id !== coin?.id) {
+                                                // dispatch(resetChartData());
+                                                selectedCoin(coin);
+                                            }
+                                            }
                                         }
                                     >
                                         <div

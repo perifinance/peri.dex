@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { getExchangeRates, getFeeRateForExchange } from "lib/rates";
 import { getBalance } from "lib/balance";
 import { contracts } from "lib";
 import { utils } from "ethers";
 import { formatCurrency } from "lib";
-import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
 import { getNetworkPrice } from "lib/price";
 import OrderHistories from "screens/OrderHistories";
 import Chart from "screens/Chart";
 const Order = ({ openCoinList }) => {
-    const dispatch = useDispatch();
     const { isReady } = useSelector((state: RootState) => state.app);
     const { networkId, address } = useSelector((state: RootState) => state.wallet);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
@@ -357,7 +355,7 @@ const Order = ({ openCoinList }) => {
                 </div>
             </div>
             <Chart />
-            <OrderHistories />
+            <OrderHistories balance={balance}/>
         </div>
     );
 };

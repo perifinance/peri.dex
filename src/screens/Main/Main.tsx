@@ -34,7 +34,7 @@ const Main = () => {
                 ? MAINNET : TESTNET : TESTNET : MAINNET; 
             Object.keys(contractName).forEach(async (key) => {
                 if (contracts[contractName[key]] === undefined) { 
-                    console.log('contracts[contractName[key]] === undefined', contracts[contractName[key]]);
+                    // console.log('contracts[contractName[key]] === undefined', contracts[contractName[key]]);
                     return; 
                 }
                 const ids = await contracts[contractName[key]].applicableInboundIds(
@@ -74,7 +74,7 @@ const Main = () => {
     };
 
     useEffect(() => {
-        console.log('useEffect obsolete', obsolete);
+        // console.log('useEffect obsolete', obsolete);
         getInboundings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [obsolete]);
@@ -104,7 +104,7 @@ const Main = () => {
     return (
         <div className="text-sm dark:text-inherent dark:bg-black-900 font-Montserrat font-normal">
             <Loading></Loading>
-            <div className="container mx-auto p-5 min-h-screen space-y-2 lg:space-y-10">
+            <div className="container mx-auto p-3 lg:p-5 min-h-screen space-y-2 lg:space-y-10">
                 <Router>
                     <Header></Header>
                     <Switch>

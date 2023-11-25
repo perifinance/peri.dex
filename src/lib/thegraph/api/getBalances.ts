@@ -27,6 +27,8 @@ export const getBalance = async (
 		};
 	};
 
+	// console.log("getBalance", contracts[`ProxyERC20${coinName}`]);
+
 	try {
 		if (decimal === 18) {
 			return list
@@ -37,7 +39,7 @@ export const getBalance = async (
 				? balanceMapping(
 						BigInt((await contracts[`ProxyERC20${coinName}`].balanceOf(address)).toString()) *
 							BigInt(Math.pow(10, 18 - decimal).toString())
-				  )
+				)
 				: BigInt((await contracts[`ProxyERC20${coinName}`].balanceOf(address)).toString()) *
 						BigInt(Math.pow(10, 18 - decimal).toString());
 		}
@@ -56,8 +58,8 @@ export const getBalances = async ({ currencyName = undefined, networkId = undefi
 
 			await Promise.all(
 				pynths[networkId].map(async (pynth: any, idx: number) =>
-					getLastRates({ networkId, currencyName: pynth.symbol }).then(
-						async (rate) => (promises[idx] = await getBalance(address, pynth.symbol, 18, true, rate))
+					getLastRates([pynth.symbol]).then(
+						async (rate) => (promises[idx] = await getBalance(address, pynth.symbol, 18, true, rate?rate[0].price:0n))
 					)
 				)
 			);

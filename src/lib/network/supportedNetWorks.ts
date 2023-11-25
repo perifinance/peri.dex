@@ -27,9 +27,9 @@ export const TESTNET = {
 
 export const DEXNET = {
 	1285: 'MOONRIVER',
-	// 137: 'POLYGON',
+	137: 'POLYGON',
 	1287: 'moonbase-alphanet',
-	// 80001: 'MUMBAI'
+	80001: 'MUMBAI'
 };
 
 export const UNPOPULARNET = {

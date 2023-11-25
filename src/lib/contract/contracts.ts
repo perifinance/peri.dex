@@ -47,6 +47,7 @@ const naming = {
     ProxyERC20pUNI: "MultiCollateralPynth",
     ProxyERC20pXRP: "MultiCollateralPynth",
     ProxyERC20pYFI: "MultiCollateralPynth",
+    ProxyERC20pSOL: "MultiCollateralPynth",
     SystemSettings: "SystemSettings",
 };
 

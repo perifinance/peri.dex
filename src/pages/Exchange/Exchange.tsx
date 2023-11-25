@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
 import { NotificationManager } from "react-notifications";
@@ -11,19 +11,25 @@ import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
 import { setLoading } from "reducers/loading";
 // import { changeNetwork } from "lib/network";
 import { networkInfo } from "configure/networkInfo";
+import { isExchageNetwork } from "lib/network";
 
 const Exchange = () => {
     const dispatch = useDispatch();
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
+    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState(null);
+    const [balance, setBalance] = useState(0n);
 
     const openCoinList = (type) => {
         if (!isConnect) {
             NotificationManager.info(`Please connect your wallet`);
             return false;
         }
-        if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+        
+        // console.log("openCoinList networkId", networkId);
+
+        if (!isExchageNetwork(networkId)) {
             NotificationManager.warning(
                 `You're connected to a supported network. Please change to ${
                     networkInfo[process.env.REACT_APP_DEFAULT_NETWORK_ID].chainName
@@ -40,10 +46,15 @@ const Exchange = () => {
         dispatch(setLoading({ name: "balance", value: true }));
 
         if (coin) {
-            if (coinListType === "source") {
-                dispatch(setSourceCoin(coin));
+            if (selectedCoins.destination === coin || selectedCoins.source === coin)
+            {
+                NotificationManager.warning(`Please select a different token`, "", 2000);
             } else {
-                dispatch(setDestinationCoin(coin));
+                if (coinListType === "source") {
+                    dispatch(setSourceCoin(coin));
+                } else if (coinListType === "destination") {
+                    dispatch(setDestinationCoin(coin));
+                }
             }
         }
         setIsCoinList(false);
@@ -56,8 +67,8 @@ const Exchange = () => {
 
     useEffect(() => {
         if (isConnect) {
-            if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-                // NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
+            if (!isExchageNetwork(networkId)) {
+                NotificationManager.warning(`This network is not supported. Please change to polygon or moonriver.`);
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             }
         }
@@ -68,11 +79,11 @@ const Exchange = () => {
             <div className={`lg:flex lg:grow lg:flex-col`}>
                 <Chart />
                 <div className=" hidden lg:flex ">
-                    <OrderHistories />
+                    <OrderHistories  balance={balance}/>
                 </div>
             </div>
             <div className={`h-full ${isCoinList && "hidden"}`}>
-                <Order openCoinList={openCoinList} />
+                <Order openCoinList={openCoinList} balance={balance} setBalance={setBalance} />
             </div>
             <div className={`${!isCoinList && "hidden"}`}>
                 <CoinList

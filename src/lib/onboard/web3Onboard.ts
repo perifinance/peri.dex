@@ -1,7 +1,7 @@
 import type { WalletInit } from "@web3-onboard/common";
 import init from "@web3-onboard/core";
 import enkryptModule from "@web3-onboard/enkrypt";
-import injectedModule , { ProviderLabel } from "@web3-onboard/injected-wallets";
+import injectedModule, { ProviderLabel } from "@web3-onboard/injected-wallets";
 import infinityWalletModule from "@web3-onboard/infinity-wallet";
 import gnosisModule from "@web3-onboard/gnosis";
 import keepkeyModule from "@web3-onboard/keepkey";
@@ -14,11 +14,12 @@ import trustModule from "@web3-onboard/trust";
 import frontierModule from "@web3-onboard/frontier";
 import mewWallet from "@web3-onboard/mew-wallet";
 import fortmatic from "@web3-onboard/fortmatic";
+import safeModule from "@web3-onboard/gnosis";
 import { OnboardAPI } from "@web3-onboard/core";
 import { BuiltInThemes, WalletState } from "@web3-onboard/core/dist/types";
 import { Chain } from "@web3-onboard/common/dist/types";
 import ledgerModule from "@web3-onboard/ledger";
-import metamaskSDK from '@web3-onboard/metamask'
+import metamaskSDK from "@web3-onboard/metamask";
 import { NotificationManager } from "react-notifications";
 
 import { SUPPORTED_NETWORKS } from "lib/network";
@@ -57,21 +58,16 @@ export const web3Onboard: Web3Onboard = {
         // console.log(process.env.REACT_APP_RPC_ONBOARD_ID);
 
         // initialize the module with options
-        const metamaskSDKWallet = metamaskSDK({options: {
-            extensionOnly: false,
-            // injectProvider: true,
-            infuraAPIKey: process.env.REACT_APP_INFURA_ID,
-            dappMetadata: {
-                url: 'https://dex.peri.finance',
-                name: 'PERI Finance DEX',
-            }
-        }})
-
-        const coinbase = coinbaseWalletModule();
-        // const dcent = dcentModule();
-        let requiredChains = [];
-        Object.keys(SUPPORTED_NETWORKS).forEach((networkId) => {
-            return requiredChains.push(networkId);
+        const metamaskSDKWallet = metamaskSDK({
+            options: {
+                extensionOnly: false,
+                // injectProvider: true,
+                infuraAPIKey: process.env.REACT_APP_INFURA_ID,
+                dappMetadata: {
+                    url: "https://dex.peri.finance",
+                    name: "PERI Finance DEX",
+                },
+            },
         });
 
         const wcV2InitOptions = {
@@ -80,12 +76,17 @@ export const web3Onboard: Web3Onboard = {
             qrModalOptions: {
                 enableAuthMode: true,
             },
-            requiredChains: requiredChains,
+            requiredChains: Object.keys(SUPPORTED_NETWORKS).filter((networkId) => {
+                return UNPOPULARNET[networkId] === undefined;
+            }),
+            optionalChains: Object.keys(UNPOPULARNET).map((networkId) => networkId),
             dappUrl: "https://prepare-dex.peri.finance",
             additionalOptionalMethods: ["wallet_switchEthereumChain", "wallet_addEthereumChain"],
         };
 
         // initialize the module with options
+        const coinbase = coinbaseWalletModule();
+        const safe = safeModule();
         // If version isn't set it will default to V1 until V1 sunset
         const walletConnect = walletConnectModule(/* wcV1InitOptions ||  */ wcV2InitOptions);
         const fortmaticModule = fortmatic({
@@ -96,7 +97,6 @@ export const web3Onboard: Web3Onboard = {
         const ledger = ledgerModule({
             walletConnectVersion: 2,
             projectId: process.env.REACT_APP_RPC_ONBOARD_ID,
-            requiredChains: requiredChains,
         });
         const keystone = keystoneModule();
         const keepkey = keepkeyModule();
@@ -117,20 +117,20 @@ export const web3Onboard: Web3Onboard = {
             // },
             // displayUnavailable: [ProviderLabel.MetaMask, ProviderLabel.Trust],
             sort: (wallets) => {
-                const metaMask = wallets.find(({ label }) => label === ProviderLabel.MetaMask)
-                const coinbase = wallets.find(({ label }) => label === ProviderLabel.Coinbase)
-            
+                const metaMask = wallets.find(({ label }) => label === ProviderLabel.MetaMask);
+                const coinbase = wallets.find(({ label }) => label === ProviderLabel.Coinbase);
+
                 return (
-                  [
-                    metaMask,
-                    coinbase,
-                    ...wallets.filter(
-                      ({ label }) => label !== ProviderLabel.MetaMask && label !== ProviderLabel.Coinbase
-                    )
-                  ]
-                    // remove undefined values
-                    .filter((wallet) => wallet)
-                )
+                    [
+                        metaMask,
+                        coinbase,
+                        ...wallets.filter(
+                            ({ label }) => label !== ProviderLabel.MetaMask && label !== ProviderLabel.Coinbase
+                        ),
+                    ]
+                        // remove undefined values
+                        .filter((wallet) => wallet)
+                );
             },
             /* walletUnavailableMessage: (wallet) =>
                 `Oops ${wallet.label} is unavailable!` */
@@ -148,6 +148,7 @@ export const web3Onboard: Web3Onboard = {
             metamaskSDKWallet,
             walletConnect,
             coinbase,
+            safe,
             trust,
             // torusModule,
             // dcent,
@@ -169,10 +170,6 @@ export const web3Onboard: Web3Onboard = {
         const chains: Chain[] = [];
         Object.keys(supportedNetworks).forEach((networkId) => {
             // console.log(networkId);
-
-            // this is for allowing to be connected by wallets not suppoting Moonriver
-            if (Object.keys(UNPOPULARNET).includes(networkId)) { return; }
-            
             chains.push({
                 id: networkInfo[networkId].chainId,
                 label: networkInfo[networkId].chainName,
@@ -180,10 +177,8 @@ export const web3Onboard: Web3Onboard = {
             });
         });
 
-        console.log("chains", chains);
-
         const appMetadata = {
-            name: "Nend",
+            name: "PERI Finance DEX",
             icon: "/favicon.ico",
             description: "PERI Finance DEX",
             explore: "https://dex.peri.finance",
@@ -207,23 +202,23 @@ export const web3Onboard: Web3Onboard = {
             accountCenter: { desktop: { enabled: true }, mobile: { enabled: false } },
         });
 
-        console.log("web3Onboard initialized");
+        // console.log("web3Onboard initialized");
     },
     _onWalletUpdated: (wallets: WalletState[]) => {
         const [primaryWallet] = wallets;
 
         web3Onboard.wallet(primaryWallet);
-        const chainId = primaryWallet?.chains[0].id; 
+        const chainId = primaryWallet?.chains[0].id;
         const address = primaryWallet?.accounts[0].address;
 
         if (chainId !== web3Onboard.selectedNetwork) {
-            console.log(`walletUpdated-> chainId from ${web3Onboard.selectedNetwork} to ${chainId}`);
+            // console.log(`walletUpdated-> chainId from ${web3Onboard.selectedNetwork} to ${chainId}`);
             web3Onboard.selectedNetwork = chainId;
             web3Onboard.network(chainId);
             web3Onboard.selectedAddress = address;
             web3Onboard.address(address);
         }
-        
+
         if (web3Onboard.selectedAddress !== address) {
             // console.log(`walletUpdated->  address: ${address}`);
             web3Onboard.selectedAddress = address;
@@ -237,7 +232,6 @@ export const web3Onboard: Web3Onboard = {
             web3Onboard.selectedNetwork = undefined;
             console.log(`successfully unsubscribed`);
         }
-        
     },
     // _onChainUpdated: (chains: Chain[]) => {
     //     const [chain] = chains;
@@ -251,9 +245,7 @@ export const web3Onboard: Web3Onboard = {
         try {
             if (!web3Onboard.wallet || !web3Onboard.address || !web3Onboard.network) return;
 
-            const options = walletLabel
-                ? { autoSelect: { label: walletLabel, disableModals: true } }
-                : undefined;
+            const options = walletLabel ? { autoSelect: { label: walletLabel, disableModals: true } } : undefined;
             const [primaryWallet] = await web3Onboard.onboard.connectWallet(options);
 
             if (!primaryWallet?.provider) {
@@ -272,7 +264,7 @@ export const web3Onboard: Web3Onboard = {
             return;
         } catch (e) {
             console.log("error:", e);
-            NotificationManager.warning(`connetion failed`, "ERROR");
+            NotificationManager.error(`connetion failed`, "", 2000);
         }
 
         return;

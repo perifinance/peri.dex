@@ -1,65 +1,66 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 type BalanceState = {
-	isReady: boolean;
-    balances: Object,
-}
+    isReady: boolean;
+    balances: Object;
+};
 
 const initialState: BalanceState = {
-	isReady: false,
+    isReady: false,
     balances: {
-		DEBT: {
-			decimal: 18,
-			active: true
-		},
-		PERI: {
-			decimal: 18,
-			active: true,
-		},
-		pUSD: {
-			decimal: 18,
-			active: true
-		},
-		LP: {
-			decimal: 18,
-			active: true,
-		},
-		USDC: {
-			decimal: 6,
-			active: true,
-		},
-		DAI: {
-			decimal: 18,
-			active: true,
-		}
-	}
-}
-
+        DEBT: {
+            decimal: 18,
+            active: true,
+        },
+        PERI: {
+            decimal: 18,
+            active: true,
+        },
+        pUSD: {
+            decimal: 18,
+            active: true,
+        },
+        LP: {
+            decimal: 18,
+            active: true,
+        },
+        USDC: {
+            decimal: 6,
+            active: true,
+        },
+        DAI: {
+            decimal: 18,
+            active: true,
+        },
+    },
+};
 
 export const ExchangeRatesSlice = createSlice({
-	name: 'exchangeRates',
-	initialState,
-	reducers: {
-		initCurrency(state, actions) {
-			state.isReady = true;
-			state.balances = actions.payload;
-		},
-		updateBalances(state, actions) {
-			state.balances[actions.payload.currencyName][actions.payload.value] = actions.payload.balance;
-		},
-		clearBalances(state) {
-			Object.keys(state.balances).forEach(e => {
-				Object.keys(state.balances[e]).forEach(a => {
-					if(a === 'decimal' || a === 'active') {
-						
-					} else {
-						state.balances[e][a] = 0n;
-					}
-					
-				})
-			});
-		}
-	},
+    name: "exchangeRates",
+    initialState,
+    reducers: {
+        initCurrency(state, actions) {
+            return { ...state, isReady: true, balances: actions.payload };
+        },
+        updateBalances(state, actions) {
+            let balances = { ...state.balances };
+            balances[actions.payload.currencyName][actions.payload.value] = actions.payload.balance;
+
+            return { ...state, balances };
+        },
+        clearBalances(state) {
+            let balances = { ...state.balances };
+            Object.keys(balances).forEach((e) => {
+                Object.keys(balances[e]).forEach((a) => {
+                    if (a === "decimal" || a === "active") {
+                    } else {
+                        balances[e][a] = 0n;
+                    }
+                });
+            });
+            return { ...state, balances };
+        },
+    },
 });
 
 export const { initCurrency, updateBalances, clearBalances } = ExchangeRatesSlice.actions;

@@ -1,18 +1,19 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { setLoading } from "reducers/loading";
-import CustomCandleStick from "screens/Chart/CandleStick";
+import BarCandleChart from "screens/Chart/CandleStick";
 import axios from "axios";
-import { updatePrice, updateTooltip } from "reducers/rates";
-import { decimalSplit } from "lib/price/decimalSplit";
 import { getSafeSymbol } from "lib/coinList";
+import { formatCurrency } from "lib";
+// import { getLastRates } from "lib/thegraph/api";
 
 const Chart = () => {
     const dispatch = useDispatch();
 
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
-    const { close, tooltip } = useSelector((state: RootState) => state.exchangeRates);
+    const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
+    const { tooltip } = useSelector((state: RootState) => state.chart);
 
     const [chartTime, setChartTime] = useState("15M");
     const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
@@ -49,49 +50,33 @@ const Chart = () => {
         ];
 
         const dataList = data
-            ? await data.data.slice(sliceLength, data.data.length).map((candle) => {
-                  const result = { openClose: [] };
-                  candle.forEach((name, idx) => {
-                      if (idx === 1) {
-                          result.openClose[0] = Number(name);
-                      }
+            ?   await data.data.slice(sliceLength, data.data.length).map((candle) => {
+                    const result = { openClose: [] };
+                    candle.forEach((name, idx) => {
+                        if (idx === 1) {
+                            result.openClose[0] = Number(name);
+                        }
 
-                      if (idx === 4) {
-                          result.openClose[1] = Number(name);
-                      }
+                        if (idx === 4) {
+                            result.openClose[1] = Number(name);
+                        }
 
-                      if (idx === 0) {
-                          result[title[idx]] = name;
-                      } else {
-                          result[title[idx]] = name;
-                      }
-                  });
-                  return result;
-              })
-            : [];
-
+                        if (idx === 0) {
+                            result[title[idx]] = name;
+                        } else {
+                            result[title[idx]] = name;
+                        }
+                    });
+                    return result;
+                })
+            :   [];
+        // console.log("dataList",key, dataList);
         if (key === "source") {
             setSource(dataList);
         } else if (key === "destination") {
             setDestinate(dataList);
         }
     }, []);
-
-    const runTimer = (url, symbol, interval, key, sliceLength) => {
-        setTimeout(async () => {
-            if (currencyNames[key] !== "pUSD") {
-                await axios
-                    .get(url, {
-                        headers: { "Access-Control-Allow-Origin": "*" },
-                        params: { symbol: symbol, interval: interval },
-                    })
-                    .then((res) => {
-                        setPrepareData(res, key, sliceLength);
-                        loadingHandler(false);
-                    });
-            }
-        }, 300000);
-    };
 
     const init = useCallback(async () => {
         let interval = "";
@@ -111,12 +96,14 @@ const Chart = () => {
                         params: { symbol: symbol, interval: interval },
                     })
                     .then((res) => {
+                        // console.log(res);
                         setPrepareData(res, key, sliceLength);
                         loadingHandler(false);
                     });
 
                 // runTimer(url, symbol, interval, key, sliceLength);
             } else {
+                // console.log("pUSD");
                 setPrepareData(undefined, key, sliceLength);
             }
         });
@@ -141,11 +128,7 @@ const Chart = () => {
 
     const closeModalHandler = useCallback(
         (e) => {
-            if (
-                isTimeSeriseList &&
-                e.target.id !== "series_caller" &&
-                !seriseRef.current.contains(e.target)
-            ) {
+            if (isTimeSeriseList && e.target.id !== "series-caller" && !seriseRef.current.contains(e.target)) {
                 setIsTimeSeriseList(false);
             }
         },
@@ -166,22 +149,22 @@ const Chart = () => {
                 <div className="relative flex justify-end mr-20 ">
                     <div className="absolute z-20 mt-3 text-md">
                         <button
-                            id="series_caller"
-                            className={`flex items-center justify-center hover:border border-gray-300 w-10 h-6
-                            text-gray-300 text-sky-200/80 font-medium rounded-md 
-                            ${isTimeSeriseList && " border"}`}
+                            id="series-caller"
+                            className={`flex items-end justify-center hover:border border-gray-300 w-10 h-5
+                            text-gray-300 text-sky-200/80 font-medium text-xs rounded-md 
+                            ${isTimeSeriseList && " border rounded-b-none"}`}
                             onClick={() => setIsTimeSeriseList(!isTimeSeriseList)}
                         >
                             {chartTime}
                             <img
-                                id="list-caller"
+                                id="series-caller"
                                 alt="arrow"
-                                className={`w-2 h-1 pl-[2px] ${isTimeSeriseList && " hidden"}`}
+                                className={`w-2 pb-[6px] pl-[2px] ${isTimeSeriseList && " hidden"}`}
                                 src={`/images/icon/bottom_arrow.png`}
                             ></img>
                         </button>
                         <div
-                            className={`absolute items-center text-gray-300 font-medium bg-gray-700 w-8 ml-1
+                            className={`absolute items-center text-gray-300 text-xs font-medium bg-gray-700 w-10
                             shadow-sm shadow-slate-600 ${!isTimeSeriseList && "hidden"}`}
                             ref={seriseRef}
                         >
@@ -189,7 +172,7 @@ const Chart = () => {
                                 {Object.keys(timeSerise).map((key) => (
                                     <li
                                         key={key}
-                                        className={`p-1 hover:text-sky-200/80 hover:bg-black-900 cursor-pointer ${
+                                        className={`text-center p-1 hover:text-sky-200/80 hover:bg-black-900 cursor-pointer ${
                                             chartTime === key && "bg-black-900"
                                         }`}
                                         onClick={() => {
@@ -219,9 +202,7 @@ const Chart = () => {
                                     ></img>
                                     <img
                                         className="w-6 h-6 ml-4 absolute bottom-right z-10"
-                                        src={`/images/currencies/${getSafeSymbol(
-                                            selectedCoins.source.symbol
-                                        )}.svg`}
+                                        src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
                                         alt="currencies"
                                     ></img>
                                 </div>
@@ -231,8 +212,7 @@ const Chart = () => {
                                         {getSafeSymbol(selectedCoins.source.symbol)}
                                     </span>
                                     <span className="text-xs text-skyblue-500">
-                                        {decimalSplit(close)}{" "}
-                                        {getSafeSymbol(selectedCoins.source.symbol)}
+                                        {formatCurrency(lastRateData.rate, 8)} {getSafeSymbol(selectedCoins.source.symbol)}
                                     </span>
                                 </div>
                             </div>
@@ -257,12 +237,8 @@ const Chart = () => {
                             </span>
                         </div>
                     </div>
-                    <div className="h-[22rem] lg:h-[30rem] z-2">
-                        <CustomCandleStick
-                            source={source}
-                            destinate={destinate}
-                            chartTime={chartTime}
-                        />
+                    <div className="h-[22rem] lg:h-[26rem] z-2">
+                        <BarCandleChart currencyNames={currencyNames} source={source} destinate={destinate} chartTime={chartTime} />
                     </div>
                 </div>
             </div>

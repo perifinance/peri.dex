@@ -11,11 +11,13 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 		first,
 	};
 
+	// console.log("exchangeHistories", variables);
 	const settledMap = (data) => {
 		return {
 			id: data.id,
 			src: utils.parseBytes32String(data.src),
 			amount: BigInt(data.amount),
+			chainId: data.chainId,
 			dest: utils.parseBytes32String(data.dest),
 			txid: data.txid,
 			reclaim: BigInt(data.reclaim),
@@ -60,6 +62,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 					state
 					appendedTxid
 					settledTxid
+					chainId
 				}
 			}
 		`,

@@ -65,7 +65,7 @@ const Submit = () => {
     const dispatch = useDispatch();
 
     const validationCheck = () => {
-        console.log("validationCheck", Number(step));
+        // console.log("validationCheck", Number(step));
         setIsValidation(false);
         if (!isConnect) {
             setValidationMessage("Please connect your wallet");
@@ -844,7 +844,7 @@ const Submit = () => {
                         <div className="flex basis-1/3 justify-end pr-2">
                             {isProcessing && (
                                 <svg
-                                    className="animate-spin h-5 w-5 text-white"
+                                    className="animate-spin h-5 w-5 text-blue-500"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"

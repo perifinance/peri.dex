@@ -16,18 +16,20 @@ import { setLoading } from "reducers/loading";
 import "./Order.css";
 import { networkInfo } from "configure/networkInfo";
 import { getSafeSymbol } from "lib/coinList";
-import { set } from "date-fns";
+import { updateLastRateData } from "reducers/rates";
+// import { resetChartData } from "reducers/chart/chart";
+// import { set } from "date-fns";
 // import { set } from "date-fns";
 
-const Order = ({ openCoinList }) => {
+const Order = ({ openCoinList, balance, setBalance }) => {
     const dispatch = useDispatch();
     const { isReady } = useSelector((state: RootState) => state.app);
     const { networkId, address, isConnect } = useSelector((state: RootState) => state.wallet);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    const { lastRateData} = useSelector((state: RootState) => state.exchangeRates);
 
     const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
-    const [exchangeRates, setExchangeRates] = useState(0n);
 
     const [feeRate, setFeeRate] = useState(0n);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
@@ -40,7 +42,7 @@ const Order = ({ openCoinList }) => {
     const [payAmount, setPayAmount] = useState("0");
     const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
     const [receiveAmount, setReceiveAmount] = useState(0n);
-    const [balance, setBalance] = useState(0n);
+    // const [balance, setBalance] = useState(0n);
     const [isPending, setIsPending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
@@ -52,35 +54,48 @@ const Order = ({ openCoinList }) => {
                 return;
             }
 
-            const rates = await (async () => {
-                const rates = await Promise.all([
-                    getLastRates({ networkId, currencyName: selectedCoins.source.symbol }),
-                    getLastRates({ networkId, currencyName: selectedCoins.destination.symbol }),
-                ]);
+            const rates = await getLastRates([selectedCoins.source.symbol, selectedCoins.destination.symbol]);
+            if (rates === undefined) return;
 
-                return rates;
-            })();
+            const tmp = { src: { price: 10n ** 18n, timestamp: 0 }, dest: { price: 10n ** 18n, timestamp: 0 } };
+            rates.forEach((item) => {
+                if (`p${item.currencyKey}` === selectedCoins.source.symbol ) {
+                    tmp.src.price = item.price;
+                    tmp.src.timestamp = item.timestamp;
+                } else {
+                    tmp.dest.price = item.price;
+                    tmp.dest.timestamp = item.timestamp;
+                }
+            });
 
-            const sourceRate = rates[0];
-            const destinationRate = rates[1];
-            const exchangeRates = (destinationRate * 10n ** 18n) / sourceRate;
+            console.log(
+                "getRate src, dest",
+                selectedCoins.source.symbol,
+                selectedCoins.destination.symbol,
+                tmp.src,
+                tmp.dest
+            );
 
-            setSourceRate(sourceRate);
-            setExchangeRates(exchangeRates);
+            const timeStamp = tmp.src.timestamp > tmp.dest.timestamp ? tmp.src.timestamp : tmp.dest.timestamp;
+            const lastRateData = {
+                timestamp: timeStamp,
+                rate: (tmp.dest.price * 10n ** 18n) / tmp.src.price,
+                symbols: `${selectedCoins.source.symbol}/${selectedCoins.destination.symbol}`,
+            };
+
+            dispatch(updateLastRateData(lastRateData));
+            setSourceRate(tmp.src.price);
+            console.log("getRate", rates, tmp.src.price, tmp.dest.price);
         } catch (e) {
             console.error("getRate error", e);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCoins]);
 
     const getFeeRate = async () => {
         if (!selectedCoins.source.symbol || !selectedCoins.destination.symbol) return;
         try {
-            setFeeRate(
-                await getFeeRateForExchange(
-                    selectedCoins.source.symbol,
-                    selectedCoins.destination.symbol
-                )
-            );
+            setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
         } catch (e) {
             console.log(e);
         }
@@ -111,9 +126,9 @@ const Order = ({ openCoinList }) => {
             if (!isConnect) {
                 setValidationMessage("Please connect your wallet");
             } else if (!isExchageNetwork(networkId)) {
-                console.log("validationCheck", networkId)
+                console.log("validationCheck", networkId);
                 setValidationMessage(
-                    `You just connected an unsupported netowork. Please change to one of the PERI DEX supported networks`
+                    `You just connected an unsupported netowork. Please switch to either polygon or moonriver.`
                 );
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             } else if (Number(value) === 0) {
@@ -139,8 +154,8 @@ const Order = ({ openCoinList }) => {
         setPayAmount(value);
         try {
             setPayAmountToUSD((utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n);
-            const exchangeAmount =
-                (utils.parseEther(value).toBigInt() * 10n ** 18n) / exchangeRates;
+            const exchangeAmount = (utils.parseEther(value).toBigInt() * 10n ** 18n) / lastRateData.rate;
+            console.log("changePayAmount", value, exchangeAmount, lastRateData.rate);
             const feePrice = (exchangeAmount * feeRate) / 10n ** 18n;
             setReceiveAmount(exchangeAmount - feePrice);
         } catch (e) {
@@ -153,6 +168,7 @@ const Order = ({ openCoinList }) => {
         try {
             getGasEstimate().then(() => {
                 const feePrice = gasLimit * gasPrice * networkRate;
+                // console.log("feePrice", feePrice, gasLimit, gasPrice, networkRate);
                 setNetworkFeePrice(feePrice / 10n ** 9n);
             });
         } catch (e) {}
@@ -160,8 +176,7 @@ const Order = ({ openCoinList }) => {
 
     const getPrice = useCallback(() => {
         try {
-            const price =
-                (BigInt(utils.parseEther(payAmount).toString()) * sourceRate) / 10n ** 18n;
+            const price = (BigInt(utils.parseEther(payAmount).toString()) * sourceRate) / 10n ** 18n;
             setPrice(price);
             setFeePrice((price * feeRate) / 10n ** 18n);
         } catch (e) {
@@ -172,10 +187,7 @@ const Order = ({ openCoinList }) => {
 
     const getGasEstimate = async () => {
         if (!isExchageNetwork(networkId)) {
-            console.log(
-                "Can't get the exchange gas estemate since the dex is not on this chain",
-                networkId
-            );
+            console.log("Can't get the exchange gas estemate since the dex is not on this chain", networkId);
             return "0";
         }
 
@@ -242,7 +254,7 @@ const Order = ({ openCoinList }) => {
                         setReceiveAmount(0n);
                         setIsPending(false);
                     },
-                    error() {
+                    error: () => {
                         setIsPending(false);
                     },
                 })
@@ -254,25 +266,21 @@ const Order = ({ openCoinList }) => {
     };
 
     const swapToCurrency = () => {
-        if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
-            NotificationManager.warning(
-                `This network is not supported. Please change to moonriver network`,
-                "ERROR"
-            );
+        if (!isExchageNetwork(networkId)) {
+            NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
             // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             return false;
         }
         const { source, destination } = Object.assign({}, selectedCoins);
+
+        // dispatch(resetChartData());
         dispatch(setSourceCoin(destination));
         dispatch(setDestinationCoin(source));
     };
 
     const setNetworkFee = async () => {
         try {
-            const [fee, rate] = await Promise.all([
-                getNetworkFee(networkId),
-                getNetworkPrice(networkId),
-            ]);
+            const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
             setGasPrice(fee);
             setNetworkRate(rate);
             return rate;
@@ -288,19 +296,16 @@ const Order = ({ openCoinList }) => {
         changePayAmount(utils.formatEther(perBalance));
     };
 
-    const convertNumber = (value: bigint) => {
-        return value < 10n ? `0${value.toString()}` : value.toString();
-    };
-
     useEffect(() => {
-        if (isConnect && selectedCoins.source.symbol && selectedCoins.destination.symbol) {
-            getRate();
+        if (isReady && isConnect && selectedCoins.source.symbol && selectedCoins.destination.symbol) {
+            setTimeout(getRate, 500);
             const timeout = setInterval(() => {
                 getRate();
-            }, 1000 * 180);
+            }, 1000 * 10);
             return () => clearInterval(timeout);
         }
-    }, [getRate, isConnect, selectedCoins]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isReady, isConnect, selectedCoins]);
 
     useEffect(() => {
         dispatch(setLoading({ name: "balance", value: true }));
@@ -310,6 +315,7 @@ const Order = ({ openCoinList }) => {
         }
 
         dispatch(setLoading({ name: "balance", value: false }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, selectedCoins]);
 
     useEffect(() => {
@@ -318,16 +324,17 @@ const Order = ({ openCoinList }) => {
             getFeeRate();
             getNetworkFeePrice();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, gasLimit, gasPrice, networkRate]);
 
     useEffect(() => {
         if (isReady && isConnect && address) {
-            if (networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+            if (isExchageNetwork(networkId)) {
                 getSourceBalance();
             } else {
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
                 setPayAmount("0");
-                
+
                 setPayAmountToUSD(0n);
                 setReceiveAmount(0n);
                 setBalance(0n);
@@ -335,6 +342,7 @@ const Order = ({ openCoinList }) => {
             }
             validationCheck("0");
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, isConnect, address, selectedCoins]);
 
     useEffect(() => {
@@ -350,6 +358,7 @@ const Order = ({ openCoinList }) => {
             setBalance(0n);
             setPer(0n);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, selectedCoins]);
 
     return (
@@ -360,17 +369,12 @@ const Order = ({ openCoinList }) => {
                         <img
                             alt="dest_symgol"
                             className="w-8 h-8"
-                            src={`/images/currencies/${getSafeSymbol(
-                                selectedCoins.destination.symbol,
-                                false
-                            )}.svg`}
+                            src={`/images/currencies/${getSafeSymbol(selectedCoins.destination.symbol, false)}.svg`}
                         ></img>
                         <img
                             alt="source_symgol"
                             className="w-8 h-8 absolute bottom-0 left-4"
-                            src={`/images/currencies/${getSafeSymbol(
-                                selectedCoins.source.symbol
-                            )}.svg`}
+                            src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
                         ></img>
                     </div>
                     <div className="text-lg font-medium tracking-tighter">
@@ -387,8 +391,7 @@ const Order = ({ openCoinList }) => {
                             <span className="font-medium">{formatCurrency(balance, 4)}</span>
                         </div>
                         <img
-                            style={{ backgroundColor: "#4182F0" }}
-                            className={`m-1 p-1 w-4 rounded-full cursor-pointer box-border ${
+                            className={`m-1 p-1 w-[16px] rounded-full bg-blue-500 cursor-pointer ${
                                 isRefreshing && "animate-spin"
                             }`}
                             src={`/images/icon/refresh.svg`}
@@ -411,9 +414,7 @@ const Order = ({ openCoinList }) => {
                             id="list-caller"
                             className="w-6 h-6"
                             alt="target-symbol"
-                            src={`/images/currencies/${getSafeSymbol(
-                                selectedCoins.source.symbol
-                            )}.svg`}
+                            src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
                         ></img>
                         <span id="list-caller" className="m-1 text-sm tracking-tighter">
                             {getSafeSymbol(selectedCoins.source.symbol)}
@@ -443,11 +444,7 @@ const Order = ({ openCoinList }) => {
                     onClick={() => swapToCurrency()}
                 >
                     <div className="m-auto">
-                        <img
-                            alt="execute"
-                            className="w-4 h-5 align-middle"
-                            src={"/images/icon/exchange.png"}
-                        ></img>
+                        <img alt="execute" className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"}></img>
                     </div>
                 </div>
                 <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
@@ -460,10 +457,7 @@ const Order = ({ openCoinList }) => {
                             id="list-caller"
                             alt="dest-symbol"
                             className="w-6 h-6"
-                            src={`/images/currencies/${getSafeSymbol(
-                                selectedCoins.destination.symbol,
-                                false
-                            )}.svg`}
+                            src={`/images/currencies/${getSafeSymbol(selectedCoins.destination.symbol, false)}.svg`}
                         ></img>
                         <span id="list-caller" className="m-1 text-sm tracking-tighter">
                             {getSafeSymbol(selectedCoins.destination.symbol, false)}
@@ -497,41 +491,31 @@ const Order = ({ openCoinList }) => {
                         </div>
                         <div className="flex flex-row justify-between text-xs text-gray-400 w-full">
                             <span
-                                className={`base-1/5 last:text-left cursor-pointer ${
-                                    per === 0n && "text-blue-600"
-                                }`}
+                                className={`base-1/5 last:text-left cursor-pointer ${per === 0n && "text-blue-600"}`}
                                 onClick={() => setPerAmount(0n)}
                             >
                                 0%
                             </span>
                             <span
-                                className={`base-1/5 text-center cursor-pointer ${
-                                    per === 25n && "text-blue-600"
-                                }`}
+                                className={`base-1/5 text-center cursor-pointer ${per === 25n && "text-blue-600"}`}
                                 onClick={() => setPerAmount(25n)}
                             >
                                 25%
                             </span>
                             <span
-                                className={`base-1/5 text-center cursor-pointer ${
-                                    per === 50n && "text-blue-600"
-                                }`}
+                                className={`base-1/5 text-center cursor-pointer ${per === 50n && "text-blue-600"}`}
                                 onClick={() => setPerAmount(50n)}
                             >
                                 50%
                             </span>
                             <span
-                                className={`base-1/5 text-center cursor-pointer ${
-                                    per === 75n && "text-blue-600"
-                                }`}
+                                className={`base-1/5 text-center cursor-pointer ${per === 75n && "text-blue-600"}`}
                                 onClick={() => setPerAmount(75n)}
                             >
                                 75%
                             </span>
                             <span
-                                className={`base-1/5 text-right cursor-pointer ${
-                                    per === 100n && "text-blue-600"
-                                }`}
+                                className={`base-1/5 text-right cursor-pointer ${per === 100n && "text-blue-600"}`}
                                 onClick={() => setPerAmount(100n)}
                             >
                                 100%
@@ -545,30 +529,24 @@ const Order = ({ openCoinList }) => {
                             max="100"
                             value={per.toString()}
                             onChange={(e) =>
-                                setPerAmount(
-                                    Number(e.target.value) > 100
-                                        ? BigInt("100")
-                                        : BigInt(e.target.value)
-                                )
+                                setPerAmount(Number(e.target.value) > 100 ? BigInt("100") : BigInt(e.target.value))
                             }
                         />
                         %
                     </div>
                 </div>
                 <div className="flex flex-col-reverse lg:flex-col">
-                    <div className="lg:pt-10 text-xs lg:text-sm">
+                    <div className="lg:pt-14 text-xs lg:text-sm">
                         <div className="flex justify-between w-full">
                             <span>Network Fee</span>
                             <div className="flex flex-nowrap items-center">
-                                <span className="font-medium">
-                                    ${formatCurrency(networkFeePrice, 5)}
-                                </span>
+                                <span className="font-medium">${formatCurrency(networkFeePrice, 5)}</span>
                                 <span className="font-light text-xs tracking-tighter">{`( ${gasPrice.toString()} GWEI) `}</span>
                             </div>
                         </div>
                         <div className="flex pt-3 justify-between w-full">
                             <div>Rate</div>
-                            <div>1 = {formatCurrency(exchangeRates, 8)}</div>
+                            <div>1 = {formatCurrency(lastRateData.rate, 8)}</div>
                         </div>
                         <div className="flex pt-3 justify-between w-full">
                             <div>Cost: </div>
@@ -595,14 +573,14 @@ const Order = ({ openCoinList }) => {
                         )} */}
                     </div>
                     <button
-                        className={`btn-base flex flex-row items-center mt-6 lg:mt-8 mb-4 px-4 py-2 w-full`}
+                        className={`btn-base flex flex-row items-center mt-6 lg:my-6 lg:mt-14 mb-4 px-4 py-2 w-full`}
                         onClick={() => order()}
                         disabled={isPending}
                     >
                         <div className="flex basis-1/3 justify-end pr-2">
                             {isPending && (
                                 <svg
-                                    className="animate-spin h-5 w-5 text-white"
+                                    className="animate-spin h-5 w-5 text-blue-500"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -627,7 +605,7 @@ const Order = ({ openCoinList }) => {
                     </button>
                 </div>
                 {/* {!isValidation || !isConnect ? ( */}
-                <div className="hidden lg:block bg-black-900 w-full text-center break-wards text-cyan-300/70 rounded-lg text-xs font-medium p-2">
+                <div className="hidden lg:block bg-black-900 w-full text-center break-wards text-blue-400 rounded-lg text-xs font-medium py-3 px-2">
                     {!isConnect
                         ? "Please Connect your wallet"
                         : isExchageNetwork(networkId)

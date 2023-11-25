@@ -269,8 +269,7 @@ const Header = () => {
                 >
                     <img
                         id="menu_caller"
-                        className="w-6"
-                        onClick={() => setIsMenuList(!isMenuList)}
+                        className="w-6 z-0"
                         alt="Toggle Dropdown Menu"
                         src={"/images/icon/drawer.svg"}
                     />

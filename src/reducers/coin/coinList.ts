@@ -22,11 +22,13 @@ export const coinListSlice = createSlice({
 	initialState,
 	reducers: {
 		initCoinList: (state, actions: PayloadAction<CoinList>) => {
-			state.coinList = [].concat(actions.payload);
+			return {...state,coinList: [].concat(actions.payload)};
 		},
 
 		updateCoin: (state, actions: PayloadAction<Coin>) => {
-			state.coinList[actions.payload.id] = actions.payload
+			let coinList = {...state.coinList};
+			coinList[actions.payload.id] = actions.payload;
+			return {...state, coinList}
 		}
 	},
 });

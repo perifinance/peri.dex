@@ -15,7 +15,7 @@ export const appSlice = createSlice({
 	initialState,
 	reducers: {
 		setAppReady: state => {
-			state.isReady = true;
+			return {...state, isReady: true};
 		},
 	},
 });

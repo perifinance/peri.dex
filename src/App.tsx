@@ -4,7 +4,7 @@ import { NotificationContainer, NotificationManager } from "react-notifications"
 // import { getLastRates, getBalances } from 'lib/thegraph/api'
 import { RootState } from "reducers";
 
-import { updateAddress, updateNetwork, updateIsConnect } from "reducers/wallet";
+import { updateAddress, updateNetwork, updateIsConnect, clearWallet } from "reducers/wallet";
 // import { clearWallet, clearBalances } from 'reducers/wallet'
 import { resetTransaction } from "reducers/transaction";
 import { initCoinList } from "reducers/coin/coinList";
@@ -20,7 +20,7 @@ import Main from "./screens/Main";
 import "./App.css";
 
 const App = () => {
-    const { address, networkId } = useSelector((state: RootState) => state.wallet);
+    const { isConnect, networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
     const themeState = useSelector((state: RootState) => state.theme.theme);
 
@@ -52,14 +52,15 @@ const App = () => {
                     },
                     address: async (newAddress) => {
 
-                        console.log('contract connect call in address', newAddress);
+                        // console.log('contract connect call in address', newAddress);
                         
                         try {
                             if (newAddress === undefined) {
-                                dispatch(updateIsConnect(false));
+                                contracts.clear();
+                                dispatch(clearWallet());
                                 dispatch(updateAddress({ address: null }));
                             } else {
-                                contracts.connect(newAddress);
+                                await contracts.connect(newAddress);
                                 dispatch(updateIsConnect(true));
                                 dispatch(updateAddress({ address: newAddress }));
                             }
@@ -70,10 +71,10 @@ const App = () => {
                     network: async (network) => {
                         const newNetworkId = Number(network);
 
-                        console.log('contract init call in network', networkId, newNetworkId);
+                        // console.log('contract init call in network', networkId, newNetworkId);
 
                         try{
-                            contracts.init(newNetworkId);
+                            await contracts.init(newNetworkId);
                             dispatch(updateNetwork({ networkId: newNetworkId}));
                         } catch (e) {
                             console.log(e);
@@ -107,7 +108,7 @@ const App = () => {
             await contracts.provider.once(transaction.hash, async (transactionState) => {
                 if (transactionState.status !== 1) {
                     NotificationManager.remove(NotificationManager.listNotify[0]);
-                    NotificationManager.warning(`${transaction.type} failed`, "ERROR");
+                    NotificationManager.error(`${transaction.type} failed`, "ERROR");
                 } else {
                     NotificationManager.remove(NotificationManager.listNotify[0]);
                     NotificationManager.success(`${transaction.type} succeeded`, "SUCCESS");

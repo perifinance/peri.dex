@@ -1,8 +1,8 @@
-// import { add } from 'date-fns';
 import { ethers } from "ethers";
 import { contracts } from "lib/contract";
+import pynths from "configure/coins/pynths";
 
-export const getNetworkPrice = async (networkId) => {
+export const lastRateOnChain = async (networkId, currencyName = undefined) => {
 	const aggregatorV3InterfaceABI = [
 		{
 			inputs: [],
@@ -53,20 +53,16 @@ export const getNetworkPrice = async (networkId) => {
 		},
 	];
 
-	const address = {
-		1285: "0x3f8BFbDc1e79777511c00Ad8591cef888C2113C1",
-		1287: "0x3f8BFbDc1e79777511c00Ad8591cef888C2113C1",
-		137: "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0",
-		80001: "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0",
-		56: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
-		97: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
-		1: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-		5: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
-	};
-	if (address[networkId]) {
+	if (currencyName === "pUSD") {
+		return 1n * 10n ** 18n;
+	}
+
+	const pynth = pynths[networkId].find((p) => p.symbol === currencyName);
+	// console.log("lastRate", networkId, currencyName, pynthAddress, contracts.provider);
+	if (pynth.priceFeedContract && contracts.provider) {
 		try {
 			const contract = new ethers.Contract(
-				address[networkId],
+				pynth.priceFeedContract,
 				aggregatorV3InterfaceABI,
 				contracts.provider
 			);
@@ -74,10 +70,10 @@ export const getNetworkPrice = async (networkId) => {
 
 			return BigInt(lastRound.answer) * 10n ** 10n;
 		} catch (e) {
+			console.error("lastRate error", e);
 			return 0n;
 		}
-	} else {
 	}
 
-	return 0n;
+	return 10n ** 18n;
 };

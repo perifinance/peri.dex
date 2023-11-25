@@ -7,7 +7,7 @@ import { getLastRates } from "lib/thegraph/api";
 import { formatCurrency, formatTimestamp } from "lib";
 import { contracts } from "lib/contract";
 import { getBalances } from "lib/thegraph/api";
-import { changeNetwork } from "lib/network";
+import { changeNetwork, isExchageNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
 import { getExchangeHistories } from "lib/thegraph/api";
 import DatePicker from "react-datepicker";
@@ -15,6 +15,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import pynths from "configure/coins/pynths";
 import { setLoading } from "reducers/loading";
+import govCoin from "configure/coins/govCoin";
 
 const useDidMountEffect = (func: any, deps: Array<any>) => {
     const didMount = useRef(false);
@@ -120,12 +121,11 @@ const Assets = () => {
 
     useDidMountEffect(() => {
         if (isReady && coinList && address && isConnect) {
-            if (networkId !== Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+            if (!isExchageNetwork(networkId)) {
                 NotificationManager.warning(
-                    `This network is not supported. Please change to moonriver network`,
-                    "ERROR"
+                    `This network is not supported. Please try another network`
                 );
-                changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
+                // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             }
         }
     }, [searchOptions]);
@@ -137,7 +137,7 @@ const Assets = () => {
 
     useEffect(() => {
         if (address && !transaction.hash) {
-            if (networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+            if (isExchageNetwork(networkId)) {
                 getHistory();
             } else {
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
@@ -162,8 +162,8 @@ const Assets = () => {
         let colors = [];
 
         try {
-            let rates = await getLastRates({ networkId });
-            let balances: any = await getBalances({ networkId, address, rates });
+            // let rates = await getLastRates({ currencyName: govCoin[networkId] });
+            let balances: any = await getBalances({ networkId, address });
             setBalances(balances);
             const totalAssets = balances.reduce((a, c) => a + c.balanceToUSD, 0n);
             setTotalAssets(totalAssets);
@@ -190,7 +190,7 @@ const Assets = () => {
 
     useEffect(() => {
         if (isReady && coinList && address && isConnect) {
-            if (networkId === Number(process.env.REACT_APP_DEFAULT_NETWORK_ID)) {
+            if (isExchageNetwork(networkId)) {
                 init();
             } else {
                 // NotificationManager.warning(

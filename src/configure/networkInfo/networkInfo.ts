@@ -18,14 +18,13 @@ export const networkInfo = {
 		chainId: "0x38",
 		chainName: "BSC",
 		rpcUrls: RPC_URLS[56],
-		blockExplorerUrls: "https://bscscan.com/",
+		blockExplorerUrls: "https://bscscan.com",
 	},
 	1285: {
 		chainId: "0x505",
 		chainName: "Moonriver",
-		// rpcUrls: "https://moonriver.api.onfinality.io/rpc?apikey=96fac326-b64d-4479-8b8d-2bcf64d0f99f",
 		rpcUrls: RPC_URLS[1285],
-		blockExplorerUrls: "https://blockscout.moonriver.moonbeam.network/",
+		blockExplorerUrls: "https://moonriver.moonscan.io",
 	},
 	97: {
 		chainId: "0x61",
@@ -37,18 +36,18 @@ export const networkInfo = {
 		chainId: "0x89",
 		chainName: "Polygon",
 		rrpcUrls: RPC_URLS[137],
-		blockExplorerUrls: "https://explorer.matic.network/",
+		blockExplorerUrls: "https://polygonscan.com/",
 	},
 	1287: {
 		chainId: "0x507",
 		chainName: "Moonbase",
 		rpcUrls: RPC_URLS[1287],
-		blockExplorerUrls: "https://moonbase-blockscout.testnet.moonbeam.network/",
+		blockExplorerUrls: "https://moonbase.moonscan.io",
 	},
 	80001: {
 		chainId: "0x13881",
 		chainName: "Mumbai",
 		rpcUrls: RPC_URLS[80001],
-		blockExplorerUrls: "https://mumbai.polygonscan.com/",
+		blockExplorerUrls: "https://mumbai.polygonscan.com",
 	},
 };
