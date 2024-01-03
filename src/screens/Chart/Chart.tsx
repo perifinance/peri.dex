@@ -208,7 +208,7 @@ const Chart = () => {
                             </span>
                         </div>
                     </div>
-                    {/* <div className="relative flex justify-end w-fit">
+                    <div className="relative flex justify-end w-fit">
                         <div className="flex z-20 mt-3 text-md">
                             <button
                                 id="series-caller"
@@ -248,7 +248,7 @@ const Chart = () => {
                                 </ul>
                             </div>
                         </div>
-                    </div> */}
+                    </div>
                 </div>
                 <div className="flex h-full w-[97%] lg:w-full lg:h-[26rem] z-2 mt-[5px] ml-2 lg:ml-0">
                     <BarCandleChart source={source} destinate={destinate} chartTime={chartTime} />

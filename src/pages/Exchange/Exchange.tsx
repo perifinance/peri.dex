@@ -75,7 +75,7 @@ const Exchange = () => {
     }, [isConnect, networkId]);
 
     return (
-        <div className="flex flex-col mt-0 sm:mt-2 lg:flex-row w-full h-full lg:justify-between lg:space-x-2 xl:space-x-4">
+        <div className="flex flex-col mt-0 sm:mt-2 lg:flex-row w-full h-full lg:h-[74%] lg:justify-between lg:space-x-2 xl:space-x-4">
             <div className={`w-full lg:w-[77%] flex h-full lg:max-h-screen lg:grow lg:flex-col`}>
                 <Chart />
                 <div className="hidden lg:flex w-full lg:h-1/3">

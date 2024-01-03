@@ -102,7 +102,7 @@ const Assets = () => {
     }, [closeModalHandler]); */
 
     return (
-        <div className="flex flex-col-reverse items-center md:flex-row w-full h-fit sm:justify-between">
+        <div className="flex flex-col-reverse items-center mt-0 md:flex-row w-full h-full lg:h-[65%] sm:justify-between">
             <Trades histories={histories}/>
             <Portfolio standAlone={false}/>
         </div>

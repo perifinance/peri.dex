@@ -89,8 +89,8 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
 
     return (
         <div
-            className={`lg:flex flex-col items-center w-[98%] lg:w-1/4 h-[98%] bg-gray-700 rounded-lg pb-2 ${
-                standAlone ? "flex" : "hidden"
+            className={`lg:flex flex-col items-center w-[98%] lg:w-1/4 min-h-[98%] bg-gray-700 rounded-lg pb-2 ${
+                standAlone ? "flex h-fit" : "hidden h-[98%]"
             }`}
         >
             <div className="flex py-2 justify-between items-center w-[90%] ">
