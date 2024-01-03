@@ -30,9 +30,12 @@ export const loadingSlice = createSlice({
         setDestinationCoin: (state, actions: PayloadAction<Coin>) => {
             return { ...state, destination: actions.payload };
         },
+        setSelectedCoin: (state, actions: PayloadAction<selectedCoin>) => {
+            return { ...state, ...actions.payload };
+        }
     },
 });
 
-export const { setSourceCoin, setDestinationCoin } = loadingSlice.actions;
+export const { setSelectedCoin, setSourceCoin, setDestinationCoin } = loadingSlice.actions;
 
 export default loadingSlice.reducer;

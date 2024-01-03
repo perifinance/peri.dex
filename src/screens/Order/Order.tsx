@@ -9,7 +9,7 @@ import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
 import { getNetworkPrice } from "lib/price";
-import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
+import { setSourceCoin, setDestinationCoin, setSelectedCoin } from "reducers/coin/selectedCoin";
 import { SUPPORTED_NETWORKS, isExchageNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
 import { setLoading } from "reducers/loading";
@@ -68,13 +68,13 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                 }
             });
 
-            console.log(
+            /* console.log(
                 "getRate src, dest",
                 selectedCoins.source.symbol,
                 selectedCoins.destination.symbol,
                 tmp.src,
                 tmp.dest
-            );
+            ); */
 
             const timeStamp = tmp.src.timestamp > tmp.dest.timestamp ? tmp.src.timestamp : tmp.dest.timestamp;
             const lastRateData = {
@@ -85,7 +85,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
 
             dispatch(updateLastRateData(lastRateData));
             setSourceRate(tmp.src.price);
-            console.log("getRate", rates, tmp.src.price, tmp.dest.price);
+            // console.log("getRate", rates, tmp.src.price, tmp.dest.price);
         } catch (e) {
             console.error("getRate error", e);
         }
@@ -155,7 +155,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
         try {
             setPayAmountToUSD((utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n);
             const exchangeAmount = (utils.parseEther(value).toBigInt() * 10n ** 18n) / lastRateData.rate;
-            console.log("changePayAmount", value, exchangeAmount, lastRateData.rate);
+            // console.log("changePayAmount", value, exchangeAmount, lastRateData.rate);
             const feePrice = (exchangeAmount * feeRate) / 10n ** 18n;
             setReceiveAmount(exchangeAmount - feePrice);
         } catch (e) {
@@ -271,11 +271,9 @@ const Order = ({ openCoinList, balance, setBalance }) => {
             // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             return false;
         }
-        const { source, destination } = Object.assign({}, selectedCoins);
+        const { source, destination } = {...selectedCoins};
 
-        // dispatch(resetChartData());
-        dispatch(setSourceCoin(destination));
-        dispatch(setDestinationCoin(source));
+        dispatch(setSelectedCoin({ source: destination, destination: source }));
     };
 
     const setNetworkFee = async () => {
@@ -362,7 +360,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
     }, [isConnect, selectedCoins]);
 
     return (
-        <div className={`lg:min-w-80 lg:max-w-xs lg:max-h-screen`}>
+        <div className={`w-full lg:max-h-screen`}>
             <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2 hidden lg:flex">
                 <div className="flex space-x-5 py-2 items-center">
                     <div className="relative">
@@ -388,7 +386,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                     <div className="flex items-center space-x-1 pl-1 justify-start w-full text-xs">
                         <div className=" text-gray-400">
                             <span className="">Available:</span>
-                            <span className="font-medium">{formatCurrency(balance, 4)}</span>
+                            <span className="font-medium">{` ${formatCurrency(balance, 4)}`}</span>
                         </div>
                         <img
                             className={`m-1 p-1 w-[16px] rounded-full bg-blue-500 cursor-pointer ${

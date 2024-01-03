@@ -1,6 +1,6 @@
 // ? LightWeight Chart Old DOCS https://tradingview.github.io/lightweight-charts/docs/api/interfaces/TimeScaleOptions#barspacing
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import Chart from "@qognicafinance/react-lightweight-charts";
 // import { updateLastRateData } from "reducers/rates";
 import { updateTooltip } from "reducers/chart/chart";
@@ -8,12 +8,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { decimalSplit /* getPrecision */ } from "lib/price/decimalSplit";
 import { RootState } from "reducers";
 import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
+import { useMediaQuery } from "react-responsive";
 // import { RootState } from "reducers";
 // import { setLoading } from "reducers/loading";
 
 const LWchart = ({ chartTime }) => {
     const dispatch = useDispatch();
     const { /* symbols,  */ chartList } = useSelector((state: RootState) => state.chart);
+    const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+    const isNarrowMobile = useMediaQuery({ query: `(max-width: 320px)` });
     // const selectedCoin = useSelector((state: RootState) => state.selectedCoin);
     // const [precision, setPrecision] = useState(0);
     // const [trackingMode, setTrackingMode] = useState(false);
@@ -22,7 +25,7 @@ const LWchart = ({ chartTime }) => {
         alignLabels: false,
         timeScale: {
             rightOffset: 3,
-            barSpacing: 10.5,
+            barSpacing: isMobile ? isNarrowMobile ? 3 : 5 : 10.5,
             // lockVisibleTimeRangeOnResize: false,
             // rightBarStaysOnScroll: false,
             // borderVisible: false,
@@ -84,7 +87,7 @@ const LWchart = ({ chartTime }) => {
         }
 
         const lastCandle = chartList[chartList.length - 1];
-        console.log("chart", lastCandle);
+        // console.log("chart", lastCandle);
         if (lastCandle) {
             // dispatch(updateLastRateData({ close: decimalSplit(lastCandle.close) }));
             dispatch(
@@ -161,11 +164,17 @@ const LWchart = ({ chartTime }) => {
                 // Apply the custom priceFormatter to the chart
                 chart.applyOptions({
                     rightPriceScale: {
+                        // autoScale: false,
                         scaleMargins: {
                             top: 0.2, // leave some space for the legend
                             bottom: 0.05,
                         },
                     },
+                    layout: {
+                        // fontFamily: "'Roboto', sans-serif",
+                        fontSize: isMobile ? 7 : 9,
+                    },
+                    
                 });
             }}
         />

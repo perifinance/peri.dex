@@ -109,7 +109,7 @@ const Receive = (_altclassName) => {
                     value: (await getBridgeClaimGasCost()).toString(),
                 })
             );
-            console.log("gasLimit", gasLimit);
+            // console.log("gasLimit", gasLimit);
             if (gasLimit) {
                 return 6000000n;
             }

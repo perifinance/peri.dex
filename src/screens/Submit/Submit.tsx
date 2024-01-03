@@ -129,7 +129,7 @@ const Submit = () => {
     };
 
     const switchChain = async (chainId) => {
-        console.log("switchChain", chainId);
+        // console.log("switchChain", chainId);
 
         if (!chainId) {
             return;
@@ -158,7 +158,7 @@ const Submit = () => {
         let gasLimit = 600000n;
 
         if (cost === null || cost === "0" || payAmount === null || payAmount === "0") {
-            console.log("payAmount", payAmount);
+            // console.log("payAmount", payAmount);
             return 6000000n;
         }
         try {
@@ -178,7 +178,7 @@ const Submit = () => {
                 );
             }
 
-            console.log("gasLimit", gasLimit);
+            // console.log("gasLimit", gasLimit);
             if (!gasLimit) {
                 return 6000000n;
             }
@@ -237,7 +237,7 @@ const Submit = () => {
             let mySignature = await contracts.signer.signMessage(messageHashBytes);
             setSignature(mySignature);
 
-            console.log("mySignature", mySignature);
+            // console.log("mySignature", mySignature);
             const cost = (await getBridgeTransferGasCost()).toString();
             if (cost === null || cost === undefined) {
                 NotificationManager.warning("Please refresh it and try it again.");
@@ -534,9 +534,9 @@ const Submit = () => {
     }, [closeModalHandler]);
 
     return (
-        <div className="flex flex-col bg-gray-700 px-4 py-2">
+        <div className="flex flex-col bg-gray-700 px-3 lg:px-4 py-2">
             <div className="flex flex-col lg:flex-row  lg:space-x-3">
-                <div className="basis-2/5 flex flex-col items-start m-2 w-full">
+                <div className="basis-2/5 flex flex-col items-start w-full">
                     <div className="w-full">
                         <div className="text-xs pl-1">Source</div>
                         <div className="py-1 relative">
@@ -662,7 +662,7 @@ const Submit = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex basis-3/5 flex-col w-full m-2 ">
+                <div className="flex basis-3/5 flex-col w-full">
                     <div className="flex pb-1 ml-1 justify-between w-full text-xs">
                         <span>{`Available `}</span>
                         <span className="mx-1 font-medium">{` ${formatCurrency(getBalance(), 4)}`}</span>
@@ -702,7 +702,7 @@ const Submit = () => {
                                     </svg>
                                 </div>
                                 <div
-                                    className={`absolute w-full bg-gray-700 rounded-md shadow-md shadow-slate-600 my-2 ${
+                                    className={`absolute w-full bg-gray-700 rounded-md shadow-md shadow-slate-600  my-2 ${
                                         isCoinList ? "block" : "hidden"
                                     } z-10`}
                                     ref={availableRef}

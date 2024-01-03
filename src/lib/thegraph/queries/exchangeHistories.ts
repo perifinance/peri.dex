@@ -6,12 +6,11 @@ import {
 } from "lib/format";
 export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 	const variables = {
-		address,
+		address: address.toLowerCase(),
 		skip: page * first,
 		first,
 	};
 
-	// console.log("exchangeHistories", variables);
 	const settledMap = (data) => {
 		return {
 			id: data.id,
@@ -43,7 +42,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 				exchangeHistory(
 					skip: ${variables.skip},
 					first: ${variables.first},
-					account: "${variables.address}",
+					account: ${JSON.stringify(variables.address)}
 				) {
 					id
 					account

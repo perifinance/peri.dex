@@ -8,7 +8,7 @@ import { updateAddress, updateNetwork, updateIsConnect, clearWallet } from "redu
 // import { clearWallet, clearBalances } from 'reducers/wallet'
 import { resetTransaction } from "reducers/transaction";
 import { initCoinList } from "reducers/coin/coinList";
-import { setSourceCoin, setDestinationCoin } from "reducers/coin/selectedCoin";
+import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { setAppReady } from "reducers/app";
 // import { changeNetwork } from 'lib/network'
 
@@ -20,7 +20,7 @@ import Main from "./screens/Main";
 import "./App.css";
 
 const App = () => {
-    const { isConnect, networkId } = useSelector((state: RootState) => state.wallet);
+    const { networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
     const themeState = useSelector((state: RootState) => state.theme.theme);
 
@@ -145,8 +145,7 @@ const App = () => {
         try {
             const coinList = getCoinList(networkId);
             dispatch(initCoinList(coinList));
-            dispatch(setSourceCoin(coinList[0]));
-            dispatch(setDestinationCoin(coinList[1]));
+            dispatch(setSelectedCoin({ source: coinList[0], destination: coinList[1] }));
         } catch (e) {}
     }, [networkId, dispatch]);
 

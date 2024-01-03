@@ -87,11 +87,11 @@ const Header = () => {
     }, [closeModalHandler]);
 
     return (
-        <header className="flex flex-row grow place-items-center -mt-3 lg:mt-0 p-2">
-            <div className="corner flex">
+        <header className="flex flex-row justify-between items-center h-[6%] sm:h-[10%] -mt-1 lg:mt-0 p-2">
+            <div className="flex h-full items-center">
                 <Link to="/">
                     <img
-                        className="object-contain w-14 h-9 lg:w-20 lg:h-14"
+                        className="object-contain w-14 h-8 lg:w-20 lg:h-14"
                         src="/images/logo/logo.svg"
                         alt="Logo"
                     />
@@ -150,11 +150,11 @@ const Header = () => {
                 </nav>
             </div>
 
-            <div className="flex flex-nowrap h-9 cursor-pointer">
+            <div className="flex flex-nowrap h-8 sm:h-9 cursor-pointer">
                 {isConnect && (
                     <div
                         id="net_caller"
-                        className={`flex items-center bg-gray-700 text-base h-9 shadow-sm shadow-slate-400/50 ${
+                        className={`flex items-center bg-gray-700 text-base shadow-sm shadow-slate-400/50 ${
                             isNetworkList ? "rounded-b-none" : "rounded-l-lg"
                         } hover:shadow-slate-300/70  active:shadow-inner active:shadow-slate-700`}
                         onClick={() => setIsNetworkList(!isNetworkList)}
@@ -215,7 +215,7 @@ const Header = () => {
                         </div>
                         <div
                             id="net_caller"
-                            className="flex bg-transparent rounded-l-lg text-base h-9"
+                            className="flex bg-transparent rounded-l-lg text-base "
                         >
                             {SUPPORTED_NETWORKS[networkId] && (
                                 <div
@@ -262,50 +262,68 @@ const Header = () => {
                     />
                 </button>
 
-                <button
-                    id="menu_caller"
-                    onClick={() => setIsMenuList(!isMenuList)}
-                    className="lg:hidden  rounded-lg hover:cursor-pointer pt-1 ml-3"
-                >
-                    <img
+                <div className="flex relative">
+                    <button
                         id="menu_caller"
-                        className="w-6 z-0"
-                        alt="Toggle Dropdown Menu"
-                        src={"/images/icon/drawer.svg"}
-                    />
-                </button>
-            </div>
-            {isMenuList && (
-                <div
-                    className="absolute right-6 mt-[168px] ml-2 py-2 w-32 bg-gray-700 rounded-md shadow-md shadow-slate-500 z-50"
-                    ref={menuRef}
-                >
-                    {/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">
-                        Home
-                    </Link> */}
-                    <Link
-                        to="/exchange"
-                        className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                        onClick={() => setIsMenuList(!isMenuList)}
+                        className="lg:hidden  rounded-lg hover:cursor-pointer pt-1 ml-3"
                     >
-                        Exchange
-                    </Link>
-                    {/* <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">
-                    Futures
-                </Link> */}
-                    <Link
-                        to="/assets"
-                        className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent`}
-                    >
-                        Assets
-                    </Link>
-                    <Link
-                        to="/bridge"
-                        className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
-                    >
-                        Bridge
-                    </Link>
+                        <img
+                            id="menu_caller"
+                            className="w-6 z-0"
+                            alt="Toggle Dropdown Menu"
+                            src={"/images/icon/drawer.svg"}
+                        />
+                    </button>
+                    {isMenuList && (
+                        <div
+                            className="absolute top-9 right-0 ml-2 py-2 w-32 bg-gray-700 rounded-md shadow-md shadow-slate-500 z-50"
+                            ref={menuRef}
+                        >
+                            {/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">
+                                Home
+                            </Link> */}
+                            <Link
+                                to="/exchange"
+                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                            >
+                                Exchange
+                            </Link>
+                            {/* <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">
+                            Futures
+                        </Link> */}
+                            <Link
+                                to="/assets"
+                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent`}
+                            >
+                                Orders
+                            </Link>
+                            <Link
+                                to="/portfolio"
+                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent`}
+                            >
+                                Portfolio
+                            </Link>
+                            <Link
+                                to="/bridge"
+                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                            >
+                                Bridge
+                            </Link>
+                            <a
+                                href="https://dashboard.peri.finance/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                            >
+                                Dashboard
+                            </a>
+                        </div>
+                    )}
                 </div>
-            )}
+                
+            </div>
+            
         </header>
     );
 };

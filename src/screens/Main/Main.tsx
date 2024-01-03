@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { TESTNET, MAINNET, SUPPORTED_NETWORKS } from "lib/network";
 import { updateBridgeStatus } from "reducers/bridge/bridge";
+import Portfolio from "pages/Portfolio/Portfolio";
 
 const Main = () => {
     // const { isConnect } = useSelector((state: RootState) => state.wallet);
@@ -102,9 +103,9 @@ const Main = () => {
     }, [isConnect, networkId]);
 
     return (
-        <div className="text-sm dark:text-inherent dark:bg-black-900 font-Montserrat font-normal">
+        <div className="flex flex-col text-sm w-screen h-screen dark:text-inherent dark:bg-black-900 font-Montserrat font-normal">
             <Loading></Loading>
-            <div className="container mx-auto p-3 lg:p-5 min-h-screen space-y-2 lg:space-y-10">
+            <div className="w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen max-w-[100rem] space-y-2 lg:space-y-10">
                 <Router>
                     <Header></Header>
                     <Switch>
@@ -123,8 +124,8 @@ const Main = () => {
                         <Route exact path="/bridge/submit">
                             <Bridge />
                         </Route>
-                        <Route exact path="/bridge/receive">
-                            <Bridge />
+                        <Route exact path="/portfolio">
+                            <Portfolio />
                         </Route>
 
                         <Route path="/">

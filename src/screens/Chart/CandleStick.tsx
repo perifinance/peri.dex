@@ -17,7 +17,7 @@ const TimeSerise = {
     "1M": 30 * 24 * 60 * 60,
 };
 
-const BarCandleChart = ({ currencyNames, source, destinate, chartTime }) => {
+const BarCandleChart = ({ source, destinate, chartTime }) => {
     const dispatch = useDispatch();
     const selectedCoin = useSelector((state: RootState) => state.selectedCoin);
     const { chartList } = useSelector((state: RootState) => state.chart);
@@ -53,11 +53,11 @@ const BarCandleChart = ({ currencyNames, source, destinate, chartTime }) => {
 
             let chartLastData = { ...chartList[chartList.length - 1] };
 
-            console.log("chartLastData", chartLastData);
+            // console.log("chartLastData", chartLastData);
             const lastPrice = (Number((lastRateData.rate * 10n ** 10n) / 10n ** 18n) / 10 ** 10).toString();
 
             const lastChartTime = lastRateData.timestamp - (lastRateData.timestamp % TimeSerise[chartTime]);
-            console.log("lastPrice", chartTime, chartLastData.time, lastChartTime);
+            // console.log("lastPrice", chartTime, chartLastData.time, lastChartTime);
             if (chartLastData.time < lastChartTime) {
                 chartLastData = {
                     ...chartLastData,
@@ -69,7 +69,7 @@ const BarCandleChart = ({ currencyNames, source, destinate, chartTime }) => {
                     openTime: lastChartTime * 1000,
                 };
 
-                console.log("addChartData addChartData", chartLastData);
+                // console.log("addChartData addChartData", chartLastData);
                 dispatch(addChartData({ symbols: lastRateData.symbols, chartLastData }));
             } else if (chartLastData.time === lastChartTime) {
                 if (Number(chartLastData.high) < Number(lastPrice)) {
@@ -79,7 +79,7 @@ const BarCandleChart = ({ currencyNames, source, destinate, chartTime }) => {
                 }
                 chartLastData.close = lastPrice;
 
-                console.log("dispatch updateChart", chartLastData);
+                // console.log("dispatch updateChart", chartLastData);
                 dispatch(updateChart({ symbols: lastRateData.symbols, chartLastData }));
             }
 
