@@ -57,10 +57,10 @@ const OrderHistories = ({ balance }) => {
                             <tr className="text-gray-300">
                                 <th className="font-medium w-15">Chain</th>
                                 <th className="font-medium">Date/Time</th>
-                                <th className="font-medium">Paid</th>
                                 <th className="font-medium">Received</th>
-                                <th className="font-medium text-center">Reward Pool</th>
                                 <th className="font-medium">Price</th>
+                                <th className="font-medium">Paid</th>
+                                <th className="font-medium text-center">Fee</th>
                                 {/* <th className="font-medium">Action</th> */}
                                 <th className="font-medium min-w-12">Details</th>
                             </tr>
@@ -73,77 +73,78 @@ const OrderHistories = ({ balance }) => {
                                         <img
                                             className="w-5 h-5 pr-1"
                                             src={`/images/network/${e.chainId}.svg`}
-                                            alt="currencies"
+                                            alt="chainId"
                                         ></img>
                                     </td>
                                     <td className="text-center">
                                         <span>{e.date}</span>
                                     </td>
-                                    <td className="justify-end">
-                                        <div className="flex justify-between left">
-                                            <div className="flex ">
-                                                    <img
-                                                        className="w-5 h-5 pl-1"
-                                                        src={`/images/currencies/${e.src}.svg`}
-                                                        alt="currencies"
-                                                    ></img>
-                                            </div>
-                                            <div className="flex">
-                                                {formatCurrency(e.amount, 8)}
-                                                <span className="pl-1 font-medium"> {e.src}</span>
-                                            </div>
-                                        </div>
-                                    </td>
                                     <td className="text-center">
-                                        <div className="flex justify-between left">
+                                        <div className="flex justify-end left">
                                             <div className="flex ">
                                                     <img
                                                         className="w-5 h-5 pl-1"
                                                         src={`/images/currencies/${e.dest}.svg`}
-                                                        alt="currencies"
+                                                        alt="receive"
                                                     ></img>
                                             </div>
-                                            <div className="flex">
+                                            <div className="flex ml-2">
                                                 {formatCurrency(e.amountReceived, 8)}
-                                                <span className="pl-1 font-medium"> {e.dest}</span>
+                                               {/* <span className="pl-1 font-medium"> {e.dest}</span> */}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="text-center">
-                                        <div className="flex justify-between left">
-                                            <div className="flex ">
-                                                    <img
-                                                        className="w-5 h-5 pl-1"
-                                                        src={`/images/currencies/${e.src}.svg`}
-                                                        alt="currencies"
-                                                    ></img>
-                                            </div>
-                                            <div className="flex">
-                                                {formatCurrency(BigInt(e.exchangeFeeRate * e.amount) / 10n ** 18n, 8)}
-                                                <span className="pl-1 font-medium"> {e.src}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="text-center">
-                                        <div className="flex justify-between left">
+                                        <div className="flex justify-end left">
                                             <div className="flex ">
                                                 <img
                                                     className="w-5 h-5 pl-1"
                                                     src={`/images/currencies/${e.src}.svg`}
-                                                    alt="currencies"
+                                                    alt="price"
                                                 ></img>
                                             </div>
-                                            <div className="flex">
+                                            <div className="flex ml-2">
                                                 {formatCurrency(
                                                     ((e.amount - BigInt(e.exchangeFeeRate * e.amount) / 10n ** 18n) *
                                                         10n ** 18n) /
                                                         e.amountReceived,
                                                     5
                                                 )}
-                                                <span className="pl-1 font-medium"> {e.src}</span>
+                                               {/*  <span className="pl-1 font-medium"> {e.src}</span> */}
                                             </div>
                                         </div>
                                     </td>
+                                    <td className="justify-end">
+                                        <div className="flex justify-end left">
+                                            <div className="flex ">
+                                                    <img
+                                                        className="w-5 h-5 pl-1"
+                                                        src={`/images/currencies/${e.src}.svg`}
+                                                        alt="paid"
+                                                    ></img>
+                                            </div>
+                                            <div className="flex ml-2">
+                                                {formatCurrency(e.amount, 8)}
+                                                {/* <span className="pl-1 font-medium"> {e.src}</span> */}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="text-center">
+                                        <div className="flex justify-end left">
+                                            <div className="flex ">
+                                                    <img
+                                                        className="w-5 h-5 pl-1"
+                                                        src={`/images/currencies/pUSD.svg`}
+                                                        alt="fee"
+                                                    ></img>
+                                            </div>
+                                            <div className="flex ml-2">
+                                                {formatCurrency(BigInt(e.exchangeFeeRate * e.amount) / 10n ** 18n, 8)}
+                                                {/* <span className="pl-1 font-medium">pUSD</span> */}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
                                     {/* <td className="text-center">
                                         <span
                                             className={`font-medium ${

@@ -231,6 +231,8 @@ const Order = ({ openCoinList, balance, setBalance }) => {
             gasLimit: await getGasEstimate(),
         };
 
+        console.log("utils.formatBytes32String(selectedCoins.destination.symbol)",utils.formatBytes32String(selectedCoins.destination.symbol))
+
         try {
             let transaction;
             transaction = await contracts.signers.PeriFinance.exchange(

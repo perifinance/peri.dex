@@ -143,7 +143,7 @@ const Trades = ({ children, histories }: TradesProps) => {
     }, [histories]);
 
     return (
-        <div className="flex flex-col mt-0 w-[98%] lg:w-3/4 h-full">
+        <div className="flex flex-col mt-0 w-[98%] lg:w-[70%] h-full">
             <div className="flex justify-between items-center w-full xs:w-[98%] h-10">
                 <div className="text-base sm:text-base lg:pl-2 font-semibold w-[35%]">Trade Order</div>
                 <div className="flex items-center w-[65%]">
@@ -288,8 +288,8 @@ const Trades = ({ children, histories }: TradesProps) => {
                                             {/* <div className="flex "> */}
                                             <img
                                                 className="w-5 h-5 pl-1"
-                                                src={`/images/currencies/${e.src}.svg`}
-                                                alt="currencies"
+                                                src={`/images/currencies/pUSD.svg`}
+                                                alt="fee"
                                             ></img>
                                             {/* </div> */}
                                             <div className="ml-1">

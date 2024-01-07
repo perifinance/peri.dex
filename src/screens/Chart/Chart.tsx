@@ -150,7 +150,7 @@ const Chart = () => {
                 {/* <div className="relative flex justify-end mr-20 ">
                     
                 </div> */}
-                <div className={`flex flex-row w-full md:w-[95%] absolute justify-between text-xs pr-16 md:ml-0 lg:ml-0 ${isNarrowMobile?"pr-2":null}`}>
+                <div className={`flex flex-row w-full md:w-[95%] absolute justify-start xs:justify-between text-xs xs:pr-14 sm:pr-[60px] md:ml-0 lg:ml-0 ${isNarrowMobile?"pr-2":null}`}>
                     <div className={`lg:flex flex-col z-10 w-fit`}>
                         <div className={`flex flex-nowrap w-fit space-x-1 p-1`}>
                             <div className="flex flex-row items-end lg:justify-items-start h-8">

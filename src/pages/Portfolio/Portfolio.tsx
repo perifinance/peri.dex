@@ -89,7 +89,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
 
     return (
         <div
-            className={`lg:flex flex-col items-center w-[98%] lg:w-1/4 min-h-[98%] bg-gray-700 rounded-lg pb-2 ${
+            className={`lg:flex flex-col items-center w-[98%] lg:w-[30%] min-h-[98%] bg-gray-700 rounded-lg pb-2 ${
                 standAlone ? "flex h-fit" : "hidden h-[98%]"
             }`}
         >
@@ -98,14 +98,14 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                 <div className="font-bold text-xs lg:text-sm">{formatCurrency(totalAssets, 4)} $</div>
             </div>
             {balances.length > 0 && (
-                <div className="flex flex-row justify-between items-center w-[95%]">
+                <div className="flex flex-row justify-between items-center w-[95%] ">
                     {/* <div className="flex">
 						<div className="flex py-2 justify-between w-full">
 							<div className="text-sm lg:text-base font-bold">Portfolio</div>
 						</div>
 					</div> */}
 
-                    <div className="flex w-[50%]">
+                    <div className="flex w-[60%]">
                         <VictoryPie
                             data={chartDatas}
                             colorScale={chartColors}
@@ -116,7 +116,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                         ></VictoryPie>
                     </div>
 
-                    <div className={`flex flex-col items-start w-[50%] md:text-[10px] xl:text-xs max-h-52`}>
+                    <div className={`flex flex-col items-start w-[40%] text-[10px] sm:text-sm lg:text-[11px] xl:text-xs`}>
                         {balances.map(({ amount }, index) =>
                             amount > 0n ? (
                                 <div className="flex w-11/12" key={index}>
@@ -138,19 +138,19 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                     </div>
                 </div>
             )}
-            <div className="w-[90%] justify-start mt-1">
+            <div className="flex w-[90%] justify-start mt-1">
                 <span className="my-auto font-bold text-base mr-1.5 ">Balance</span>
             </div>
-            <div className={`flex flex-col w-[95%] mb-1 overflow-auto `}>
+            <div className={`flex flex-col w-[95%] mb-1 overflow-y-auto `}>
                 {balances.length > 0 &&
                     balances.map(({ currencyName, amount, balanceToUSD }, index) =>
                         amount > 0n ? (
                             <div
-                                className="text-[9px] sm:text-xs md:text-[10px] xl:text-xs bg-black-900 m-1 p-[6px] rounded-md"
+                                className="text-[9px] sm:text-xs md:text-[11px] xl:text-xs bg-black-900 m-1 p-[6px] rounded-md"
                                 key={index}
                             >
                                 <div className="flex justify-between">
-                                    <div className="flex items-center">
+                                    <div className="flex items-center text-xs ss:text-sm">
                                         <img
                                             className="w-6 h-6 pr-1"
                                             src={`/images/currencies/${currencyName}.svg`}
