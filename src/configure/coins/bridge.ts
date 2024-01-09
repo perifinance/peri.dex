@@ -7,7 +7,7 @@ let pynths = [
     {
         id: 1,
         name: "PERI",
-        contract: "periFinance",
+        contract: "PeriFinance",
     },
 ];
 

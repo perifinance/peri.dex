@@ -90,22 +90,21 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
     return (
         <div
             className={`lg:flex flex-col items-center w-[98%] lg:w-[30%] min-h-[98%] bg-gray-700 rounded-lg pb-2 ${
-                standAlone ? "flex h-fit" : "hidden h-[98%]"
+                standAlone ? "flex " : "hidden h-[98%]"
             }`}
         >
             <div className="flex py-2 justify-between items-center w-[90%] ">
-                <div className="font-bold text-base">Total</div>
-                <div className="font-bold text-xs lg:text-sm">{formatCurrency(totalAssets, 4)} $</div>
+                <div className="font-bold text-base md:text-lg lg:text-base">Portfolio</div>
             </div>
             {balances.length > 0 && (
-                <div className="flex flex-row justify-between items-center w-[95%] ">
+                <div className="flex flex-row justify-between items-center w-[95%]">
                     {/* <div className="flex">
 						<div className="flex py-2 justify-between w-full">
 							<div className="text-sm lg:text-base font-bold">Portfolio</div>
 						</div>
 					</div> */}
 
-                    <div className="flex w-[60%]">
+                    <div className="flex flex-col w-[60%] items-center relative">
                         <VictoryPie
                             data={chartDatas}
                             colorScale={chartColors}
@@ -114,16 +113,17 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                             labels={({ datum }) => (datum.y >= 5 ? `${datum.y}%` : "")}
                             style={{ labels: { fill: "white", fontSize: 20 } }}
                         ></VictoryPie>
+						<div className="absolute bottom-0 font-medium text-[11px] ss:text-xs md:text-sm">Balance: ${formatCurrency(totalAssets, 4)}</div>
                     </div>
 
                     <div className={`flex flex-col items-start w-[40%] text-[10px] sm:text-sm lg:text-[11px] xl:text-xs`}>
                         {balances.map(({ amount }, index) =>
                             amount > 0n ? (
                                 <div className="flex w-11/12" key={index}>
-                                    <div className="flex pb-1 items-center justify-between w-[95%]">
+                                    <div className="flex pb-1 md:pb-2 lg:pb-1 items-center justify-between w-[95%]">
                                         <div className=" w-7/12">{coinList[index]?.symbol}</div>
                                         <div
-                                            className="mx-2 w-3 h-3"
+                                            className="mx-2 w-3 h-3 md:w-4 md:h-4 lg:w-3 lg:h-3"
                                             style={{
                                                 background: chartColors[index],
                                             }}
@@ -139,7 +139,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                 </div>
             )}
             <div className="flex w-[90%] justify-start mt-1">
-                <span className="my-auto font-bold text-base mr-1.5 ">Balance</span>
+				{balances.length > 0 &&<span className="my-auto font-bold text-base mr-1.5 ">Assets</span>}
             </div>
             <div className={`flex flex-col w-[95%] mb-1 overflow-y-auto `}>
                 {balances.length > 0 &&

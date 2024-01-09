@@ -107,7 +107,7 @@ const Submit = () => {
             setSelectedCoin({
                 name: "PERI",
                 id: 1,
-                contract: "periFinance",
+                contract: "PeriFinance",
             });
 
         switchChain(network.id);
@@ -220,6 +220,7 @@ const Submit = () => {
         }
 
         if (contracts.signers[selectedCoin.contract] === undefined) {
+            console.log("selectedCoin.contract", selectedCoin.contract);
             NotificationManager.warning("Please refresh it and try it again.");
             return;
         }
