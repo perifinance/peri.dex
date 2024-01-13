@@ -9,14 +9,14 @@ import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
 import { getNetworkPrice } from "lib/price";
-import { setSourceCoin, setDestinationCoin, setSelectedCoin } from "reducers/coin/selectedCoin";
+import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { SUPPORTED_NETWORKS, isExchageNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
 import { setLoading } from "reducers/loading";
-import "./Order.css";
 import { networkInfo } from "configure/networkInfo";
 import { getSafeSymbol } from "lib/coinList";
 import { updateLastRateData } from "reducers/rates";
+import "./Order.css";
 // import { resetChartData } from "reducers/chart/chart";
 // import { set } from "date-fns";
 // import { set } from "date-fns";
@@ -362,8 +362,8 @@ const Order = ({ openCoinList, balance, setBalance }) => {
     }, [isConnect, selectedCoins]);
 
     return (
-        <div className={`w-full lg:max-h-screen`}>
-            <div className="w-full bg-gray-500 rounded-t-lg px-4 py-2 hidden lg:flex">
+        <div className={`w-full lg:h-full`}>
+            <div className="w-full bg-blue-900 rounded-t-lg px-4 py-2 hidden lg:flex">
                 <div className="flex space-x-5 py-2 items-center">
                     <div className="relative">
                         <img
@@ -383,15 +383,15 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                     </div>
                 </div>
             </div>
-            <div className="w-full bg-gray-700 lg:rounded-lg lg:rounded-b-lg p-4">
+            <div className="w-full h-fit lg:h-[88%] bg-blue-900 lg:rounded-b-lg p-4">
                 <div className="flex justify-between">
                     <div className="flex items-center space-x-1 pl-1 justify-start w-full text-xs">
-                        <div className=" text-gray-400">
+                        <div className="flex flex-nowrap text-gray-400">
                             <span className="">Available:</span>
                             <span className="font-medium">{` ${formatCurrency(balance, 4)}`}</span>
                         </div>
                         <img
-                            className={`m-1 p-1 w-[16px] rounded-full bg-blue-500 cursor-pointer ${
+                            className={`m-1 p-1 w-[16px] rounded-full bg-blue-600 cursor-pointer ${
                                 isRefreshing && "animate-spin"
                             }`}
                             src={`/images/icon/refresh.svg`}
@@ -404,7 +404,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                     </div>
                 </div>
                 {/* ${isError && 'border border-red-500'} */}
-                <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
+                <div className="flex rounded-md bg-blue-950 text-base p-2 space-x-4 justify-between">
                     <div
                         id="list-caller"
                         className="flex font-medium cursor-pointer items-center"
@@ -427,7 +427,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                         ></img>
                     </div>
                     <input
-                        className="w-2/3 bg-black-900 outline-none text-gray-300 font-medium text-right"
+                        className="w-2/3 bg-blue-950 outline-none text-gray-300 font-medium text-right"
                         type="text"
                         value={payAmount}
                         placeholder="0"
@@ -440,14 +440,14 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                 </div>
 
                 <div
-                    className="flex w-7 h-7 lg:w-9 lg:h-9 my-2 lg:my-3 bg-gray-500 rounded-full mx-auto cursor-pointer"
+                    className="flex w-7 h-7 lg:w-9 lg:h-9 my-2 lg:my-3 bg-blue-950 rounded-full mx-auto cursor-pointer"
                     onClick={() => swapToCurrency()}
                 >
                     <div className="m-auto">
                         <img alt="execute" className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"}></img>
                     </div>
                 </div>
-                <div className="flex rounded-md bg-black-900 text-base p-2 space-x-4 justify-between">
+                <div className="flex rounded-md bg-blue-950 text-base p-2 space-x-4 justify-between">
                     <div
                         id="list-caller"
                         className="flex font-medium cursor-pointer items-center"
@@ -470,7 +470,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                         ></img>
                     </div>
                     <input
-                        className="w-2/3 bg-black-900 outline-none text-gray-300 font-medium text-right"
+                        className="w-2/3 bg-blue-950 outline-none text-gray-300 font-medium text-right"
                         type="text"
                         value={formatCurrency(receiveAmount, 8)}
                         disabled
@@ -481,7 +481,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                     <div className="flex flex-col pt-3 w-full">
                         <div className="flex justify-between">
                             <input
-                                className="cursor-pointer w-full mr-1"
+                                className="cursor-pointer w-full mr-1 rounded-md h-2"
                                 type="range"
                                 min="0"
                                 max="100"
@@ -489,7 +489,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                                 onChange={(e) => setPerAmount(BigInt(e.target.value))}
                             />
                         </div>
-                        <div className="flex flex-row justify-between text-xs text-gray-400 w-full">
+                        <div className="flex flex-row justify-between text-xs text-blue-200 w-full">
                             <span
                                 className={`base-1/5 last:text-left cursor-pointer ${per === 0n && "text-blue-600"}`}
                                 onClick={() => setPerAmount(0n)}
@@ -522,9 +522,9 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center self-end h-8 border border-gray-200 rounded-md text-sm ml-1 px-1 bg-black-900">
+                    <div className="flex items-center self-end h-8 border-[0.2px] border-blue-800 rounded-md text-sm ml-1 px-1 bg-blue-950 ">
                         <input
-                            className="w-6 bg-black-900 outline-none"
+                            className="w-5 outline-none bg-inherit text-right mr-[2px]"
                             type="number"
                             max="100"
                             value={per.toString()}
@@ -536,12 +536,12 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                     </div>
                 </div>
                 <div className="flex flex-col-reverse lg:flex-col">
-                    <div className="lg:pt-14 text-xs lg:text-sm">
+                    <div className="lg:pt-16 text-xs lg:text-sm">
                         <div className="flex justify-between w-full">
-                            <span>Network Fee</span>
+                            <span>GAS Fee</span>
                             <div className="flex flex-nowrap items-center">
                                 <span className="font-medium">${formatCurrency(networkFeePrice, 5)}</span>
-                                <span className="font-light text-xs tracking-tighter">{`( ${gasPrice.toString()} GWEI) `}</span>
+                                <span className="font-light text-[10px] tracking-tighter text-nowrap">{`( ${gasPrice.toString()} GWEI) `}</span>
                             </div>
                         </div>
                         <div className="flex pt-3 justify-between w-full">
@@ -580,7 +580,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                         <div className="flex basis-1/3 justify-end pr-2">
                             {isPending && (
                                 <svg
-                                    className="animate-spin h-5 w-5 text-blue-500"
+                                    className="animate-spin h-5 w-5 text-blue-600"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -605,7 +605,7 @@ const Order = ({ openCoinList, balance, setBalance }) => {
                     </button>
                 </div>
                 {/* {!isValidation || !isConnect ? ( */}
-                <div className="hidden lg:block bg-black-900 w-full text-center break-wards text-blue-400 rounded-lg text-xs font-medium py-3 px-2">
+                <div className="hidden lg:block bg-blue-950 w-full h-20 text-center break-wards text-blue-600 rounded-lg text-xs font-medium py-3 px-2">
                     {!isConnect
                         ? "Please Connect your wallet"
                         : isExchageNetwork(networkId)

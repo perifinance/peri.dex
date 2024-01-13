@@ -535,7 +535,7 @@ const Submit = () => {
     }, [closeModalHandler]);
 
     return (
-        <div className="flex flex-col bg-gray-700 px-3 lg:px-4 py-2">
+        <div className="flex flex-col bg-blue-900 px-3 lg:px-4 py-2">
             <div className="flex flex-col lg:flex-row  lg:space-x-3">
                 <div className="basis-2/5 flex flex-col items-start w-full">
                     <div className="w-full">
@@ -543,7 +543,7 @@ const Submit = () => {
                         <div className="py-1 relative">
                             <div
                                 id="from_caller"
-                                className="flex p-3 font-semibold bg-black-900 rounded-md justify-between cursor-pointer"
+                                className="flex p-3 font-semibold bg-blue-950 rounded-md justify-between cursor-pointer"
                                 onClick={() => setIsFromNetworkList(!isFromNetworkList)}
                             >
                                 <span id="from_caller" className="mx-1">
@@ -567,7 +567,7 @@ const Submit = () => {
                                 </svg>
                             </div>
                             <div
-                                className={`absolute w-full bg-gray-700 rounded-md shadow-md shadow-slate-600 my-1 ${
+                                className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600 my-1 ${
                                     isFromNetworkList ? "block" : "hidden"
                                 } z-10`}
                                 ref={fromRef}
@@ -576,8 +576,8 @@ const Submit = () => {
                                     {networks.map((network, index) => (
                                         <li key={index} onClick={() => onSelectSouceChain(network)}>
                                             <p
-                                                className={`p-2 block hover:bg-black-900 cursor-pointer ${
-                                                    selectedFromNetwork?.name === network?.name && "bg-black-900"
+                                                className={`p-2 block hover:bg-blue-950 cursor-pointer ${
+                                                    selectedFromNetwork?.name === network?.name && "bg-blue-950"
                                                 }`}
                                             >
                                                 {network?.name}
@@ -590,7 +590,7 @@ const Submit = () => {
                     </div>
 
                     <div
-                        className="flex self-center items-center mx-auto -mb-4 w-9 h-9 bg-gray-500 rounded-full cursor-pointer"
+                        className="flex self-center items-center mx-auto -mb-4 w-9 h-9 bg-blue-950 rounded-full cursor-pointer"
                         onClick={() => networkSwap()}
                     >
                         <div className="transform-gpu m-auto">
@@ -604,7 +604,7 @@ const Submit = () => {
                         <div className="py-1 relative">
                             <div
                                 id="to_caller"
-                                className="flex p-3 font-semibold bg-black-900 rounded-md justify-between cursor-pointer"
+                                className="flex p-3 font-semibold bg-blue-950 rounded-md justify-between cursor-pointer"
                                 onClick={() => setIsToNetworkList(!isToNetworkList)}
                             >
                                 <span id="to_caller" className="mx-1">
@@ -628,7 +628,7 @@ const Submit = () => {
                                 </svg>
                             </div>
                             <div
-                                className={`absolute w-full bg-gray-700 rounded-md shadow-md shadow-slate-600  my-1 ${
+                                className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600  my-1 ${
                                     isToNetworkList ? "block" : "hidden"
                                 } z-10`}
                                 ref={toRef}
@@ -650,8 +650,8 @@ const Submit = () => {
                                                 }}
                                             >
                                                 <p
-                                                    className={`p-2 block hover:bg-black-900 cursor-pointer ${
-                                                        selectedToNetwork?.name === network?.name && "bg-black-900"
+                                                    className={`p-2 block hover:bg-blue-950 cursor-pointer ${
+                                                        selectedToNetwork?.name === network?.name && "bg-blue-950"
                                                     }`}
                                                 >
                                                     {network?.name}
@@ -669,7 +669,7 @@ const Submit = () => {
                         <span className="mx-1 font-medium">{` ${formatCurrency(getBalance(), 4)}`}</span>
                     </div>
                     <div className="flex flex-col w-full">
-                        <div className="flex lg:rounded-md bg-black-900 justify-between w-full">
+                        <div className="flex lg:rounded-md bg-blue-950 justify-between w-full">
                             <div className="py-1 relative font-semibold">
                                 <div
                                     id="coin_caller"
@@ -703,7 +703,7 @@ const Submit = () => {
                                     </svg>
                                 </div>
                                 <div
-                                    className={`absolute w-full bg-gray-700 rounded-md shadow-md shadow-slate-600  my-2 ${
+                                    className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600  my-2 ${
                                         isCoinList ? "block" : "hidden"
                                     } z-10`}
                                     ref={availableRef}
@@ -723,8 +723,8 @@ const Submit = () => {
                                                         }}
                                                     >
                                                         <p
-                                                            className={`flex space-x-2 p-2 hover:bg-black-900 cursor-pointer ${
-                                                                selectedCoin?.name === coin?.name && "bg-black-900"
+                                                            className={`flex space-x-2 p-2 hover:bg-blue-950 cursor-pointer ${
+                                                                selectedCoin?.name === coin?.name && "bg-blue-950"
                                                             }`}
                                                         >
                                                             <img
@@ -742,7 +742,7 @@ const Submit = () => {
                             </div>
 
                             <input
-                                className="w-2/3 bg-black-900 outline-none text-right font-medium rounded-lg px-2 text-base"
+                                className="w-2/3 bg-blue-950 outline-none text-right font-medium rounded-lg px-2 text-base"
                                 type="text"
                                 value={payAmount}
                                 onChange={(e) => setPayAmount(e.target.value)}
@@ -774,25 +774,33 @@ const Submit = () => {
                                         className={`base-1/5 text-center cursor-pointer ${
                                             per === 25n && "text-blue-600"
                                         }`}
-                                        onClick={() => setPerAmount(25n)}
+                                        onClick={() => setPerAmount(20n)}
                                     >
-                                        25%
+                                        20%
+                                    </span>
+                                    <span
+                                        className={`base-1/5 text-center cursor-pointer ${
+                                            per === 25n && "text-blue-600"
+                                        }`}
+                                        onClick={() => setPerAmount(40n)}
+                                    >
+                                        40%
                                     </span>
                                     <span
                                         className={`base-1/5 text-center cursor-pointer ${
                                             per === 50n && "text-blue-600"
                                         }`}
-                                        onClick={() => setPerAmount(50n)}
+                                        onClick={() => setPerAmount(60n)}
                                     >
-                                        50%
+                                        60%
                                     </span>
                                     <span
                                         className={`base-1/5 text-center cursor-pointer ${
                                             per === 75n && "text-blue-600"
                                         }`}
-                                        onClick={() => setPerAmount(75n)}
+                                        onClick={() => setPerAmount(80n)}
                                     >
-                                        75%
+                                        80%
                                     </span>
                                     <span
                                         className={`base-1/5 text-right cursor-pointer ${
@@ -804,9 +812,9 @@ const Submit = () => {
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex items-center self-end h-8 border border-blue-200/50 rounded-md text-sm ml-1 px-1 bg-black-900">
+                            <div className="flex items-center self-end h-8 border border-blue-200/50 rounded-md text-sm ml-1 px-1 bg-blue-950">
                                 <input
-                                    className="w-6 bg-black-900 outline-none"
+                                    className="w-6 bg-blue-950 outline-none"
                                     type="number"
                                     max="100"
                                     value={per.toString()}
@@ -873,7 +881,7 @@ const Submit = () => {
                     <BridgeStatus selectedCoin={selectedCoin.name} setIsProcessing={setIsProcessing} />
                 </div>
             </div>
-            <div className="bg-black-900 w-full text-center break-wards text-cyan-300/70 rounded-lg text-xs font-medium p-2">
+            <div className="bg-blue-950 w-full text-center break-wards text-cyan-300/70 rounded-lg text-xs font-medium p-2">
                 {validationMessage}
             </div>
 

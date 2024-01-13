@@ -103,7 +103,7 @@ const Main = () => {
     }, [isConnect, networkId]);
 
     return (
-        <div className="flex flex-col text-sm w-screen h-screen dark:text-inherent dark:bg-black-900 font-Montserrat font-normal">
+        <div className="flex flex-col text-sm w-screen h-screen dark:text-inherent dark:bg-inherit font-Montserrat font-normal">
             <Loading></Loading>
             <div className="w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen max-w-[100rem] space-y-4 ">
                 <Router>

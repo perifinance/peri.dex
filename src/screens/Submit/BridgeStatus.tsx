@@ -88,7 +88,7 @@ const BridgeStatus = ({ selectedCoin, setIsProcessing }: IBridgeStatus) => {
                     <ul className="pl-2 pt-4 text-sm">
                         {Object.keys(statusMsg).map((state) => (
                             <li className="pb-1" key={state}>
-                                <div className="relative flex items-center  my-4 bg-gray-700">
+                                <div className="relative flex items-center  my-4 bg-blue-900">
                                     <div
                                         className={`items-center inline-flex rounded-full 
                                         ${step.toString() >= state && " text-cyan-400 bg-cyan-400 absolute"}
@@ -139,7 +139,7 @@ const BridgeStatus = ({ selectedCoin, setIsProcessing }: IBridgeStatus) => {
                         ))}
                     </ul>
                 </div>
-                <div className="relative flex flex-col items-start bg-black-600 mx-[16px] my-[36px] z-0">
+                <div className="relative flex flex-col items-start mx-[16px] my-[36px] z-0">
                     <span
                         className={`flex w-[1px] h-[60px] z-1 ${(step as number) >= 2 && "bg-cyan-400"} ${
                             (step as number) < 2 && "bg-gray-400/50"

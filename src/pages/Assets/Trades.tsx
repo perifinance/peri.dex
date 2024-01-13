@@ -84,10 +84,12 @@ const Trades = ({ children, histories }: TradesProps) => {
     };
 
     const filterHistory = (keyward) => {
-        if (keyward === "") {
+        if (keyward === "" || keyward === null) {
             setFilteredHistory(histories);
             return;
         }
+
+        keyward = keyward.toUpperCase();
 
         const dateFiltered = findByTemplate(histories, { date: keyward });
         const srcFiltered = findByTemplate(histories, { src: keyward });
@@ -95,12 +97,14 @@ const Trades = ({ children, histories }: TradesProps) => {
         const chainIdFiltered = findByTemplate(histories, { chainId: keyward });
         const filtered = [...dateFiltered, ...srcFiltered, ...destFiltered, ...chainIdFiltered];
 
-        setFilteredHistory(filtered);
+        const uniqFiltered = filtered.filter((value, index, array) => index === array.findIndex(item => item.id === value.id));
+
+        setFilteredHistory(uniqFiltered);
     };
     const findByTemplate = (objects: Array<any>, template: any) => {
         return objects.filter((obj) => {
             return Object.keys(template).every((propertyName) =>
-                obj[propertyName].toString().includes(template[propertyName])
+                obj[propertyName].toString().toUpperCase().includes(template[propertyName])
             );
         });
     };
@@ -110,16 +114,12 @@ const Trades = ({ children, histories }: TradesProps) => {
             return [];
         }
         let pageCount = Math.ceil(size / 10);
-        console.log("size", size, "pageCount", pageCount);
-
-        console.log("slot", slot);
 
         pageCount = pageCount % 10;
         let pages = [];
         for (let a = 0; a < pageCount; a++) {
             pages.push(a);
         }
-        console.log("pages", pages);
         return pages;
     };
 
@@ -134,7 +134,7 @@ const Trades = ({ children, histories }: TradesProps) => {
     };
 
     useEffect(() => {
-        console.log("filteredHistory", filteredHistory);
+        // console.log("filteredHistory", filteredHistory);
         setPages(getPages(filteredHistory.length, slot));
     }, [filteredHistory]);
 
@@ -143,9 +143,11 @@ const Trades = ({ children, histories }: TradesProps) => {
     }, [histories]);
 
     return (
-        <div className="flex flex-col mt-0 w-[98%] lg:w-[70%] h-full">
-            <div className="flex justify-between items-center w-full xs:w-[98%] h-10">
+        <div className="flex flex-col mt-0 w-[98%] lg:w-full h-full">
+            <div className="flex justify-start items-center w-full xs:w-[98%] h-10">
                 <div className="text-base sm:text-base lg:pl-2 font-semibold w-[35%]">Trade Order</div>
+            </div>
+            <div className="flex justify-end items-center w-full xs:w-[98%] h-10 mt-5">
                 <div className="flex items-center w-[65%]">
                     <label htmlFor="simple-search" className="sr-only">
                         Search
@@ -161,9 +163,9 @@ const Trades = ({ children, histories }: TradesProps) => {
                             >
                                 <path
                                     stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
                                     d="M3 5v10M3 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0V6a3 3 0 0 0-3-3H9m1.5-2-2 2 2 2"
                                 />
                             </svg>
@@ -171,14 +173,14 @@ const Trades = ({ children, histories }: TradesProps) => {
                         <input
                             type="text"
                             id="simple-search"
-                            onChange={(e) => setKeyward(e.target.value)}
-                            className="border text-[11px] md:text-sm rounded-l-lg block w-full ps-10 p-1.5 focus:outline-none focus:border-gray-600 bg-gray-700 border-gray-500 placeholder-gray-400 "
+                            onChange={(e) => {setKeyward(e.target.value); filterHistory(e.target.value);}}
+                            className="border text-[11px] md:text-sm rounded-l-lg block w-full ps-10 p-1.5 focus:outline-none focus:border-gray-600 bg-blue-900 border-gray-500 placeholder-gray-400 "
                             placeholder="Search Date, Chain, Pynth"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="p-[6.5px] md:p-[8.5px] text-sm font-medium rounded-r-lg border border-blue-600 bg-blue-600 hover:bg-blue-700"
+                        className="p-[6.5px] md:p-[9px] text-sm font-medium rounded-r-lg border border-blue-900 bg-blue-900 hover:bg-blue-700"
                         onClick={() => filterHistory(keyward)}
                     >
                         <svg
@@ -190,9 +192,9 @@ const Trades = ({ children, histories }: TradesProps) => {
                         >
                             <path
                                 stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
                                 d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
                             />
                         </svg>
@@ -201,10 +203,10 @@ const Trades = ({ children, histories }: TradesProps) => {
                 </div>
             </div>
             {children}
-            <div className="flex flex-col justify-between relative w-full xs:w-[98%] h-fit max-h-full overflow-x-scroll scrollbar-hide">
+            <div className="flex flex-col justify-between relative w-full xs:w-[98%] h-fit max-h-full overflow-x-scroll scrollbar-hide lg:my-4">
                 <table className="table-auto mt-2 mb-2 w-fit xs:w-full h-[90%] min-w-136 border-gray-500">
                     <thead className="border-b border-gray-500 h-8">
-                        <tr className="font-medium text-[11px] lg:text-sm text-gray-300">
+                        <tr className="font-medium text-[11px] lg:text-sm text-blue-300">
                             <th className="cursor-pointer select-none" onClick={() => sortHistory("chainId")}>Chain{getColSort("chainId")}</th>
                             <th className="cursor-pointer select-none" onClick={() => sortHistory("date")}>Date{getColSort("date")}</th>
                             <th >Time</th>
@@ -329,7 +331,7 @@ const Trades = ({ children, histories }: TradesProps) => {
                     )}
                 </table>
                 {filteredHistory.length 
-                    ?  <ul className="flex rounded justify-center w-full">
+                    ?  <ul className="flex rounded justify-center w-full lg:mt-8">
                             <li
                                 className="inline-flex justify-center items-center px-[2px] rounded-l-md border-[0.2px] border-gray-500 w-7 h-7 hover:bg-gray-700 "
                                 key={"prev"}
@@ -368,10 +370,7 @@ const Trades = ({ children, histories }: TradesProps) => {
                             </li>
                         </ul>
                     : <div className="w-full h-8 text-sm flex items-center justify-center text-gray-300 font-medium">
-                        <tr> 
-                            <td rowSpan={8}>No Trade History...</td>
-                        </tr>
-                    </div>
+                        <span >No Trade History...</span>          </div>
                 }
             </div>
         </div>

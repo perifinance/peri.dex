@@ -5,9 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 
 // import { NotificationManager } from "react-notifications";
 import { getExchangeHistories } from "lib/thegraph/api";
-// import DatePicker from "react-datepicker";
 
-import "react-datepicker/dist/react-datepicker.css";
 // import pynths from "configure/coins/pynths";
 import { isExchageNetwork } from "lib/network";
 import Portfolio from '../Portfolio/Portfolio';
@@ -102,8 +100,10 @@ const Assets = () => {
     }, [closeModalHandler]); */
 
     return (
-        <div className="flex flex-col-reverse items-center mt-0 md:flex-row w-full h-full lg:h-[65%] sm:justify-between">
-            <Trades histories={histories}/>
+        <div className="flex flex-col-reverse items-center mt-0 md:flex-row w-full h-full lg:h-[82%] sm:justify-between">
+            <div className="flex flex-col w-full h-full lg:w-[70%] pt-5">
+                <Trades histories={histories}/>
+            </div>
             <Portfolio standAlone={false}/>
         </div>
     );

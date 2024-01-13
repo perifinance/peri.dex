@@ -49,12 +49,12 @@ const OrderHistories = ({ balance }) => {
     }, [isConnect]);
 
     return (
-        <div className="items-center w-full h-full grow-0 overflow-auto pt-2">
+        <div className="items-center w-full h-fit grow-0 overflow-auto bg-blue-900 rounded-lg pt-1 px-2">
             <div className="flex w-full h-full">
                 <div className="relative w-full h-full overflow-x-scroll scrollbar-hide">
-                    <table className="table-auto mt-2 mb-2 w-full order-t border-b border-gray-500">
-                        <thead className="border-t border-b border-gray-500 h-8">
-                            <tr className="text-gray-300">
+                    <table className="table-auto mt-2 mb-2 w-full order-t border-b border-blue-950">
+                        <thead className="border-t border-b border-blue-950 h-8">
+                            <tr className="text-blue-300">
                                 <th className="font-medium w-15">Chain</th>
                                 <th className="font-medium">Date/Time</th>
                                 <th className="font-medium">Received</th>

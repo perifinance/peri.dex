@@ -8,6 +8,8 @@ import { getSafeSymbol } from "lib/coinList";
 import { formatCurrency } from "lib";
 import { useMediaQuery } from "react-responsive";
 // import { getLastRates } from "lib/thegraph/api";
+import "./Chart.css";
+
 
 const Chart = () => {
     const dispatch = useDispatch();
@@ -71,7 +73,7 @@ const Chart = () => {
                     return result;
                 })
             :   [];
-        // console.log("dataList",key, dataList);
+        console.log("dataList",key, dataList);
         if (key === "source") {
             setSource(dataList);
         } else if (key === "destination") {
@@ -89,7 +91,8 @@ const Chart = () => {
             loadingHandler(true);
 
             const symbol = currencyNames[key].replace("p", "");
-            const url = "https://dex-api.peri.finance/api/v1/binance";
+            const url = `${process.env.REACT_APP_PER_API_URL}binance`;
+            // console.log("url", url, symbol, interval);
             if (currencyNames[key] !== "pUSD") {
                 await axios
                     .get(url, {
@@ -97,7 +100,7 @@ const Chart = () => {
                         params: { symbol: symbol, interval: interval },
                     })
                     .then((res) => {
-                        // console.log(res);
+                        // console.log(res, sliceLength);
                         setPrepareData(res, key, sliceLength);
                         loadingHandler(false);
                     });
@@ -145,11 +148,8 @@ const Chart = () => {
     }, [closeModalHandler]);
 
     return (
-        <div className="w-full bg-gray-700 rounded-t-lg lg:rounded-lg lg:max-h-screen min-h-[45vh] lg:min-h-[36%] lg:px-5 lg:py-4 ">
+        <div className="w-full h-full">
             <div className="flex flex-col relative w-full h-full items-center">
-                {/* <div className="relative flex justify-end mr-20 ">
-                    
-                </div> */}
                 <div className={`flex flex-row w-full md:w-[95%] absolute justify-start xs:justify-between text-xs xs:pr-14 sm:pr-[60px] md:ml-0 lg:ml-0 ${isNarrowMobile?"pr-2":null}`}>
                     <div className={`lg:flex flex-col z-10 w-fit`}>
                         <div className={`flex flex-nowrap w-fit space-x-1 p-1`}>
@@ -226,7 +226,7 @@ const Chart = () => {
                                 ></img>
                             </button>
                             <div
-                                className={`absolute items-center text-gray-300 text-xs font-medium bg-gray-700 w-10
+                                className={`absolute items-center text-gray-300 text-xs font-medium bg-blue-900 w-10
                                 shadow-sm shadow-slate-600 ${!isTimeSeriseList && "hidden"}`}
                                 ref={seriseRef}
                             >
@@ -234,8 +234,8 @@ const Chart = () => {
                                     {Object.keys(timeSerise).map((key) => (
                                         <li
                                             key={key}
-                                            className={`text-center p-1 hover:text-sky-200/80 hover:bg-black-900 cursor-pointer ${
-                                                chartTime === key && "bg-black-900"
+                                            className={`text-center p-1 hover:text-sky-200/80 bg-blue-950 cursor-pointer ${
+                                                chartTime === key
                                             }`}
                                             onClick={() => {
                                                 setChartTime(key);
@@ -250,7 +250,7 @@ const Chart = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex h-full w-[97%] lg:w-full lg:h-[26rem] z-2 mt-[5px] ml-2 lg:ml-0">
+                <div className="flex h-full w-[97%] lg:w-full z-2 mt-[5px] ml-2 lg:ml-0 lwchart">
                     <BarCandleChart source={source} destinate={destinate} chartTime={chartTime} />
                 </div>
             </div>

@@ -141,7 +141,7 @@ const App = () => {
     }, []);
 
     const init = useCallback(() => {
-        console.log('init', networkId);
+        // console.log('init', networkId);
         try {
             const coinList = getCoinList(networkId);
             dispatch(initCoinList(coinList));

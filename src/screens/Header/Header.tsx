@@ -154,7 +154,7 @@ const Header = () => {
                 {isConnect && (
                     <div
                         id="net_caller"
-                        className={`flex items-center bg-gray-700 text-base shadow-sm shadow-slate-400/50 ${
+                        className={`flex items-center bg-blue-900 text-base shadow-sm shadow-slate-400/50 ${
                             isNetworkList ? "rounded-b-none" : "rounded-l-lg"
                         } hover:shadow-slate-300/70  active:shadow-inner active:shadow-slate-700`}
                         onClick={() => setIsNetworkList(!isNetworkList)}
@@ -162,7 +162,7 @@ const Header = () => {
                         <div className="relative m-1 ">
                             <button
                                 id="net_caller"
-                                className="block self-center bg-gray-700  rounded "
+                                className="block self-center bg-blue-900  rounded "
                             >
                                 <img
                                     id="net_caller"
@@ -178,7 +178,7 @@ const Header = () => {
                                 />
                             </button>
                             <div
-                                className={`absolute top-0 left-0 rounded-b-md bg-gray-700 shadow-sm shadow-slate-600 hover:shadow-slate-300/70 px-3 -mx-1 mt-9 ${
+                                className={`absolute top-0 left-0 rounded-b-md bg-blue-900 shadow-sm shadow-slate-600 hover:shadow-slate-300/70 -mx-1 mt-9 ${
                                     isNetworkList ? "block" : "hidden"
                                 } text-sm z-40`}
                                 ref={netRef}
@@ -186,7 +186,7 @@ const Header = () => {
                                 <ul className="w-min py-1">
                                     {Object.keys(networks).map((key) => (
                                         <li
-                                            className="w-full"
+                                            className="w-full hover:bg-blue-950 cursor-pointer bg-blue-900 px-3 "
                                             key={key}
                                             onClick={() => {
                                                 changeNetwork(key);
@@ -195,8 +195,8 @@ const Header = () => {
                                             }}
                                         >
                                             <div
-                                                className={`inline-flex grow items-center py-2 pr-8 hover:bg-black-900 cursor-pointer ${
-                                                    Number(key) === networkId && "bg-black-900"
+                                                className={`inline-flex grow items-center py-2 pr-8  ${
+                                                    Number(key) === networkId 
                                                 }`}
                                             >
                                                 <img
@@ -249,7 +249,7 @@ const Header = () => {
                 </div> */}
 
                 <button
-                    className={`w-9 h-full mt-0 bg-gray-700 shadow-sm shadow-slate-400/50
+                    className={`w-9 h-full mt-0 bg-blue-900 shadow-sm shadow-slate-400/50
                         hover:shadow-slate-300/70 active:shadow-inner active:shadow-slate-700 " ${
                             isConnect ? "rounded-r-lg" : "rounded-lg"
                         }`}
@@ -277,7 +277,7 @@ const Header = () => {
                     </button>
                     {isMenuList && (
                         <div
-                            className="absolute top-9 right-0 ml-2 py-2 w-32 bg-gray-700 rounded-md shadow-md shadow-slate-500 z-50"
+                            className="absolute top-9 right-0 ml-2 py-2 w-32 bg-blue-950 rounded-md shadow-md shadow-slate-500 z-50"
                             ref={menuRef}
                         >
                             {/* <Link to="/" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">
@@ -285,28 +285,28 @@ const Header = () => {
                             </Link> */}
                             <Link
                                 to="/exchange"
-                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent"
                             >
                                 Exchange
                             </Link>
-                            {/* <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-600 hover:text-inherent">
+                            {/* <Link to="/futures" className="block px-4 py-2 text-sm capitalize text-gray-700 hover:bg-blue-700 hover:text-inherent">
                             Futures
                         </Link> */}
                             <Link
                                 to="/assets"
-                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent`}
+                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent`}
                             >
                                 Orders
                             </Link>
                             <Link
                                 to="/portfolio"
-                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent`}
+                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent`}
                             >
                                 Portfolio
                             </Link>
                             <Link
                                 to="/bridge"
-                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent"
                             >
                                 Bridge
                             </Link>
@@ -314,7 +314,7 @@ const Header = () => {
                                 href="https://dashboard.peri.finance/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-600 hover:text-inherent"
+                                className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent"
                             >
                                 Dashboard
                             </a>

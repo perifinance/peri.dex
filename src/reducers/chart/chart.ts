@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
+
+// import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
 
 export type Tooltip = {
     open?: string;
@@ -25,7 +26,7 @@ export const chartListSlice = createSlice({
     initialState,
     reducers: {
         updateChart: (state, actions: PayloadAction<any>) => {
-            if (actions.payload.symbols === state.symbols && CHART_DEFAULT_ITEM_COUNT <= state.chartList.length) {
+            if (actions.payload.symbols === state.symbols /* && CHART_DEFAULT_ITEM_COUNT <= state.chartList.length */) {
                 let chartList = [...state.chartList];
                 chartList[chartList.length - 1] = actions.payload.chartLastData;
                 return { ...state, chartList};

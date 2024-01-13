@@ -168,7 +168,7 @@ export const contracts: Contracts = {
         } catch (e) {
             console.error("contract connect ERROR:", e);
         }
-        console.log("contract connect", this.signers);
+        // console.log("contract connect", this.signers);
     },
     clear() {
         this.signer = null;

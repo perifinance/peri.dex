@@ -42,9 +42,9 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
             setTotalAssets(totalAssets);
 
             const pieChart = balances.map((e) => {
-				e.currencyName === "pUSD" 
-				? colors.push("#1e91f8")
-    			: colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
+                e.currencyName === "pUSD"
+                    ? colors.push("#1e91f8")
+                    : colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
                 const value = formatCurrency((e.balanceToUSD * 100n * 10n ** 18n) / totalAssets, 2);
 
                 return {
@@ -89,7 +89,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
 
     return (
         <div
-            className={`lg:flex flex-col items-center w-[98%] lg:w-[30%] min-h-[98%] bg-gray-700 rounded-lg pb-2 ${
+            className={`lg:flex flex-col items-center w-[98%] lg:w-[30%] min-h-[98%] bg-blue-900 rounded-lg pb-2 ${
                 standAlone ? "flex " : "hidden h-[98%]"
             }`}
         >
@@ -109,16 +109,25 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                             data={chartDatas}
                             colorScale={chartColors}
                             labelRadius={() => 120}
-                            innerRadius={60}
+                            innerRadius={80}
                             labels={({ datum }) => (datum.y >= 5 ? `${datum.y}%` : "")}
                             style={{ labels: { fill: "white", fontSize: 20 } }}
                         ></VictoryPie>
-						<div className="absolute bottom-0 font-medium text-[11px] ss:text-xs md:text-sm">Balance: ${formatCurrency(totalAssets, 4)}</div>
+                        <div className="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] flex flex-col leading-3 ss:leading-4 sm:leading-5 md:leading-7 lg:leading-3">
+                            <span className="inline-block text-center align-middle font-bold text-[8px] xs:text-[10px] ss:text-[11px] sm:text-lg lg:text-[11px] xl:text-xs">
+                                ${formatCurrency(totalAssets, 4)}
+                            </span>
+                            <span className="inline-block text-center align-middle font-light text-[8px] xstext-[9px] ss:text-[10px] sm:text-sm lg:text-[10px]">
+                                Balance
+                            </span>
+                        </div>
                     </div>
-
-                    <div className={`flex flex-col items-start w-[40%] text-[10px] sm:text-sm lg:text-[11px] xl:text-xs`}>
+                    <div
+                        className={`flex flex-col items-start w-[40%] text-[10px] sm:text-sm lg:text-[11px] xl:text-xs`}
+                    >
                         {balances.map(({ amount }, index) =>
-                            amount > 0n ? (
+                            amount > 0n 
+                            ? (
                                 <div className="flex w-11/12" key={index}>
                                     <div className="flex pb-1 md:pb-2 lg:pb-1 items-center justify-between w-[95%]">
                                         <div className=" w-7/12">{coinList[index]?.symbol}</div>
@@ -132,22 +141,22 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                                     </div>
                                 </div>
                             ) : (
-                                <></>
+                                null
                             )
                         )}
                     </div>
                 </div>
             )}
             <div className="flex w-[90%] justify-start mt-1">
-				{balances.length > 0 &&<span className="my-auto font-bold text-base mr-1.5 ">Assets</span>}
+                {balances.length > 0 && <span className="my-auto font-bold text-base mr-1.5 ">Assets</span>}
             </div>
             <div className={`flex flex-col w-[95%] mb-1 overflow-y-auto `}>
                 {balances.length > 0 &&
                     balances.map(({ currencyName, amount, balanceToUSD }, index) =>
                         amount > 0n ? (
                             <div
-                                className="text-[9px] sm:text-xs md:text-[11px] xl:text-xs bg-black-900 m-1 p-[6px] rounded-md"
-                                key={index}
+                                className="text-[9px] sm:text-xs md:text-[11px] xl:text-xs bg-blue-950 m-1 p-[6px] rounded-md"
+                                key={currencyName}
                             >
                                 <div className="flex justify-between">
                                     <div className="flex items-center text-xs ss:text-sm">
@@ -176,7 +185,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                                 </div>
                             </div>
                         ) : (
-                            <></>
+                            null
                         )
                     )}
             </div>

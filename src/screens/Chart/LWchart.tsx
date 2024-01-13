@@ -1,31 +1,30 @@
 // ? LightWeight Chart Old DOCS https://tradingview.github.io/lightweight-charts/docs/api/interfaces/TimeScaleOptions#barspacing
 
-import React, { useCallback, useEffect } from "react";
-import Chart from "@qognicafinance/react-lightweight-charts";
-// import { updateLastRateData } from "reducers/rates";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createChart, IChartApi, ColorType, CrosshairMode } from "lightweight-charts";
+
 import { updateTooltip } from "reducers/chart/chart";
 import { useDispatch, useSelector } from "react-redux";
 import { decimalSplit /* getPrecision */ } from "lib/price/decimalSplit";
 import { RootState } from "reducers";
-import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
+// import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
 import { useMediaQuery } from "react-responsive";
-// import { RootState } from "reducers";
-// import { setLoading } from "reducers/loading";
 
-const LWchart = ({ chartTime }) => {
+const LWChart = ({ chartTime }) => {
     const dispatch = useDispatch();
     const { /* symbols,  */ chartList } = useSelector((state: RootState) => state.chart);
     const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
     const isNarrowMobile = useMediaQuery({ query: `(max-width: 320px)` });
-    // const selectedCoin = useSelector((state: RootState) => state.selectedCoin);
-    // const [precision, setPrecision] = useState(0);
-    // const [trackingMode, setTrackingMode] = useState(false);
+
+    const chart = useRef<IChartApi | null>(null);
+    const chartContainerRef = useRef<HTMLDivElement>(null);
+    const [candleSeries, setCandleSeries] = useState(null);
 
     const options = {
         alignLabels: false,
         timeScale: {
-            rightOffset: 3,
-            barSpacing: isMobile ? isNarrowMobile ? 3 : 5 : 10.5,
+            rightOffset: 2,
+            barSpacing: isMobile ? (isNarrowMobile ? 3 : 5) : 8,
             // lockVisibleTimeRangeOnResize: false,
             // rightBarStaysOnScroll: false,
             // borderVisible: false,
@@ -33,6 +32,7 @@ const LWchart = ({ chartTime }) => {
             timeVisible: chartTime === "15M" || chartTime === "4H" ? true : false,
             secondsVisible: false,
             tickMarkFormatter: (time) => {
+                console.log("time", time);
                 const date = new Date(time * 1000);
                 const month = date.getMonth() + 1;
                 const day = date.getDate();
@@ -44,22 +44,35 @@ const LWchart = ({ chartTime }) => {
             },
             rightBarStaysOnScroll: true,
         },
+        rightPriceScale: {
+            scaleMargins: {
+                top: 0.2, // leave some space for the legend
+                bottom: 0.05,
+            },
+            entireTextOnly: true,
+            drawTicks: true,
+        },
+        // width: "100%",
+        // height: "100%",
         layout: {
-            backgroundColor: "#212121",
-            textColor: "#ebebeb",
+            background: { type: ColorType.Solid, color: "#131832" },
+            textColor: "#B1BAD7",
+            fontSize: isMobile ? 7 : 9,
         },
         grid: {
             vertLines: {
-                color: "#212121",
+                color: "#131832",
             },
             horzLines: {
-                color: "#212121",
+                color: "#131832",
             },
         },
-        from: chartList[0]?.time,
-        to: chartList[chartList.length - 1]?.time,
+        /* range: {
+			from: chartList[0]?.time,
+			to: chartList[chartList.length - 1]?.time,
+		}, */
         crosshair: {
-            mode: 0,
+            mode: CrosshairMode.Normal,
         },
         business: {
             tickMarkFormatter: (time) => {
@@ -69,7 +82,7 @@ const LWchart = ({ chartTime }) => {
         handleScale: {
             mouseWheel: true,
             pinch: true,
-            axisPressedMouseMove: false,
+            axisPressedMouseMove: true,
             pressedMouseMove: true,
             horzTouchDrag: true,
             vertTouchDrag: true,
@@ -79,17 +92,31 @@ const LWchart = ({ chartTime }) => {
             touch: true,
             mouse: true,
         },
-        // trackingMouseMove: trackingMode,
+        trackingMouseMove: 1,
     };
-    useEffect(() => {
-        if (chartList?.length < CHART_DEFAULT_ITEM_COUNT) {
-            return;
+
+    const handleResize = () => {
+        if (chartContainerRef?.current) {
+            const clientWidth = chartContainerRef.current.clientWidth;
+            const cliendHeight = chartContainerRef.current.clientHeight;
+            chart.current.applyOptions({
+                timeScale: {
+                    barSpacing: clientWidth < 760 ? (clientWidth < 320 ? 3 : 5) : 8,
+                },
+                width: clientWidth,
+                height: cliendHeight,
+            });
         }
+    };
+
+    useEffect(() => {
+        /* if (chartList?.length < CHART_DEFAULT_ITEM_COUNT) {
+            return;
+        } */
 
         const lastCandle = chartList[chartList.length - 1];
         // console.log("chart", lastCandle);
         if (lastCandle) {
-            // dispatch(updateLastRateData({ close: decimalSplit(lastCandle.close) }));
             dispatch(
                 updateTooltip({
                     open: decimalSplit(lastCandle.open),
@@ -98,13 +125,48 @@ const LWchart = ({ chartTime }) => {
                     close: decimalSplit(lastCandle.close),
                 })
             );
+
+            console.log("chartList", chartList);
+            candleSeries?.setData(chartList);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chartList]);
+
+    // Resize chart on container resizes.
+    useEffect(() => {
+        chart.current = createChart(chartContainerRef.current, options);
+
+        const series = chart.current.addCandlestickSeries({
+            upColor: "#13dfff",
+            downColor: "#ff4976",
+            borderDownColor: "#ff4976",
+            borderUpColor: "#13dfff",
+            wickDownColor: "#838ca1",
+            wickUpColor: "#838ca1",
+            priceFormat: {
+                type: "custom",
+                formatter: (priceValue) => decimalSplit(priceValue),
+                minMove: 0.0000000001,
+            },
+        });
+
+        setCandleSeries(series);
+
+        chart.current.subscribeCrosshairMove((param) => handleCrosshairMoved(param, chartList[chartList.length - 1]));
+
+        window.addEventListener("resize", handleResize);
+
+        return () => {
+            window.removeEventListener("resize", handleResize);
+            chart.current.remove();
+        };
+    }, []);
 
     let throttled;
     const handleCrosshairMoved = useCallback((param, lastCandle = undefined) => {
-        if ((!param.point || param.seriesPrices.size < 1) && lastCandle) {
-            // console.log("param", param, "lastCandle", lastCandle);
+        console.log("param", param, lastCandle);
+        if ((!param.point || param.seriesData?.size < 1) && lastCandle) {
+            console.log("param", param, "lastCandle", lastCandle);
             // dispatch(updateLastRateData({ close: lastCandle.close }));
             dispatch(
                 updateTooltip({
@@ -120,7 +182,7 @@ const LWchart = ({ chartTime }) => {
             throttled = setTimeout(() => {
                 throttled = null;
                 try {
-                    const obj = param.seriesPrices.entries()?.next()?.value[1];
+                    const obj = param.seriesData?.entries()?.next()?.value[1];
                     if (!obj) {
                         return;
                     }
@@ -141,44 +203,7 @@ const LWchart = ({ chartTime }) => {
         }
     }, []);
 
-    return (
-        <Chart
-            options={options}
-            candlestickSeries={[{ data: chartList }]}
-            autoWidth
-            autoHeight
-            // height={380}
-            onCrosshairMove={(param) => handleCrosshairMoved(param, chartList[chartList.length - 1])}
-            chartRef={(chart) => {
-                chart.addCandlestickSeries({
-                    priceFormat: {
-                        type: "custom",
-                        formatter: (priceValue) => {
-                            return decimalSplit(priceValue);
-                        },
-                        // precision: precision,
-                        minMove: 0.0000000001, //Math.pow(10, precision * (-1)),
-                    },
-                });
-
-                // Apply the custom priceFormatter to the chart
-                chart.applyOptions({
-                    rightPriceScale: {
-                        // autoScale: false,
-                        scaleMargins: {
-                            top: 0.2, // leave some space for the legend
-                            bottom: 0.05,
-                        },
-                    },
-                    layout: {
-                        // fontFamily: "'Roboto', sans-serif",
-                        fontSize: isMobile ? 7 : 9,
-                    },
-                    
-                });
-            }}
-        />
-    );
+    return <div ref={chartContainerRef} className="w-full h-full"></div>;
 };
 
-export default React.memo(LWchart);
+export default React.memo(LWChart);

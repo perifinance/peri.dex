@@ -1,11 +1,12 @@
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateChart, setChartBase, addChartData } from "reducers/chart/chart";
-import LWchart from "./LWchart";
+import { UTCTimestamp } from "lightweight-charts";
 import { RootState } from "reducers";
-import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
-import coinList from "reducers/coin/coinList";
-import { balance } from "lib/thegraph/queries";
+// import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
+import LWChart from "./LWChart";
+/* import coinList from "reducers/coin/coinList";
+import { balance } from "lib/thegraph/queries"; */
 
 const dummy = { open: "1", low: "1", high: "1", close: "1" };
 const TimeSerise = {
@@ -22,7 +23,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
     const selectedCoin = useSelector((state: RootState) => state.selectedCoin);
     const { chartList } = useSelector((state: RootState) => state.chart);
     const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
-	const { loadings } = useSelector((state: RootState) => state.loading);
+    const { loadings } = useSelector((state: RootState) => state.loading);
 
     const mergeData = useCallback(() => {
         const values = [];
@@ -36,10 +37,10 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
 
             values[index] = {
                 ...item,
-                low: String(destinationDataItem.low / sourceDataItem.low),
-                close: String(destinationDataItem.close / sourceDataItem.close),
-                high: String(destinationDataItem.high / sourceDataItem.high),
-                open: String(destinationDataItem.open / sourceDataItem.open),
+                low: Number(destinationDataItem.low / sourceDataItem.low),
+                close: Number(destinationDataItem.close / sourceDataItem.close),
+                high: Number(destinationDataItem.high / sourceDataItem.high),
+                open: Number(destinationDataItem.open / sourceDataItem.open),
                 timestamp: source ? source.openTime : destinate.openTime,
             };
         });
@@ -54,14 +55,14 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
             let chartLastData = { ...chartList[chartList.length - 1] };
 
             // console.log("chartLastData", chartLastData);
-            const lastPrice = (Number((lastRateData.rate * 10n ** 10n) / 10n ** 18n) / 10 ** 10).toString();
+            const lastPrice = Number((lastRateData.rate * 10n ** 10n) / 10n ** 18n) / 10 ** 10;
 
             const lastChartTime = lastRateData.timestamp - (lastRateData.timestamp % TimeSerise[chartTime]);
             // console.log("lastPrice", chartTime, chartLastData.time, lastChartTime);
             if (chartLastData.time < lastChartTime) {
                 chartLastData = {
                     ...chartLastData,
-                    time: lastChartTime,
+                    time: lastChartTime as UTCTimestamp,
                     close: lastPrice,
                     high: lastPrice,
                     low: lastPrice,
@@ -104,7 +105,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
             }:${min < 10 ? `0${min}` : min}`;
 
             return {
-                time: Date.parse(openTime) / 1000,
+                time: (el.openTime / 1000) as UTCTimestamp,
                 open: Number(el.open),
                 high: Number(el.high),
                 low: Number(el.low),
@@ -113,12 +114,14 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
             };
         });
 
-        if (chartList.length >= CHART_DEFAULT_ITEM_COUNT) {
-			const symbols = `${selectedCoin.source.symbol}/${selectedCoin.destination.symbol}`;
-			dispatch(setChartBase({ symbols, chartList }));
-			console.log("dispatch chartData", chartList);
-            setTimeout(changeLastData, 10, chartList, lastRateData);
-        }
+        // if (chartList.length >= CHART_DEFAULT_ITEM_COUNT) {
+        const symbols = `${selectedCoin.source.symbol}/${selectedCoin.destination.symbol}`;
+        dispatch(setChartBase({ symbols, chartList }));
+        console.log("dispatch chartData", chartList);
+        setTimeout(changeLastData, 10, chartList, lastRateData);
+        // }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mergeData]);
 
     useEffect(() => {
@@ -128,7 +131,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastRateData]);
 
-    return <LWchart chartTime={chartTime} />;
+    return <LWChart chartTime={chartTime} />;
 };
 
 export default BarCandleChart;

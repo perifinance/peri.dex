@@ -7,7 +7,8 @@
 
 body {
     font-family: "Montserrat";
-    background: #151515;
+    background: #01092c;
+    /* #151515; */
     color: rgb(188, 205, 226);
 }
 
@@ -15,14 +16,15 @@ body {
     padding-right: 0;
 }
 
+
 button.btn-base {
     border-width: 1px;
     --tw-border-opacity: 1;
     border-color: gb(
-        33 132 248 / var(--tw-border-opacity)
+        37 99 235 / var(--tw-border-opacity)
     ); /*rgb(96 165 250 / var(--tw-border-opacity));/* rgb(33 132 248 / var(--tw-border-opacity)); */
     color: rgb(
-        33 132 248 / var(--tw-border-opacity)
+        37 99 235 / var(--tw-border-opacity)
     ); /*rgb(96 165 250 / var(--tw-border-opacity));/* rgb(33 132 248 / var(--tw-border-opacity)); */
     --tw-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
     --tw-shadow-colored: inset 0 2px 4px 0 var(--tw-shadow-color);
@@ -38,7 +40,7 @@ button.btn-base:enabled:hover {
 
 button.btn-base:enabled:active {
     background-color: rgb(29 78 216);
-    --tw-shadow-color: #1e3a8a;
+    --tw-shadow-color: #131832;
     --tw-shadow: var(--tw-shadow-colored);
 }
 

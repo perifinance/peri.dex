@@ -75,14 +75,16 @@ const Exchange = () => {
     }, [isConnect, networkId]);
 
     return (
-        <div className="flex flex-col mt-0 sm:mt-2 lg:flex-row w-full h-full lg:h-[74%] lg:justify-between lg:space-x-2 xl:space-x-4">
-            <div className={`w-full lg:w-[77%] flex h-full lg:max-h-screen lg:grow lg:flex-col`}>
-                <Chart />
-                <div className="hidden lg:flex w-full lg:h-1/3">
+        <div className="flex flex-col mt-0 sm:mt-2 lg:flex-row w-full h-full lg:h-[82%] lg:justify-between lg:space-x-2 xl:space-x-4">
+            <div className={`w-full lg:w-[77%] flex h-full lg:max-h-screen lg:grow lg:flex-col gap-2`}>
+                <div className="w-full min-h-[45vh] lg:min-h-[35%] lg:h-[67%] lg:px-5 lg:py-2 bg-blue-900 rounded-t-lg lg:rounded-lg ">
+                    <Chart />
+                </div>
+                <div className="hidden lg:flex w-full lg:h-[32%]">
                     <OrderHistories  balance={balance}/>
                 </div>
             </div>
-            <div className={`w-full lg:w-[23%] ${isCoinList && "hidden"}`}>
+            <div className={`w-full lg:w-[25%] lg:h-full ${isCoinList && "hidden"}`}>
                 <Order openCoinList={openCoinList} balance={balance} setBalance={setBalance} />
             </div>
             <div className={`${!isCoinList && "hidden"}`}>
