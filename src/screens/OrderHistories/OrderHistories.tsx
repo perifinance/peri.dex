@@ -13,9 +13,9 @@ const OrderHistories = ({ balance }) => {
     const transaction = useSelector((state: RootState) => state.transaction);
     const [histories, setHistories] = useState([]);
     // const [currentPage, setCurrentPage] = useState(1);
-    const [pages, setPages] = useState([]);
+    // const [pages, setPages] = useState([]);
 
-    const getPages = (size: number) => {
+    /* const getPages = (size: number) => {
         let pageCount = Math.ceil(size / 10);
         pageCount = pageCount === 0 ? 1 : pageCount;
         let pages = [];
@@ -23,12 +23,13 @@ const OrderHistories = ({ balance }) => {
             pages.push(a);
         }
         return pages;
-    };
+    }; */
 
     const init = useCallback(async () => {
         const histories = await getExchangeHistories({ address, first: 5 });
         setHistories(histories);
-        setPages(getPages(histories.length));
+        // console.log("histories", histories);
+        // setPages(getPages(histories.length));
     }, [address, getExchangeHistories, setHistories]);
 
     useEffect(() => {

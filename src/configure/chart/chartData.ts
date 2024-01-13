@@ -1,1 +1,1 @@
-export const CHART_DEFAULT_ITEM_COUNT = 500;
+export const CHART_DEFAULT_ITEM_COUNT = 1000;

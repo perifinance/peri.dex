@@ -117,7 +117,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
         // if (chartList.length >= CHART_DEFAULT_ITEM_COUNT) {
         const symbols = `${selectedCoin.source.symbol}/${selectedCoin.destination.symbol}`;
         dispatch(setChartBase({ symbols, chartList }));
-        console.log("dispatch chartData", chartList);
+        // console.log("dispatch chartData", chartList);
         setTimeout(changeLastData, 10, chartList, lastRateData);
         // }
 

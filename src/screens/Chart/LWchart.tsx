@@ -20,30 +20,34 @@ const LWChart = ({ chartTime }) => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const [candleSeries, setCandleSeries] = useState(null);
 
+    const timeScale = {
+        rightOffset: 2,
+        barSpacing: isMobile ? (isNarrowMobile ? 3 : 5) : 8,
+        // lockVisibleTimeRangeOnResize: false,
+        // rightBarStaysOnScroll: false,
+        // borderVisible: false,
+        visible: true,
+        timeVisible: chartTime === "15M" || chartTime === "4H" ? true : false,
+        secondsVisible: false,
+        tickMarkFormatter: (time) => {
+            // console.log("time", time);
+            const date = new Date(time * 1000);
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const hour = date.getHours();
+            const min = date.getMinutes();
+            return chartTime !== "15M"
+                ? chartTime === "4H"
+                    ? `${month}/${day}-${hour}`
+                    : `${month}/${day}`
+                : `${hour < 10 ? `0${hour}` : hour}:${min < 10 ? `0${min}` : `${min}`}`;
+        },
+        rightBarStaysOnScroll: true,
+    };
+
     const options = {
         alignLabels: false,
-        timeScale: {
-            rightOffset: 2,
-            barSpacing: isMobile ? (isNarrowMobile ? 3 : 5) : 8,
-            // lockVisibleTimeRangeOnResize: false,
-            // rightBarStaysOnScroll: false,
-            // borderVisible: false,
-            visible: true,
-            timeVisible: chartTime === "15M" || chartTime === "4H" ? true : false,
-            secondsVisible: false,
-            tickMarkFormatter: (time) => {
-                console.log("time", time);
-                const date = new Date(time * 1000);
-                const month = date.getMonth() + 1;
-                const day = date.getDate();
-                const hour = date.getHours();
-                const min = date.getMinutes();
-                return chartTime === "15M"
-                    ? `${hour < 10 ? `0${hour}` : hour}:${min < 10 ? `0${min}` : `${min}`}`
-                    : `${month}/${day}`;
-            },
-            rightBarStaysOnScroll: true,
-        },
+        timeScale,
         rightPriceScale: {
             scaleMargins: {
                 top: 0.2, // leave some space for the legend
@@ -101,6 +105,7 @@ const LWChart = ({ chartTime }) => {
             const cliendHeight = chartContainerRef.current.clientHeight;
             chart.current.applyOptions({
                 timeScale: {
+                    ...timeScale,
                     barSpacing: clientWidth < 760 ? (clientWidth < 320 ? 3 : 5) : 8,
                 },
                 width: clientWidth,
@@ -126,7 +131,9 @@ const LWChart = ({ chartTime }) => {
                 })
             );
 
-            console.log("chartList", chartList);
+            chart.current.applyOptions({ ...options, timeScale });
+
+            // console.log("chartList", chartList);
             candleSeries?.setData(chartList);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,9 +171,9 @@ const LWChart = ({ chartTime }) => {
 
     let throttled;
     const handleCrosshairMoved = useCallback((param, lastCandle = undefined) => {
-        console.log("param", param, lastCandle);
+        // console.log("param", param, lastCandle);
         if ((!param.point || param.seriesData?.size < 1) && lastCandle) {
-            console.log("param", param, "lastCandle", lastCandle);
+            // console.log("param", param, "lastCandle", lastCandle);
             // dispatch(updateLastRateData({ close: lastCandle.close }));
             dispatch(
                 updateTooltip({

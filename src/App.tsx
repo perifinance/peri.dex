@@ -37,7 +37,7 @@ const App = () => {
         // let netkId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
 
         // contracts.init(networkId);
-        
+
         // dispatch(updateNetwork({ networkId: networkId }));
         try {
             web3Onboard.init(
@@ -51,9 +51,8 @@ const App = () => {
                         }
                     },
                     address: async (newAddress) => {
-
                         // console.log('contract connect call in address', newAddress);
-                        
+
                         try {
                             if (newAddress === undefined) {
                                 contracts.clear();
@@ -73,9 +72,9 @@ const App = () => {
 
                         // console.log('contract init call in network', networkId, newNetworkId);
 
-                        try{
+                        try {
                             await contracts.init(newNetworkId);
-                            dispatch(updateNetwork({ networkId: newNetworkId}));
+                            dispatch(updateNetwork({ networkId: newNetworkId }));
                         } catch (e) {
                             console.log(e);
                         }
@@ -94,7 +93,6 @@ const App = () => {
         if (selectedWallet) {
             try {
                 await web3Onboard.connect(selectedWallet);
-                
             } catch (e) {
                 console.log(e);
             }
@@ -109,19 +107,31 @@ const App = () => {
                 if (transactionState.status !== 1) {
                     NotificationManager.remove(NotificationManager.listNotify[0]);
                     NotificationManager.error(`${transaction.type} failed`, "ERROR");
+                    if (transaction.error) {
+                        await transaction.error();
+                    }
                 } else {
                     NotificationManager.remove(NotificationManager.listNotify[0]);
                     NotificationManager.success(`${transaction.type} succeeded`, "SUCCESS");
                     if (transaction.action) {
                         await transaction.action();
                     }
-                    dispatch(resetTransaction());
                 }
+                dispatch(resetTransaction());
             });
         } catch (error) {
+            NotificationManager.remove(NotificationManager.listNotify[0]);
+            NotificationManager.error(
+                `${transaction.type} failed Code[${
+                    error?.error ? (error.error.code ? error.error.code : error.error) : error
+                }]`,
+                "ERROR"
+            );
+            if (transaction.error) {
+                await transaction.error();
+            }
             console.log(error);
         }
-        
     }, [transaction, dispatch]);
 
     useEffect(() => {

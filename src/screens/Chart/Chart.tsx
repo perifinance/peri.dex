@@ -73,7 +73,7 @@ const Chart = () => {
                     return result;
                 })
             :   [];
-        console.log("dataList",key, dataList);
+        // console.log("dataList",key, dataList);
         if (key === "source") {
             setSource(dataList);
         } else if (key === "destination") {
@@ -191,19 +191,19 @@ const Chart = () => {
                         {/* TOOLTIP */}
                         <div className="flex w-fit items-center h-3 md:h-5 text-[8px] md:text-[10px] space-x-2 justify-between ml-2 lg:mx-2 lg:ml-3 z-20">
                             <span className="flex flex-nowrap">
-                                <span className="font-medium hidden md:block">O:</span>
+                                <span className="font-medium hidden md:block w-3">O:</span>
                                 <span className={`${color_tailwind}`}>{` ${tooltip.open}`}</span>
                             </span>
                             <span className="flex flex-nowrap">
-                                <span className="font-medium hidden md:block">H:</span>
+                                <span className="font-medium hidden md:block w-3">H:</span>
                                 <span className={`${color_tailwind}`}>{` ${tooltip.high}`}</span>
                             </span>
                             <span className="flex flex-nowrap">
-                                <span className="font-medium hidden md:block">L:</span>
+                                <span className="font-medium hidden md:block w-3">L:</span>
                                 <span className={`${color_tailwind}`}>{` ${tooltip.low}`}</span>
                             </span>
                             <span className="flex flex-nowrap">
-                                <span className="font-medium hidden md:block">C:</span>
+                                <span className="font-medium hidden md:block w-3">C:</span>
                                 <span className={`${color_tailwind}`}>{` ${tooltip.close}`}</span>
                             </span>
                         </div>
