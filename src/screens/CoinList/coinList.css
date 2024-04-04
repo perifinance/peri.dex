@@ -3,16 +3,16 @@
 }
 
 .scrollbarOn::-webkit-scrollbar {
-	width: 6px;
+	width: 5px;
 }
 .scrollbarOn::-webkit-scrollbar-track {
 	background-color: none;
 }
 .scrollbarOn::-webkit-scrollbar-thumb {
 	border-radius: 3px;
-	background-color: gray;
+	background-color: rgb(32, 31, 54);
 }
 .scrollbarOn::-webkit-scrollbar-button {
-	width: 0;
-	height: 0;
+	width: 5px;
+	height: 8px;
 }

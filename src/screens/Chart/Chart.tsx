@@ -19,9 +19,8 @@ const Chart = () => {
     const { tooltip } = useSelector((state: RootState) => state.chart);
 
     const [chartTime, setChartTime] = useState("15M");
-    const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>();
-    const [source, setSource] = useState([]);
-    const [destinate, setDestinate] = useState([]);
+    const [currencyNames, setCurrencyNames] = useState<{ source: String; destination: String }>(null);
+    const [chartData, setChartData] = useState({source:[], destination:[]});
     const [isTimeSeriseList, setIsTimeSeriseList] = useState(false);
     const isNarrowMobile = useMediaQuery({ query: `(max-width: 320px)` });
     const timeSerise = { "15M": "15m", "4H": "4h", "24H": "1d", "1W": "1w" };
@@ -30,13 +29,13 @@ const Chart = () => {
     const loadingHandler = useCallback(
         (toggle: boolean) => {
             toggle
-                ? dispatch(setLoading({ name: "balance", value: true }))
-                : dispatch(setLoading({ name: "balance", value: false }));
+                ? dispatch(setLoading({ name: "chart", value: true }))
+                : dispatch(setLoading({ name: "chart", value: false }));
         },
         [dispatch]
     );
 
-    const setPrepareData = useCallback(async (data: any, key, sliceLength) => {
+    const setPrepareData = async (data: any, sliceLength):Promise<any> => {
         const title = [
             "openTime",
             "open",
@@ -74,12 +73,8 @@ const Chart = () => {
                 })
             :   [];
         // console.log("dataList",key, dataList);
-        if (key === "source") {
-            setSource(dataList);
-        } else if (key === "destination") {
-            setDestinate(dataList);
-        }
-    }, []);
+        return dataList;
+    };
 
     const init = useCallback(async () => {
         let interval = "";
@@ -87,31 +82,32 @@ const Chart = () => {
 
         interval = timeSerise[chartTime];
 
+        const rawData:any = {};
         Object.keys(currencyNames).forEach(async (key) => {
             loadingHandler(true);
-
+            // console.log("loading true");
             const symbol = currencyNames[key].replace("p", "");
             const url = `${process.env.REACT_APP_PER_API_URL}binance`;
             // console.log("url", url, symbol, interval);
             if (currencyNames[key] !== "pUSD") {
-                await axios
+                const retData = await axios
                     .get(url, {
                         headers: { "Access-Control-Allow-Origin": "*" },
                         params: { symbol: symbol, interval: interval },
-                    })
-                    .then((res) => {
-                        // console.log(res, sliceLength);
-                        setPrepareData(res, key, sliceLength);
-                        loadingHandler(false);
                     });
+                // console.log("data", retData);
+                rawData[key] = await setPrepareData(retData, sliceLength);
+                if (rawData.source && rawData.destination) {
+                    setChartData(rawData);
+                }
 
-                // runTimer(url, symbol, interval, key, sliceLength);
             } else {
                 // console.log("pUSD");
-                setPrepareData(undefined, key, sliceLength);
+                rawData[key] = await setPrepareData(undefined, sliceLength);
             }
         });
-    }, [chartTime, currencyNames, setPrepareData]);
+
+    }, [chartTime, currencyNames]);
 
     useEffect(() => {
         setCurrencyNames({
@@ -121,12 +117,13 @@ const Chart = () => {
     }, [selectedCoins]);
 
     useEffect(() => {
-        loadingHandler(true);
+        // loadingHandler(true);
 
-        if (currencyNames) {
+        // console.log("currencyNames", currencyNames);
+        if (currencyNames && chartTime) {
             init();
         }
-    }, [currencyNames, chartTime, loadingHandler, init]);
+    }, [init]);
 
     const seriseRef = useRef<HTMLDivElement>(null);
 
@@ -154,9 +151,9 @@ const Chart = () => {
                     <div className={`lg:flex flex-col z-10 w-fit`}>
                         <div className={`flex flex-nowrap w-fit space-x-1 p-1`}>
                             <div className="flex flex-row items-end lg:justify-items-start h-8">
-                                <div className="w-10 h-6 relative mt-1">
+                                <div className="w-8 h-6 relative mt-1">
                                     <img
-                                        className="w-5 h-5 md:w-6 lg:h-6 ml-1 absolute bottom-left z-1"
+                                        className="w-5 h-5 md:w-6 left-0 absolute z-[1]"
                                         src={`/images/currencies/${getSafeSymbol(
                                             selectedCoins.destination.symbol,
                                             false
@@ -164,7 +161,7 @@ const Chart = () => {
                                         alt="currencies"
                                     ></img>
                                     <img
-                                        className="w-5 h-5 md:w-6 lg:h-6 ml-4 absolute bottom-right z-10"
+                                        className="w-5 h-5 md:w-6 left-[10px] absolute z-0"
                                         src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
                                         alt="currencies"
                                     ></img>
@@ -251,7 +248,7 @@ const Chart = () => {
                     </div>
                 </div>
                 <div className="flex h-full w-[97%] lg:w-full z-2 mt-[5px] ml-2 lg:ml-0 lwchart">
-                    <BarCandleChart source={source} destinate={destinate} chartTime={chartTime} />
+                    <BarCandleChart source={chartData.source} destinate={chartData.destination} chartTime={chartTime} />
                 </div>
             </div>
         </div>

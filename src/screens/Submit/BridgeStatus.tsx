@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { networkInfo } from "configure/networkInfo";
 import { formatCurrency } from "lib";
-import { changeNetwork } from "lib/network";
+// import { changeNetwork } from "lib/network";
 import React, { useEffect } from "react";
 import { /* useDispatch, */ useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";

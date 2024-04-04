@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "reducers";
 import { NotificationManager } from "react-notifications";
@@ -12,21 +12,27 @@ import { setLoading } from "reducers/loading";
 // import { changeNetwork } from "lib/network";
 import { networkInfo } from "configure/networkInfo";
 import { isExchageNetwork } from "lib/network";
+import { getRateTickers } from "lib/thegraph/api/getRateTickers";
+import { updatePrice } from "reducers/coin/coinList";
+import { updateLastRateData } from "reducers/rates";
 
 const Exchange = () => {
     const dispatch = useDispatch();
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
+    const { coinList } = useSelector((state: RootState) => state.coinList);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState(null);
     const [balance, setBalance] = useState(0n);
+    const [isHide, setIsHide] = useState(true);
+    const [timeInterval, setTimeInterval] = useState(null);
 
     const openCoinList = (type) => {
         if (!isConnect) {
             NotificationManager.info(`Please connect your wallet`);
             return false;
         }
-        
+
         // console.log("openCoinList networkId", networkId);
 
         if (!isExchageNetwork(networkId)) {
@@ -39,6 +45,7 @@ const Exchange = () => {
             return false;
         }
         setCoinListType(type);
+        setIsHide(false);
         setIsCoinList(true);
     };
 
@@ -46,8 +53,7 @@ const Exchange = () => {
         dispatch(setLoading({ name: "balance", value: true }));
 
         if (coin) {
-            if (selectedCoins.destination === coin || selectedCoins.source === coin)
-            {
+            if (selectedCoins.destination.symbol === coin.symbol || selectedCoins.source.symbol === coin.symbol) {
                 NotificationManager.warning(`Please select a different token`, "", 2000);
             } else {
                 if (coinListType === "source") {
@@ -57,13 +63,22 @@ const Exchange = () => {
                 }
             }
         }
-        setIsCoinList(false);
+        // setIsCoinList(false);
         dispatch(setLoading({ name: "balance", value: false }));
     };
 
     const closeCoinList = () => {
         setIsCoinList(false);
+        setTimeout(() => setIsHide(true), 900);
     };
+
+    const init = useCallback(async () => {
+        const rateTickers = await getRateTickers();
+        // console.log("rateTickers", rateTickers);
+
+        dispatch(updatePrice(rateTickers));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[]);
 
     useEffect(() => {
         if (isConnect) {
@@ -74,21 +89,70 @@ const Exchange = () => {
         }
     }, [isConnect, networkId]);
 
+    const lastRateUpdate = useCallback(() => {
+        const src = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
+        const dest = coinList.find((coin) => coin.symbol === selectedCoins.destination.symbol);
+        // console.log("srcSymbol", src, dest);
+        if (src && dest) {
+            const lastRateData = {
+                timestamp: src.timestamp > dest.timestamp
+                    ? src.timestamp : dest.timestamp,
+                rate: (dest.price * 10n ** 18n) / src.price,
+                symbols: `${src.symbol}/${dest.symbol}`,
+            };
+    
+            dispatch(updateLastRateData(lastRateData));
+        }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [coinList, selectedCoins.destination.symbol, selectedCoins.source.symbol]);
+
+    useEffect(() => {
+        if (coinList.length > 0){
+            lastRateUpdate();
+        }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lastRateUpdate]);
+
+    useEffect(() => {
+        if (!isConnect) {
+            if (timeInterval) clearInterval(timeInterval);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            if (isConnect) {
+                init();
+            }
+        }, 30000);
+
+        setTimeInterval(interval);
+
+        return () => clearInterval(interval);
+    }, [isConnect]);
+
     return (
-        <div className="flex flex-col mt-0 sm:mt-2 lg:flex-row w-full h-full lg:h-[82%] lg:justify-between lg:space-x-2 xl:space-x-4">
-            <div className={`w-full lg:w-[77%] flex h-full lg:max-h-screen lg:grow lg:flex-col gap-2`}>
-                <div className="w-full min-h-[45vh] lg:min-h-[35%] lg:h-[67%] lg:px-5 lg:py-2 bg-blue-900 rounded-t-lg lg:rounded-lg ">
+        <div className={`flex flex-col mt-0 sm:mt-2 lg:flex-row w-full lg:justify-between lg:space-x-2 xl:space-x-4 overflow-x-hidden h-fit lg:h-[85%]`}>
+            <div className={`w-full lg:w-[77%] flex h-[50vh] lg:h-full lg:max-h-screen lg:grow lg:flex-col gap-2`}>
+                <div className="w-full lg:min-h-[45%] h-full lg:h-[67%] lg:px-5 lg:py-2 bg-blue-900 rounded-t-lg lg:rounded-lg ">
                     <Chart />
                 </div>
                 <div className="hidden lg:flex w-full lg:h-[32%]">
-                    <OrderHistories  balance={balance}/>
+                    <OrderHistories balance={balance} />
                 </div>
             </div>
-            <div className={`w-full lg:w-[25%] lg:h-full ${isCoinList && "hidden"}`}>
-                <Order openCoinList={openCoinList} balance={balance} setBalance={setBalance} />
-            </div>
-            <div className={`${!isCoinList && "hidden"}`}>
+            <div className={`w-full lg:w-[25%] lg:h-full h-fit relative`}>
+                <Order
+                    isCoinList={isCoinList}
+                    coinListType={coinListType}
+                    closeCoinList={closeCoinList}
+                    openCoinList={openCoinList}
+                    balance={balance}
+                    setBalance={setBalance}
+                />
                 <CoinList
+                    isHide={isHide}
                     isCoinList={isCoinList}
                     coinListType={coinListType}
                     selectedCoin={selectedCoin}
@@ -99,3 +163,4 @@ const Exchange = () => {
     );
 };
 export default Exchange;
+

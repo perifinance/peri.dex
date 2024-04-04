@@ -27,7 +27,7 @@ export const chartListSlice = createSlice({
     reducers: {
         updateChart: (state, actions: PayloadAction<any>) => {
             if (actions.payload.symbols === state.symbols /* && CHART_DEFAULT_ITEM_COUNT <= state.chartList.length */) {
-                let chartList = [...state.chartList];
+                const chartList = [...state.chartList];
                 chartList[chartList.length - 1] = actions.payload.chartLastData;
                 return { ...state, chartList};
             }
@@ -36,7 +36,7 @@ export const chartListSlice = createSlice({
         },
         addChartData: (state, actions: PayloadAction<any>) => {
 			if (actions.payload.symbols === state.symbols) {
-				let chartList = [...state.chartList, actions.payload.chartLastData];
+				const chartList = [...state.chartList, actions.payload.chartLastData];
             	return { ...state, chartList };
 			}
 
@@ -46,7 +46,7 @@ export const chartListSlice = createSlice({
             return { ...state, tooltip: actions.payload };
         },
         setChartBase: (state, actions: PayloadAction<any>) => {
-            return { ...state, chartList: actions.payload.chartList, symbols: actions.payload.symbols };
+            return { ...state, chartList: [...actions.payload.chartList], symbols: actions.payload.symbols };
         },
     },
 });

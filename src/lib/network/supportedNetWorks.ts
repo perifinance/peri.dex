@@ -37,6 +37,8 @@ export const UNPOPULARNET = {
 	1287: 'moonbase-alphanet',
 };
 
+export const FEEDNETID = 137;
+
 export const isExchageNetwork = (networkId) => {
 	return Object.keys(DEXNET).find(key => Number(key) === networkId) !== undefined;
 }

@@ -17,7 +17,9 @@ const Loading = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        setIsLoading(Object.values(loadings).reduce((a, b) => a || b));
+        const isLodaing = Object.values(loadings).reduce((a, b) => a || b);
+        // console.log("loading component Loading?", isLodaing);
+        setIsLoading(isLodaing);
     }, [loadings]);
 
     return (

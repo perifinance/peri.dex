@@ -20,12 +20,14 @@ import { BuiltInThemes, WalletState } from "@web3-onboard/core/dist/types";
 import { Chain } from "@web3-onboard/common/dist/types";
 import ledgerModule from "@web3-onboard/ledger";
 import metamaskSDK from "@web3-onboard/metamask";
+
 import { NotificationManager } from "react-notifications";
 
 import { SUPPORTED_NETWORKS } from "lib/network";
 
 import { networkInfo } from "configure/networkInfo";
-import { UNPOPULARNET } from "lib/network/supportedNetWorks";
+
+import { MAINNET, TESTNET, UNPOPULARNET } from "lib/network/supportedNetWorks";
 
 type Web3Onboard = {
     onboard: OnboardAPI;
@@ -76,9 +78,10 @@ export const web3Onboard: Web3Onboard = {
             qrModalOptions: {
                 enableAuthMode: true,
             },
-            requiredChains: Object.keys(SUPPORTED_NETWORKS).filter((networkId) => {
+            requiredChains: Object.keys(process.env.NODE_ENV === 'production' ? MAINNET : TESTNET ).filter((networkId) => {
                 return UNPOPULARNET[networkId] === undefined;
             }),
+            
             optionalChains: Object.keys(UNPOPULARNET).map((networkId) => networkId),
             dappUrl: "https://prepare-dex.peri.finance",
             additionalOptionalMethods: ["wallet_switchEthereumChain", "wallet_addEthereumChain"],

@@ -1,11 +1,35 @@
-
 module.exports = {
     content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
     theme: {
         extend: {
+            keyframes: {
+                "x-bounce": {
+                    "0%, 100%": {
+                        transform: "translateX(-25%)",
+                        "animation-timing-function": "cubic-bezier(0.8, 0, 1, 1)",
+                    },
+                    "50%": {
+                        transform: "translateX(0)",
+                        "animation-timing-function": "cubic-bezier(0, 0, 0.2, 1)",
+                    },
+                },
+                "r-fade-in": {
+                    "0%": {transform: "translateX(100%)"},
+                    "100%": {transform: "translateX(0)"},
+                },
+                "r-fade-out": {
+                    "0%": { transform: "translateX(0)" },
+                    "100%": { transform: "translateX(100%)" },
+                },
+            },
+            animation: {
+                "x-bounce": "x-bounce 1s infinite",
+                "r-fade-in": "r-fade-in 1s",
+                "r-fade-out": "r-fade-out 1s",
+            },
             screens: {
-                'xs': '320px',
-                'ss': '440px',
+                xs: "320px",
+                ss: "440px",
             },
             minWidth: {
                 5: "1.25rem",
@@ -87,7 +111,7 @@ module.exports = {
                     500: "#9167FF",
                 },
                 red: {
-                    400: "#f55e84",
+                    400: "#ff4976",
                     500: "#CC4949",
                     700: "#CB0000",
                 },
@@ -100,13 +124,15 @@ module.exports = {
                 },
                 blue: {
                     500: "#2184F8",
+                    800: "#242a4b",
+                    850: "#1c2345",
                     900: "#131832",
-                    950: "#01092c"
+                    950: "#01092c",
                 },
                 gray: {
                     700: "#212121",
                     500: "#333333",
-                    300: "#737373",
+                    300: "#B1BAD7",
                     200: "#fffff2",
                 },
                 long: {

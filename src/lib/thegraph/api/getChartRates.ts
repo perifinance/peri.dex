@@ -1,4 +1,4 @@
-import { chartRate } from "../queries";
+import { chartRates } from "../queries";
 import { get } from "../service";
 import { format } from "date-fns";
 import { utils } from "ethers";
@@ -52,19 +52,19 @@ export const getChartRates = async ({
 	let sourceData =
 		currencyNames.source === "pUSD"
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
-			: await get(chartRate({ currencyName: currencyNames.source, page, first, searchDate }));
+			: await get(chartRates({ currencyName: currencyNames.source, page, first, searchDate }));
 
 	if (currencyNames.source !== "pUSD" && sourceData.length <= 1) {
-		sourceData = await get(chartRate({ currencyName: currencyNames.source, page: 0, first: 2 }));
+		sourceData = await get(chartRates({ currencyName: currencyNames.source, page: 0, first: 2 }));
 	}
 
 	let destinationData =
 		currencyNames.destination === "pUSD"
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
-			: await get(chartRate({ currencyName: currencyNames.destination, page, first, searchDate }));
+			: await get(chartRates({ currencyName: currencyNames.destination, page, first, searchDate }));
 
 	if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
-		destinationData = await get(chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 }));
+		destinationData = await get(chartRates({ currencyName: currencyNames.destination, page: 0, first: 2 }));
 	}
 
 	let dayFlag;

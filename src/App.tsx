@@ -7,7 +7,7 @@ import { RootState } from "reducers";
 import { updateAddress, updateNetwork, updateIsConnect, clearWallet } from "reducers/wallet";
 // import { clearWallet, clearBalances } from 'reducers/wallet'
 import { resetTransaction } from "reducers/transaction";
-import { initCoinList } from "reducers/coin/coinList";
+import { initCoinList, updateCoin } from "reducers/coin/coinList";
 import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { setAppReady } from "reducers/app";
 // import { changeNetwork } from 'lib/network'
@@ -18,6 +18,8 @@ import { getCoinList } from "lib/coinList";
 
 import Main from "./screens/Main";
 import "./App.css";
+import { getRateTickers } from "lib/thegraph/api/getRateTickers";
+// import { getRateTickers } from "lib/thegraph/api/getRateTickers";
 
 const App = () => {
     const { networkId } = useSelector((state: RootState) => state.wallet);
@@ -150,12 +152,22 @@ const App = () => {
         // eslint-disable-next-line
     }, []);
 
-    const init = useCallback(() => {
-        // console.log('init', networkId);
+    const initializeCoinList = async (coinList) => {
+        const rateTickers = await getRateTickers();
+        const newCoinList = coinList.map((coin) => ({...coin, price:rateTickers[coin.symbol]?.price, change: rateTickers[coin.symbol]?.change}));
+        
+        dispatch(initCoinList(newCoinList));
+
+        // console.log("rateTickers", rateTickers);
+    };
+
+    const init = useCallback(async () => {
         try {
             const coinList = getCoinList(networkId);
-            dispatch(initCoinList(coinList));
             dispatch(setSelectedCoin({ source: coinList[0], destination: coinList[1] }));
+
+            initializeCoinList(coinList);
+
         } catch (e) {}
     }, [networkId, dispatch]);
 

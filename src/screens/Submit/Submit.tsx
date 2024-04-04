@@ -220,7 +220,7 @@ const Submit = () => {
         }
 
         if (contracts.signers[selectedCoin.contract] === undefined) {
-            console.log("selectedCoin.contract", selectedCoin.contract);
+            // console.log("selectedCoin.contract", selectedCoin.contract);
             NotificationManager.warning("Please refresh it and try it again.");
             return;
         }
@@ -392,8 +392,11 @@ const Submit = () => {
 
     const initBalances = useCallback(async () => {
         try {
+            // console.log(networks);
             const pUSDBalances = await getBalancesNetworks(networks, address, "ProxyERC20pUSD");
+            // console.log(pUSDBalances);
             const PERIbalances = await getBalancesNetworks(networks, address, "ProxyERC20");
+            // console.log(PERIbalances);
             const networksAddBalances = networks.map((e, i) => {
                 return {
                     ...e,
@@ -403,6 +406,7 @@ const Submit = () => {
                     },
                 };
             });
+            // console.log(networksAddBalances);
             setNetworks(networksAddBalances);
         } catch (error) {
             console.log(error);

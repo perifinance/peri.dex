@@ -40,6 +40,7 @@ export const ExchangeRatesSlice = createSlice({
             };
         },
         updateLastRateData(state, actions: PayloadAction<LastRateData>) {
+            // console.log("updateLastRateData", actions.payload);
             return { ...state, lastRateData: actions.payload };
         },
     },

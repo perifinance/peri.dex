@@ -11,7 +11,7 @@ export const RPC_URLS: object = {
 	137: "https://polygon-bor.publicnode.com",
 	// 137: `https://rpc-mainnet.maticvigil.com/v1/${process.env.REACT_APP_RPC_MATIC_ID}`,
 	// 1285: `https://moonriver.api.onfinality.io/rpc?apikey=96fac326-b64d-4479-8b8d-2bcf64d0f99f`,
-	1285: /* false ? */`https://moonriver.blastapi.io/fe1ee7ca-fcf8-4db2-9cd7-7246cded8a03`, /*: `https://moonriver.public.blastapi.io`, */
+	1285: /* false ?  `https://moonriver.blastapi.io/fe1ee7ca-fcf8-4db2-9cd7-7246cded8a03`, */ `https://moonriver.public.blastapi.io`,
 	1287: /* false ? */`https://rpc.api.moonbase.moonbeam.network`, /* : `https://rpc.testnet.moonbeam.network`, */ //`https://moonbeam-alpha.api.onfinality.io/public`,
 	80001: `https://rpc-mumbai.maticvigil.com/v1/${process.env.REACT_APP_RPC_MUMBAI_ID}`,
 };

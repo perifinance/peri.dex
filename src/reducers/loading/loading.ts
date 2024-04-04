@@ -7,7 +7,7 @@ export type Loading = {
 const initialState: Loading = {
     loadings: {
         balance: false,
-        // chart: false,
+        chart: false,
         // order: false,
     },
 };

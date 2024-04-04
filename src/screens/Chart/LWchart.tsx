@@ -1,7 +1,7 @@
 // ? LightWeight Chart Old DOCS https://tradingview.github.io/lightweight-charts/docs/api/interfaces/TimeScaleOptions#barspacing
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { createChart, IChartApi, ColorType, CrosshairMode } from "lightweight-charts";
+import { createChart, IChartApi, ColorType, CrosshairMode, ISeriesApi } from "lightweight-charts";
 
 import { updateTooltip } from "reducers/chart/chart";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,6 +9,7 @@ import { decimalSplit /* getPrecision */ } from "lib/price/decimalSplit";
 import { RootState } from "reducers";
 // import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
 import { useMediaQuery } from "react-responsive";
+import { setLoading } from "reducers/loading";
 
 const LWChart = ({ chartTime }) => {
     const dispatch = useDispatch();
@@ -18,7 +19,7 @@ const LWChart = ({ chartTime }) => {
 
     const chart = useRef<IChartApi | null>(null);
     const chartContainerRef = useRef<HTMLDivElement>(null);
-    const [candleSeries, setCandleSeries] = useState(null);
+    const series = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
     const timeScale = {
         rightOffset: 2,
@@ -103,7 +104,7 @@ const LWChart = ({ chartTime }) => {
         if (chartContainerRef?.current) {
             const clientWidth = chartContainerRef.current.clientWidth;
             const cliendHeight = chartContainerRef.current.clientHeight;
-            chart.current.applyOptions({
+            chart.current?.applyOptions({
                 timeScale: {
                     ...timeScale,
                     barSpacing: clientWidth < 760 ? (clientWidth < 320 ? 3 : 5) : 8,
@@ -114,12 +115,17 @@ const LWChart = ({ chartTime }) => {
         }
     };
 
-    useEffect(() => {
-        /* if (chartList?.length < CHART_DEFAULT_ITEM_COUNT) {
-            return;
-        } */
+    const onUpdated = () => {
+        const data = series.current?.data();
+        // console.log("data", data);
 
-        const lastCandle = chartList[chartList.length - 1];
+        if (!data || data.length === 0) { return; } 
+
+        // console.log("loading false");
+
+        dispatch(setLoading({ name: "chart", value: false }));
+
+        const lastCandle = data[data.length - 1] as any;
         // console.log("chart", lastCandle);
         if (lastCandle) {
             dispatch(
@@ -130,11 +136,25 @@ const LWChart = ({ chartTime }) => {
                     close: decimalSplit(lastCandle.close),
                 })
             );
+        }
+    };
 
-            chart.current.applyOptions({ ...options, timeScale });
+    useEffect(() => {
+        // console.log("chart", lastCandle);
+        if (chartList.length > 10) {
+            // const lastCandle = chartList[chartList.length - 1];
+            // dispatch(
+            //     updateTooltip({
+            //         open: decimalSplit(lastCandle.open),
+            //         high: decimalSplit(lastCandle.high),
+            //         low: decimalSplit(lastCandle.low),
+            //         close: decimalSplit(lastCandle.close),
+            //     })
+            // );
+            chart.current?.applyOptions({ ...options, timeScale });
 
             // console.log("chartList", chartList);
-            candleSeries?.setData(chartList);
+            series.current?.setData(chartList);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chartList]);
@@ -143,7 +163,7 @@ const LWChart = ({ chartTime }) => {
     useEffect(() => {
         chart.current = createChart(chartContainerRef.current, options);
 
-        const series = chart.current.addCandlestickSeries({
+        series.current = chart.current.addCandlestickSeries({
             upColor: "#13dfff",
             downColor: "#ff4976",
             borderDownColor: "#ff4976",
@@ -157,7 +177,9 @@ const LWChart = ({ chartTime }) => {
             },
         });
 
-        setCandleSeries(series);
+        // setCandleSeries(series);
+
+        series.current.subscribeDataChanged(onUpdated);
 
         chart.current.subscribeCrosshairMove((param) => handleCrosshairMoved(param, chartList[chartList.length - 1]));
 
@@ -165,6 +187,7 @@ const LWChart = ({ chartTime }) => {
 
         return () => {
             window.removeEventListener("resize", handleResize);
+            series.current.unsubscribeDataChanged(onUpdated);
             chart.current.remove();
         };
     }, []);
@@ -189,12 +212,11 @@ const LWChart = ({ chartTime }) => {
             throttled = setTimeout(() => {
                 throttled = null;
                 try {
-                    const obj = param.seriesData?.entries()?.next()?.value[1];
-                    if (!obj) {
+                    if (param.seriesData?.size === 0) {
                         return;
                     }
 
-                    // dispatch(updateLastRateData({ close: decimalSplit(obj.close) }));
+                    const obj = param.seriesData?.entries()?.next()?.value[1];
                     dispatch(
                         updateTooltip({
                             open: decimalSplit(obj.open),
