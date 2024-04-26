@@ -1,21 +1,17 @@
+import { toBytes32 } from "lib/bigInt";
+
 import { contracts } from "../contract";
-import { utils } from "ethers";
 
 export const getFeeRateForExchange = async (sourceSymbol, destinationSymbol) => {
-	const { Exchanger } = contracts as any;
+    const { Exchanger } = contracts as any;
 
-	// console.log(utils.formatBytes32String(sourceSymbol),utils.formatBytes32String(destinationSymbol));
-	let fee = BigInt(0);
-	try {
-		fee = BigInt(
-			await Exchanger.feeRateForExchange(
-				utils.formatBytes32String(sourceSymbol),
-				utils.formatBytes32String(destinationSymbol)
-			)
-		);
-	} catch (e) {
-		console.error("getFeeRateForExchange ERROR:", e);
-	}
+    // console.log(toBytes32(sourceSymbol),toBytes32(destinationSymbol));
+    let fee = BigInt(0);
+    try {
+        fee = BigInt(await Exchanger.feeRateForExchange(toBytes32(sourceSymbol), toBytes32(destinationSymbol)));
+    } catch (e) {
+        console.error("getFeeRateForExchange ERROR:", e);
+    }
 
-	return fee;
+    return fee;
 };

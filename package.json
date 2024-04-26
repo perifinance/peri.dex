@@ -12,7 +12,7 @@
 		"@apollo/client": "^3.7.17",
 		"@chainlink/contracts": "^0.0.10",
 		"@egjs/react-flicking": "^4.5.3",
-		"@perifinance/peri-finance": "^0.6.13",
+		"@perifinance/peri-finance": "^0.7.30",
 		"@reduxjs/toolkit": "^1.8.0",
 		"@safe-global/safe-apps-provider": "^0.17.1",
 		"@safe-global/safe-apps-sdk": "^8.1.0",
@@ -73,7 +73,7 @@
 		"deploy": "npm run build && npm run deploy-s3 && npm run invalidate",
 		"deploy-s3": "aws s3 sync ./build s3://peri.dex --profile=peri.dex-deploy-s3",
 		"invalidate": "aws cloudfront create-invalidation --profile=peri.dex-deploy-s3 --distribution-id E3ARBWK49O8ACV --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico",
-		"test-deploy": "env-cmd -f .env.production npm run build && npm run test-deploy-s3 && npm run test-invalidate",
+		"test-deploy": "env-cmd -f .env.development npm run build && npm run test-deploy-s3 && npm run test-invalidate",
 		"test-deploy-s3": "aws s3 sync ./build s3://test.peri.dex --profile=test.peri.dex-deploy-s3",
 		"test-invalidate": "aws cloudfront create-invalidation --profile=test.peri.dex-deploy-s3 --distribution-id E1J301CCQZX4DX --paths / /index.html /error.html /service-worker.js /manifest.json /favicon.ico"
 	},

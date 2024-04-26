@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { it } from "date-fns/locale";
 
 export type OnSendCoin = {
     destChainId: Number;
@@ -16,6 +15,7 @@ export type PendingCoin = {
 type BridgingStatus = {
     obsolete: boolean;
     step: Number;
+    cost: any;
     pendingCoins: Array<PendingCoin>;
     onSendCoins: Array<OnSendCoin>;
 };
@@ -23,6 +23,7 @@ type BridgingStatus = {
 const initialState: BridgingStatus = {
     obsolete: false,
     step: 0,
+    cost: {},
     pendingCoins: [],
     onSendCoins: [],
 };
@@ -44,6 +45,9 @@ export const bridgeState = createSlice({
         },
         updateStep: (state, actions: PayloadAction<Number>) => {
             return { ...state, step: actions.payload };
+        },
+        setCost: (state, actions: PayloadAction<any>) => {
+            return { ...state, cost: actions.payload };
         },
         setObsolete: (state, actions: PayloadAction<boolean>) => {
             return { ...state, obsolete: actions.payload };
@@ -68,6 +72,6 @@ export const bridgeState = createSlice({
     },
 });
 
-export const { setOnSendCoin, setObsolete, updateStep, updateBridgeStatus, resetBridgeStatus } = bridgeState.actions;
+export const { setOnSendCoin, setObsolete, updateStep, setCost, updateBridgeStatus, resetBridgeStatus } = bridgeState.actions;
 
 export default bridgeState.reducer;

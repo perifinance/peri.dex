@@ -14,11 +14,23 @@ export const networkInfo = {
 		rpcUrls: RPC_URLS[5],
 		blockExplorerUrls: "https://goerli.etherscan.io",
 	},
+	11155111: {
+		chainId: "0xAA36A7",
+		chainName: "Sepolia",
+		rpcUrls: RPC_URLS[11155111],
+		blockExplorerUrls: "https://sepolia.etherscan.io",
+	},
 	56: {
 		chainId: "0x38",
 		chainName: "BSC",
 		rpcUrls: RPC_URLS[56],
 		blockExplorerUrls: "https://bscscan.com",
+	},
+	1284: {
+		chainId: "0x504",
+		chainName: "Moonbeam",
+		rpcUrls: RPC_URLS[1284],
+		blockExplorerUrls: "https://moonbeam.moonscan.io",
 	},
 	1285: {
 		chainId: "0x505",
@@ -49,5 +61,17 @@ export const networkInfo = {
 		chainName: "Mumbai",
 		rpcUrls: RPC_URLS[80001],
 		blockExplorerUrls: "https://mumbai.polygonscan.com",
+	},
+	8453: {
+		chainId: "0x2105",
+		chainName: "Base",
+		rpcUrls: RPC_URLS[8453],
+		blockExplorerUrls: "https://base.basescan.org",
+	},
+	84532: {
+		chainId: "0x14A34",
+		chainName: "BaseSepolia",
+		rpcUrls: RPC_URLS[84532],
+		blockExplorerUrls: "https://sepolia.basescan.org",
 	},
 };

@@ -54,14 +54,16 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
 
     const changeLastData = (chartList, lastRateData) => {
         try {
-            if (lastRateData === undefined) return;
+            if (lastRateData === undefined || !lastRateData.timestamp) return;
 
             let chartLastData = { ...chartList[chartList.length - 1] };
 
             // console.log("chartLastData", chartLastData);
             const lastPrice = Number((lastRateData.rate * 10n ** 10n) / 10n ** 18n) / 10 ** 10;
 
-            const lastChartTime = lastRateData.timestamp - (lastRateData.timestamp % TimeSerise[chartTime]);
+            // console.log("lastPrice", lastPrice, Number(lastRateData.timestamp), chartTime, TimeSerise[chartTime]);
+            const lastTimestamp = Number(lastRateData.timestamp)
+            const lastChartTime = lastTimestamp - (lastTimestamp % TimeSerise[chartTime]);
             // console.log("lastPrice", chartTime, chartLastData.time, lastChartTime);
             if (chartLastData.time < lastChartTime) {
                 chartLastData = {

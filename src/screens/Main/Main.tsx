@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-d
 import Header from "../Header";
 import Assets from "pages/Assets";
 import Exchange from "pages/Exchange";
-import Futures from "pages/Futures";
+// import Futures from "pages/Futures";
 import Bridge from "pages/Bridge";
 import Loading from "components/loading";
 // import { setLoading } from "reducers/loading/loading";
@@ -115,9 +115,9 @@ const Main = () => {
                         <Route path="/exchange">
                             <Exchange />
                         </Route>
-                        <Route path="/futures">
+                        {/* <Route path="/futures">
                             <Futures />
-                        </Route>
+                        </Route> */}
                         <Route exact path="/bridge">
                             <Redirect to="/bridge/submit"></Redirect>
                         </Route>

@@ -89,7 +89,7 @@ const Exchange = () => {
         }
     }, [isConnect, networkId]);
 
-    const lastRateUpdate = useCallback(() => {
+/*     const lastRateUpdate = useCallback(() => {
         const src = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
         const dest = coinList.find((coin) => coin.symbol === selectedCoins.destination.symbol);
         // console.log("srcSymbol", src, dest);
@@ -97,7 +97,7 @@ const Exchange = () => {
             const lastRateData = {
                 timestamp: src.timestamp > dest.timestamp
                     ? src.timestamp : dest.timestamp,
-                rate: (dest.price * 10n ** 18n) / src.price,
+                rate: src.price > 0n ? (dest.price * 10n ** 18n) / src.price : 0n,
                 symbols: `${src.symbol}/${dest.symbol}`,
             };
     
@@ -113,7 +113,7 @@ const Exchange = () => {
         }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastRateUpdate]);
+    }, [lastRateUpdate]); */
 
     useEffect(() => {
         if (!isConnect) {

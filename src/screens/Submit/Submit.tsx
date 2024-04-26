@@ -1,25 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { toWei } from "web3-utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { contracts, formatCurrency } from "lib";
 import { SUPPORTED_NETWORKS, MAINNET, TESTNET } from "lib/network";
-import { getBalancesNetworks } from "lib/balance";
+import { getBalanceNetwork } from "lib/balance";
 import { getNetworkFee } from "lib/fee";
 import { updateTransaction } from "reducers/transaction";
 import { changeNetwork } from "lib/network";
 import { getNetworkPrice } from "lib/price";
 import { NotificationManager } from "react-notifications";
-import { /* ethers, providers, */ utils } from "ethers";
+import { utils } from "ethers";
 import pynths from "configure/coins/bridge";
 import { setLoading } from "reducers/loading";
-// import { is } from "date-fns/locale";
-// import { on } from "events";
 import BridgeStatus from "./BridgeStatus";
 import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
-// import init from "@web3-onboard/core";
-// import { set } from "date-fns";
-// import { wallet } from 'reducers/wallet';
+import { fromBigNumber, toBigNumber } from "lib/bigInt";
+import { extractMessage } from "lib/error";
+import { set } from "date-fns";
 
 const zeroSignature =
     "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -32,8 +31,10 @@ const btnBridgeMsg = {
 };
 
 const Submit = () => {
-    const { step, pendingCoins } = useSelector((state: RootState) => state.bridge);
+    const { cost, step, pendingCoins } = useSelector((state: RootState) => state.bridge);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
+    const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
+    // const { isReady } = useSelector((state: RootState) => state.app);
     const [payAmount, setPayAmount] = useState("0");
     const [per, setPer] = useState(0n);
     const [networks, setNetworks] = useState([]);
@@ -57,8 +58,8 @@ const Submit = () => {
     }>({});
     const [initBridge, setInitBridge] = useState(false);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
-    const [gasPrice, setGasPrice] = useState(0n);
-    const [signature, setSignature] = useState(zeroSignature);
+    const [gasPrice, setGasPrice] = useState("0");
+    // const [signature, setSignature] = useState(zeroSignature);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState("");
@@ -101,7 +102,7 @@ const Submit = () => {
             return;
         }
 
-        setSelectedFromNetwork(network);
+        // setSelectedFromNetwork(network);
         setSelectedToNetwork({});
         if (network?.name === "KOVAN")
             setSelectedCoin({
@@ -125,7 +126,7 @@ const Submit = () => {
         const balance = getBalance();
         const convertPer = per > 0n ? (100n * 10n) / per : 0n;
         const perBalance = convertPer > 0n ? (balance * 10n) / convertPer : 0n;
-        setPayAmount(utils.formatEther(perBalance));
+        setPayAmount(fromBigNumber(perBalance));
     };
 
     const switchChain = async (chainId) => {
@@ -144,23 +145,16 @@ const Submit = () => {
         }
     };
 
-    const getBridgeTransferGasCost = async () => {
-        return await contracts.SystemSettings?.bridgeTransferGasCost();
-    };
+    const getGasLimit = async () => {
+        return step === 0 ? 610000n : 300000n;
+        /* let gasLimit = 600000n;
 
-    const getBridgeClaimGasCost = async () => {
-        let cost = await contracts.SystemSettings.bridgeClaimGasCost();
-        // console.log("bridge claim gas cost", cost);
-        return cost;
-    };
+        console.log("cost", cost, "step", step);
+        (cost === null || cost === "0") && (cost = toWei(`8867349.3`, 'gwei'));
 
-    const getGasEstimate = async (cost: string) => {
-        let gasLimit = 600000n;
+        const amount = (payAmount === null || payAmount === "0") ? "1" : payAmount;
+        const chainId = selectedToNetwork?.id ? selectedToNetwork.id : 1;
 
-        if (cost === null || cost === "0" || payAmount === null || payAmount === "0") {
-            // console.log("payAmount", payAmount);
-            return 6000000n;
-        }
         try {
             let tmpGasLimit;
             if (Number(step) === 2) {
@@ -168,17 +162,21 @@ const Submit = () => {
                     value: cost,
                 });
             } else if (Number(step) === 0) {
-                let rsv = utils.splitSignature(signature);
+                const rsv = utils.splitSignature(signature);
 
+                const bnAmt = toBigNumber(amount).toBigInt();
+                console.log("gasLimit", tmpGasLimit, bnAmt);
                 tmpGasLimit = await contracts.signers[selectedCoin.contract].estimateGas.overchainTransfer(
-                    utils.parseEther(payAmount),
-                    selectedToNetwork.id,
+                    toBigNumber(amount),
+                    chainId,
                     [rsv.r, rsv.s, rsv.v],
-                    { value: cost }
+                    {   
+                        gasLimit: 600000n,
+                    }
                 );
             }
 
-            // console.log("gasLimit", gasLimit);
+            console.log("gasLimit", tmpGasLimit);
             if (!gasLimit) {
                 return 6000000n;
             }
@@ -187,31 +185,29 @@ const Submit = () => {
         } catch (e) {
             console.log(e);
         }
-        return (gasLimit * 12n) / 10n;
+        return (gasLimit * 12n) / 10n; */
     };
 
-    const getGasPrice = async () => {
+    const getGasPrice = useCallback( async () => {
         if (step !== 0 && step !== 2) {
             return;
         }
 
+        const key = step.toString();
         try {
-            const cost =
-                Number(step) === 0
-                    ? await getBridgeTransferGasCost()
-                    : Number(step) === 2
-                    ? await getBridgeClaimGasCost()
-                    : 0n;
-            const gasPrice = await getNetworkFee(selectedFromNetwork.id);
-            const gasLimit = cost ? await getGasEstimate(cost.toString()) : 6000000n;
-            const rate = await getNetworkPrice(networkId);
+            const [gasPrice, gasLimit, rate] = await Promise.all([
+                getNetworkFee(networkId),
+                getGasLimit(),
+                getNetworkPrice(networkId),
+            ]);
 
+            console.log("gasPrice", BigInt(toWei(gasPrice, "gwei")), "gasLimit", gasLimit, "rate", rate, "cost", BigInt(cost[key]));
             setGasPrice(gasPrice);
-            setNetworkFeePrice((rate * gasPrice * gasLimit) / 10n ** 9n);
+            setNetworkFeePrice((rate * (BigInt(toWei(gasPrice, "gwei")) * gasLimit + BigInt(cost[key]))) / 10n ** 18n);
         } catch (error) {
             console.log(error);
         }
-    };
+    }, [cost, networkId]);
 
     const bridgeSubmit = async () => {
         if (!isValidation) {
@@ -226,42 +222,53 @@ const Submit = () => {
         }
 
         setIsProcessing(true);
+        // await getGasPrice();
         dispatch(updateStep(1));
 
         const messageHash = utils.solidityKeccak256(
             ["bytes"],
-            [utils.solidityPack(["uint"], [utils.parseEther(payAmount)])]
+            [utils.solidityPack(["uint"], [toBigNumber(payAmount)])]
         );
 
         try {
             const messageHashBytes = utils.arrayify(messageHash);
-            let mySignature = await contracts.signer.signMessage(messageHashBytes);
-            setSignature(mySignature);
-
-            // console.log("mySignature", mySignature);
-            const cost = (await getBridgeTransferGasCost()).toString();
-            if (cost === null || cost === undefined) {
-                NotificationManager.warning("Please refresh it and try it again.");
-                setIsProcessing(false);
-                return;
-            }
-
-            const transactionSettings = {
-                gasPrice: ((await getNetworkFee(selectedFromNetwork.id)) * 10n ** 9n).toString(),
-                gasLimit: (await getGasEstimate(cost)).toString(),
-                value: cost,
-            };
+            const mySignature = await contracts.signer.signMessage(messageHashBytes);
 
             if (mySignature === zeroSignature) {
                 NotificationManager.warning("Signature is not valid. Please refresh it and try it again.");
                 return;
             }
 
+            const transferCost = cost[step.toString()];
+
+            if (transferCost === null || transferCost === undefined) {
+                NotificationManager.warning("Please refresh it and try it again.");
+                setIsProcessing(false);
+                return;
+            }
+
+            // let mySignature = await contracts.signer.signMessage(messageHashBytes);
+            // setSignature(mySignature);
+
+            // console.log("mySignature", mySignature);
+            // const cost = (await getBridgeTransferGasCost()).toString();
+
+            const [gasPrice, gasLimit] = await Promise.all([
+                getNetworkFee(networkId),
+                getGasLimit(),
+            ]);
+
+            const transactionSettings = {
+                gasPrice: toWei(gasPrice, "gwei").toString(),
+                gasLimit: gasLimit.toString(),
+                value: transferCost
+            };
+
             let transaction;
             let rsv = utils.splitSignature(mySignature);
 
             transaction = await contracts.signers[selectedCoin.contract].overchainTransfer(
-                utils.parseEther(payAmount),
+                toBigNumber(payAmount),
                 selectedToNetwork.id,
                 [rsv.r, rsv.s, rsv.v],
                 transactionSettings
@@ -286,7 +293,7 @@ const Submit = () => {
                     error: () => {
                         dispatch(updateStep(0));
                         setIsProcessing(false);
-                        NotificationManager.warning("Transaction failed. Please refresh it and try it again.");
+                        // NotificationManager.warning("Transaction failed. Please refresh it and try it again.");
                     },
                 })
             );
@@ -296,7 +303,8 @@ const Submit = () => {
             console.log(e);
             dispatch(updateStep(0));
             setIsProcessing(false);
-            NotificationManager.warning("Exception occurred. Please refresh it and try it again.");
+
+            NotificationManager.warning(extractMessage(e));
         }
     };
 
@@ -312,20 +320,21 @@ const Submit = () => {
         }
 
         setIsProcessing(true);
+        // await getGasPrice();
         dispatch(updateStep(3));
 
         try {
-            const cost = (await getBridgeClaimGasCost()).toString();
-            if (cost === null || cost === undefined) {
+            const claimCost = cost[step.toString()];
+            if (claimCost === null || claimCost === undefined) {
                 NotificationManager.warning("Please refresh it and try it again.");
                 setIsProcessing(false);
                 return;
             }
 
             const transactionSettings = {
-                gasPrice: ((await getNetworkFee(networkId)) * 10n ** 9n).toString(),
-                gasLimit: (await getGasEstimate(cost)).toString(),
-                value: cost,
+                gasPrice: toWei(await getNetworkFee(networkId), "gwei"),
+                gasLimit: (await getGasLimit()).toString(),
+                value: claimCost,
             };
 
             console.log(selectedCoin.contract, networkId, transactionSettings);
@@ -347,13 +356,13 @@ const Submit = () => {
                     error: () => {
                         dispatch(updateStep(2));
                         setIsProcessing(false);
-                        NotificationManager.warning("Transaction failed. Please refresh it and try it again.");
+                        // NotificationManager.warning("Transaction failed. Please refresh it and try it again.");
                     },
                 })
             );
         } catch (e) {
             console.error(e);
-            NotificationManager.warning(`Exception occurred. Please refresh it and try it again.${e.code}`);
+            NotificationManager.warning(extractMessage(e));
             dispatch(updateStep(2));
             setIsProcessing(false);
         }
@@ -392,26 +401,25 @@ const Submit = () => {
 
     const initBalances = useCallback(async () => {
         try {
-            // console.log(networks);
-            const pUSDBalances = await getBalancesNetworks(networks, address, "ProxyERC20pUSD");
-            // console.log(pUSDBalances);
-            const PERIbalances = await getBalancesNetworks(networks, address, "ProxyERC20");
-            // console.log(PERIbalances);
-            const networksAddBalances = networks.map((e, i) => {
-                return {
-                    ...e,
-                    balance: {
-                        pUSD: BigInt(pUSDBalances[i]),
-                        PERI: BigInt(PERIbalances[i]),
-                    },
-                };
-            });
-            // console.log(networksAddBalances);
+            // console.log("networks", networks);
+            const [pUSDBalances, PERIbalances] = await Promise.all([
+                getBalanceNetwork(selectedFromNetwork, address, "ProxyERC20pUSD"),
+                getBalanceNetwork(selectedFromNetwork, address, "ProxyERC20"),
+            ]);
+
+            const idx = networks.findIndex((e) => e.id === selectedFromNetwork.id);
+            const networksAddBalances = [...networks];
+            networksAddBalances[idx].balance = {
+                pUSD: BigInt(pUSDBalances),
+                PERI: BigInt(PERIbalances),
+            };
+
+            console.log(networksAddBalances);
             setNetworks(networksAddBalances);
         } catch (error) {
             console.log(error);
         }
-    }, [networks, address, setNetworks, getBalancesNetworks]);
+    }, [selectedFromNetwork, address /* setNetworks, getBalanceNetwork */]);
 
     // When source chain changed
     /*     useEffect(() => {
@@ -432,10 +440,10 @@ const Submit = () => {
         let chainId = networkId;
         if (isNaN(chainId) || chainId == null) {
             chainId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
-        } else {
-            setSelectedFromNetwork({ id: networkId, name: SUPPORTED_NETWORKS[networkId] });
-            setSelectedToNetwork({});
         }
+
+        setSelectedFromNetwork({ id: networkId, name: SUPPORTED_NETWORKS[networkId] });
+        setSelectedToNetwork({});
 
         const network = Object.keys(MAINNET).includes(chainId.toString()) ? MAINNET : TESTNET;
         let networks = Object.keys(SUPPORTED_NETWORKS)
@@ -466,11 +474,8 @@ const Submit = () => {
 
     useEffect(() => {
         if (isConnect && initBridge && address) {
-            if (networkId === 1 || networkId === 5) setSelectedCoin(pynths[1]);
+            if ([1, 5, 11155111].includes(networkId)) setSelectedCoin(pynths[1]);
             else setSelectedCoin(pynths[0]);
-            initBalances();
-        } else {
-            isConnect && initNetworks();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, initBridge, address]);
@@ -479,33 +484,26 @@ const Submit = () => {
     // 1. Only called at the mounting
     useEffect(() => {
         initNetworks();
-
-        if (networkId === 1 || networkId === 5) setSelectedCoin(pynths[1]);
-        else setSelectedCoin(pynths[0]);
-
         setInitBridge(true);
     }, []);
 
-    // ** Get Gas price
-    // 1. payAmount change
-    // 2. source network change
-    // 3. networkId change
-    // 4. wallet connect
-    /***********************/
     useEffect(() => {
-        let timeout;
-        if (selectedFromNetwork?.id && !isNaN(networkId) && isConnect) {
-            timeout = setTimeout(() => {
-                if (payAmount !== "") {
-                    getGasPrice();
-                }
-            }, 1000);
+        if (selectedFromNetwork?.id) {
+            initBalances();
         }
-        return () => {
-            clearTimeout(timeout);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedFromNetwork, networkId, isConnect]);
+    }, [initBalances]);
+
+    useEffect(() => {
+        // console.log("cost", Object.values(cost).map(BigInt));
+        Object.keys(cost).length && getGasPrice();
+    }, [getGasPrice, lastRateData]);
+
+    useEffect(() => {
+        setPayAmount("");
+        setGasPrice("0");
+        setNetworkFeePrice(0n);
+        
+    }, [selectedCoin, networkId, address]);
 
     // *** DropBox list handlers
     // ****************************************************************************************************
@@ -540,7 +538,7 @@ const Submit = () => {
 
     return (
         <div className="flex flex-col bg-blue-900 px-3 lg:px-4 py-2">
-            <div className="flex flex-col lg:flex-row  lg:space-x-3">
+            <div className="flex flex-col lg:flex-row  lg:space-x-3 z-5">
                 <div className="basis-2/5 flex flex-col items-start w-full">
                     <div className="w-full">
                         <div className="text-xs pl-1">Source</div>
@@ -634,7 +632,7 @@ const Submit = () => {
                             <div
                                 className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600  my-1 ${
                                     isToNetworkList ? "block" : "hidden"
-                                } z-10`}
+                                }  z-50`}
                                 ref={toRef}
                             >
                                 <ul className="list-reset">
@@ -642,7 +640,7 @@ const Submit = () => {
                                         .filter((e) => {
                                             return (
                                                 selectedFromNetwork?.id !== e.id &&
-                                                !(selectedCoin?.name === "pUSD" && (e.id === 5 || e.id === 1))
+                                                !(selectedCoin?.name === "pUSD" && (e.id === 11155111 || e.id === 1))
                                             );
                                         })
                                         .map((network, index) => (
@@ -674,7 +672,7 @@ const Submit = () => {
                     </div>
                     <div className="flex flex-col w-full">
                         <div className="flex lg:rounded-md bg-blue-950 justify-between w-full">
-                            <div className="py-1 relative font-semibold">
+                            <div className="py-1 relative font-semibold z-1">
                                 <div
                                     id="coin_caller"
                                     className="flex p-2 cursor-pointer items-center"
@@ -709,13 +707,13 @@ const Submit = () => {
                                 <div
                                     className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600  my-2 ${
                                         isCoinList ? "block" : "hidden"
-                                    } z-10`}
+                                    } z-99`}
                                     ref={availableRef}
                                 >
                                     <ul className="list-reset">
                                         {pynths.map((coin) => {
                                             if ((networkId === 1 || networkId === 5) && coin.name === "pUSD")
-                                                return <></>;
+                                                return null;
                                             else
                                                 return (
                                                     <li
@@ -840,7 +838,7 @@ const Submit = () => {
                     <div className="flex justify-between w-full lg:justify-center mt-1 text-[11px]">
                         <span className="font-medium mr-3">Network Fee:</span>
                         <div className="flex flex-nowrap items-center">
-                            <span className="font-medium">{gasPrice.toString()} GWEI</span>
+                            <span className="font-medium">{Number(gasPrice).toFixed(2)} GWEI</span>
                             <span className="font-light tracking-tighter">{` ($${formatCurrency(
                                 networkFeePrice,
                                 5

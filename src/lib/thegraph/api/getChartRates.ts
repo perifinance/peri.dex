@@ -1,8 +1,10 @@
+import { format } from "date-fns";
+
+import { formatCurrency } from "lib";
+import { fromBigNumber } from "lib/bigInt";
+
 import { chartRates } from "../queries";
 import { get } from "../service";
-import { format } from "date-fns";
-import { utils } from "ethers";
-import { formatCurrency } from "lib";
 
 type ChartRateParameter = {
 	currencyNames: {
@@ -101,9 +103,9 @@ export const getChartRates = async ({
 
 	return values.map((e) => {
 		return {
-			price: utils.formatEther(e.price),
-			low: utils.formatEther(e.low),
-			high: utils.formatEther(e.high),
+			price: fromBigNumber(e.price),
+			low: fromBigNumber(e.low),
+			high: fromBigNumber(e.high),
 			formatPrice: formatCurrency(e.price, 8),
 			formatLow: formatCurrency(e.low, 8),
 			formatHigh: formatCurrency(e.high, 8),

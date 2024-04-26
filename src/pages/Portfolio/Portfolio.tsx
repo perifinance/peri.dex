@@ -41,11 +41,15 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
             const totalAssets = balances.reduce((a, c) => a + c.balanceToUSD, 0n);
             setTotalAssets(totalAssets);
 
+            // console.log("totalAssets", totalAssets);
+
             const pieChart = balances.map((e) => {
                 e.currencyName === "pUSD"
                     ? colors.push("#1e91f8")
                     : colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
-                const value = formatCurrency((e.balanceToUSD * 100n * 10n ** 18n) / totalAssets, 2);
+                const value = totalAssets ? formatCurrency((e.balanceToUSD * 100n * 10n ** 18n) / totalAssets, 2): 0;
+
+                // console.log("currencyName", e.currencyName, "value", value);
 
                 return {
                     x: `${value}%`,
@@ -125,12 +129,12 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                     <div
                         className={`flex flex-col items-start w-[40%] text-[10px] sm:text-sm lg:text-[11px] xl:text-xs`}
                     >
-                        {balances.map(({ amount }, index) =>
+                        {balances.map(({ currencyName, amount }, index) =>
                             amount > 0n 
                             ? (
                                 <div className="flex w-11/12" key={index}>
                                     <div className="flex pb-1 md:pb-2 lg:pb-1 items-center justify-between w-[95%]">
-                                        <div className=" w-7/12">{coinList[index]?.symbol}</div>
+                                        <div className=" w-7/12">{currencyName}</div>
                                         <div
                                             className="mx-2 w-3 h-3 md:w-4 md:h-4 lg:w-3 lg:h-3"
                                             style={{

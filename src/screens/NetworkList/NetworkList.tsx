@@ -1,5 +1,4 @@
 import React from "react";
-import { formatCurrency } from "lib";
 
 const NetworkList = ({ networks, selectedNetwork, setSelectedNetwork, setIsNetworkList }) => {
     return (

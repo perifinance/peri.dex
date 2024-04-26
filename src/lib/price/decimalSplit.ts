@@ -1,4 +1,3 @@
-import { de } from "date-fns/locale";
 
 export const decimalSplit = (value: string | number, grand: boolean = false) => {
     if (!value) return "0";

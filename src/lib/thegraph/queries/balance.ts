@@ -16,7 +16,7 @@ export const balance = ({ currencyName, address, rate = 0n }) => {
 		};
 	};
 	return {
-		url: `ProxyERC20${currencyName}-Real`, // process.env.NODE_ENV==="production"?`ProxyERC20${currencyName}-Real`:`ProxyERC20${currencyName}-Dev`,
+		url: `ProxyERC20${currencyName}-Real`, // process.env.REACT_APP_ENV==="production"?`ProxyERC20${currencyName}-Real`:`ProxyERC20${currencyName}-Dev`,
 		// url: `ProxyERC20${currencyName}-Dev`,
 		query: gql`
 			query GetLastPynthBalances($account: String!) {

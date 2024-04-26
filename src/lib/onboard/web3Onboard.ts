@@ -23,8 +23,6 @@ import metamaskSDK from "@web3-onboard/metamask";
 
 import { NotificationManager } from "react-notifications";
 
-import { SUPPORTED_NETWORKS } from "lib/network";
-
 import { networkInfo } from "configure/networkInfo";
 
 import { MAINNET, TESTNET, UNPOPULARNET } from "lib/network/supportedNetWorks";
@@ -78,12 +76,12 @@ export const web3Onboard: Web3Onboard = {
             qrModalOptions: {
                 enableAuthMode: true,
             },
-            requiredChains: Object.keys(process.env.NODE_ENV === 'production' ? MAINNET : TESTNET ).filter((networkId) => {
+            requiredChains: Object.keys(process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET).filter((networkId) => {
                 return UNPOPULARNET[networkId] === undefined;
             }),
             
             optionalChains: Object.keys(UNPOPULARNET).map((networkId) => networkId),
-            dappUrl: "https://prepare-dex.peri.finance",
+            dappUrl: "https://dex.peri.finance",
             additionalOptionalMethods: ["wallet_switchEthereumChain", "wallet_addEthereumChain"],
         };
 
@@ -169,7 +167,7 @@ export const web3Onboard: Web3Onboard = {
             ...(portis ? [portis] : []),
         ];
 
-        var supportedNetworks = SUPPORTED_NETWORKS; //process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET;
+        var supportedNetworks = process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET;
         const chains: Chain[] = [];
         Object.keys(supportedNetworks).forEach((networkId) => {
             // console.log(networkId);

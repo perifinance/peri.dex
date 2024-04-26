@@ -49,13 +49,13 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
             filterResult = filterResult.filter((e) => e.categories.includes(selectedCategory));
         }
 
-        if (filterResult === undefined && !(searchValue === "" && searchValue === null)) {
+        if (filterResult !== undefined && !(searchValue === "" && searchValue === null)) {
             filterResult = filterResult.filter(
                 (e) =>
                     e.symbol.toLocaleLowerCase().includes(searchValue.toLowerCase()) ||
                     e.name.toLocaleLowerCase().includes(searchValue.toLowerCase())
             );
-            console.log("filterResult", filterResult);
+            // console.log("filterResult", filterResult);
         }
 
         if (isFavoriteFilter) {
@@ -173,11 +173,15 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
                                     coin && (
                                         <div
                                             key={index}
-                                            className={`${index} flex justify-between cursor-pointer text-gray-300 hover:bg-blue-950 px-1 pb-2 ${
-                                                selectedCoins[coinListType]?.id === coin?.id && "bg-blue-950"
+                                            className={`${index} flex justify-between px-1 pb-2 ${
+                                                selectedCoins[coinListType]?.id === coin?.id 
+                                                    ? "bg-blue-950 text-gray-300" 
+                                                    : coin.isActive 
+                                                        ? "hover:bg-blue-950 cursor-pointer text-gray-300" 
+                                                        : "bg-blue-900  text-gray-600"
                                             }`}
                                             onClick={() => {
-                                                if (selectedCoins[coinListType]?.id !== coin?.id) {
+                                                if (coin.isActive && selectedCoins[coinListType]?.id !== coin?.id) {
                                                     // dispatch(resetChartData());
                                                     selectedCoin(coin);
                                                 }
@@ -191,25 +195,25 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
                                                     e.nativeEvent.stopImmediatePropagation();
                                                 }}
                                             >
-                                                <img
+                                                {coin.isActive && (<img
                                                     className="w-4 h-4"
                                                     src={`images/icon/bookmark_${coin?.favorite ? "on" : "off"}.svg`}
                                                     alt="favorite"
-                                                ></img>
+                                                ></img>)}
                                             </div>
                                             <div className="w-4 h-4 my-auto">
                                                 <img
-                                                    className="w-4 h-4"
+                                                    className={`w-4 h-4 ${coin?.isActive ? "opacity-100" : "opacity-50"}`}
                                                     src={`images/currencies/${coin?.symbol}.svg`}
                                                     alt="network"
                                                 />
                                             </div>
                                             <div className="w-14 text-xs px-1">{coin?.symbol}</div>
                                             <div className={`w-11 text-end text-[10px] font-medium ${
-                                                coin?.change !== 0n ? coin?.change > 0n ? "text-blue-500" : "text-red-400" : "text-gray-300"
+                                                coin?.isActive ? coin?.change !== 0n ? coin?.change > 0n ? "text-blue-500" : "text-red-400" : "text-gray-300" : "text-gray-600"
                                             }`}>{formatCurrency(coin?.price, 8)}</div>
                                             <div className={`w-11 text-end text-[10px] font-medium text-nowrap ${
-                                                coin?.change !== 0n ? coin?.change > 0n ? "text-blue-500" : "text-red-400" : "text-gray-300"
+                                                coin?.isActive ? coin?.change !== 0n ? coin?.change > 0n ? "text-blue-500" : "text-red-400" : "text-gray-300" : "text-gray-600"
                                             }`}>
                                                 {coin?.change !== 0n ? coin?.change > 0n ? "▲" : "▼" : ""}
                                                 {coin?.change < 0n ? Number(formatCurrency(coin?.change, 2)) * -1 : formatCurrency(coin?.change, 2)}%</div>

@@ -1,4 +1,4 @@
-export const polygon = async () => {
+export const polygon = async (networkId) => {
 	try {
 		const getNetworkInfo = await fetch(`https://gasstation.polygon.technology/v2`).then((response) => response.json());
 		// console.log("polygon gas price", getNetworkInfo.standard.maxFee);

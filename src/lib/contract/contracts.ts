@@ -8,8 +8,23 @@ import ERC20 from "../contract/abi/ERC20.json";
 // import { clear } from 'console'
 
 const naming = {
+    // SystemSettings: "SystemSettings",
     ExchangeRates: "ExchangeRates",
-    Exchanger: "ExchangerWithVirtualPynth",
+    Exchanger: {
+        1: "ExchangerWithVirtualPynth",
+        5: "ExchangerWithVirtualPynth",
+        42: "ExchangerWithVirtualPynth",
+        56: "ExchangerWithVirtualPynth",
+        97: "Exchanger",
+        137: "ExchangerWithVirtualPynth",
+        1284: "Exchanger",
+        1285: "ExchangerWithVirtualPynth",
+        1287: "Exchanger",
+        8453: "Exchanger",
+        84532: "Exchanger",
+        80001: "Exchanger",
+        11155111: "Exchanger",
+    },
     ProxyERC20: {
         1: "PeriFinanceToEthereum",
         5: "PeriFinanceToEthereum",
@@ -17,9 +32,13 @@ const naming = {
         56: "PeriFinanceToBSC",
         97: "PeriFinanceToBSC",
         137: "PeriFinanceToPolygon",
+        1284: "PeriFinance",
         1285: "PeriFinance",
         1287: "PeriFinance",
+        8453: "PeriFinance",
+        84532: "PeriFinance",
         80001: "PeriFinanceToPolygon",
+        11155111: "PeriFinanceToEthereum",
     },
     ProxyERC20pUSD: "MultiCollateralPynth",
     BridgeState: "BridgeState",
@@ -48,7 +67,32 @@ const naming = {
     ProxyERC20pXRP: "MultiCollateralPynth",
     ProxyERC20pYFI: "MultiCollateralPynth",
     ProxyERC20pSOL: "MultiCollateralPynth",
-    SystemSettings: "SystemSettings",
+    ProxyERC20pMATIC: "MultiCollateralPynth",
+    ProxyERC20pOP: "MultiCollateralPynth",
+    ProxyERC20pATOM: "MultiCollateralPynth",
+    ProxyERC20pGLMR: "MultiCollateralPynth",
+    ProxyERC20pAPT: "MultiCollateralPynth",
+    ProxyERC20pADA: "MultiCollateralPynth",
+    ProxyERC20pBCH: "MultiCollateralPynth",
+    ProxyERC20pDOGE: "MultiCollateralPynth",
+    ProxyERC20pGRT: "MultiCollateralPynth",
+    ProxyERC20pLTC: "MultiCollateralPynth",
+    ProxyERC20pGBP: "MultiCollateralPynth",
+    ProxyERC20pJPY: "MultiCollateralPynth",
+    ProxyERC20pCHF: "MultiCollateralPynth",
+    ProxyERC20pCAD: "MultiCollateralPynth",
+    ProxyERC20pAUD: "MultiCollateralPynth",
+    ProxyERC20pNZD: "MultiCollateralPynth",
+    ProxyERC20pPAXG: "MultiCollateralPynth",
+    ProxyERC20pSHIB: "MultiCollateralPynth",
+    ProxyERC20pXAU: "MultiCollateralPynth",
+    ProxyERC20pXAG: "MultiCollateralPynth",
+    ProxyERC20pNEAR: "MultiCollateralPynth",
+    ProxyERC20pFET: "MultiCollateralPynth",
+    ProxyERC20pDPI: "MultiCollateralPynth",
+    ProxyERC20pEOS: "MultiCollateralPynth",
+    ProxyERC20pFTM: "MultiCollateralPynth",
+    ProxyERC20pICP: "MultiCollateralPynth",
 };
 
 type Contracts = {
@@ -64,7 +108,7 @@ type Contracts = {
     pUSD?: any;
     SystemSettings?: any;
     init: (networkId: number) => void;
-    connect: (address: string) => void;
+    connect: (address: string, setIsReady: any) => void;
     clear: () => void;
     signer: any;
     signers?: {
@@ -133,7 +177,7 @@ export const contracts: Contracts = {
         }
     },
 
-    connect(address) {
+    async connect(address, setIsAppReady) {
         if (this.addressList === undefined) return;
 
         try {
@@ -143,7 +187,7 @@ export const contracts: Contracts = {
                 return;
             }
 
-            Object.keys(this.addressList).forEach((name) => {
+            await Promise.all(Object.keys(this.addressList).map((name) => {
                 // console.log(name, naming[name]);
                 if (naming[name]) {
                     const source =
@@ -163,8 +207,12 @@ export const contracts: Contracts = {
                     if (name === "ProxyERC20pUSD") {
                         this.signers["pUSD"] = this.signers[name];
                     }
+
+                    return this.signers[name];
                 }
-            });
+                return null;
+            }));
+            setIsAppReady();
         } catch (e) {
             console.error("contract connect ERROR:", e);
         }

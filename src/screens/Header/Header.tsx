@@ -67,7 +67,7 @@ const Header = () => {
         const networks = Object.keys(MAINNET).includes(networkId.toString()) ? MAINNET : TESTNET;
         setNetworks(networks);
         dispatch(resetBridgeStatus(networkId));
-    }, [networkId]);
+    }, [dispatch, networkId]);
 
     const onDisConnect = () => {
         web3Onboard.disconnect();

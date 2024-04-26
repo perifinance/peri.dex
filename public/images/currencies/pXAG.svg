@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 732.574 807.54" width="732.574" height="807.54" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="linear-gradient" x1="52.55" y1="724.97" x2="679.79" y2="724.97" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.000333, 0, 0, 1, 0, 0)">
+      <stop offset="0" stop-color="#01f0ff"/>
+      <stop offset="0.98" stop-color="#f0f"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="136.57" y1="80.91" x2="595.76" y2="651.43" gradientTransform="matrix(1.000333, 0, 0, 1, 0, 0)" xlink:href="#linear-gradient"/>
+    <style>.cls-1{fill:url(#linear-gradient);}.cls-2{fill:#2a5ada;}.cls-2,.cls-3{isolation:isolate;}.cls-3{fill:url(#linear-gradient-2);}</style>
+  </defs>
+  <path class="cls-1" d="M 366.282 807.54 C 249.763 807.54 52.568 790.15 52.568 724.97 C 52.568 659.79 249.763 642.4 366.282 642.4 C 482.801 642.4 680.016 659.8 680.016 725 C 680.016 790.2 482.811 807.54 366.282 807.54 Z M 87.219 725 C 95.442 742.13 196.385 773.1 366.312 773.1 C 536.239 773.1 637.172 742.1 645.405 725 C 637.192 707.88 536.239 676.91 366.312 676.91 C 196.385 676.91 95.442 707.85 87.219 725 Z" style=""/>
+  <circle cx="1250" cy="1250" r="348.994" style="fill: rgb(234, 230, 231);" transform="matrix(0.9693470001220703, 0, 0, 0.9716269969940186, -845.99853515625, -846.1951904296875)"/>
+  <path fill-rule="nonzero" d="M 680.326 440.367 C 636.771 611.893 459.831 716.28 285.112 673.508 C 110.467 630.745 4.148 457.006 47.721 285.493 C 91.254 113.948 268.195 9.553 442.859 52.315 C 617.567 95.077 723.878 268.835 680.321 440.37 L 680.325 440.367 L 680.326 440.367 Z" style="fill: rgb(217, 217, 217);"/>
+  <path class="cls-3" d="M 366.292 63.44 C 533.268 63.44 669.113 199.25 669.113 366.17 C 669.113 533.09 533.268 668.89 366.292 668.89 C 199.316 668.89 63.461 533.09 63.461 366.17 C 63.461 199.25 199.306 63.44 366.292 63.44 M 366.292 0 C 163.995 0 0 163.94 0 366.17 C 0 568.4 163.995 732.33 366.292 732.33 C 568.589 732.33 732.574 568.4 732.574 366.17 C 732.574 163.94 568.589 0 366.292 0 Z" style=""/>
+  <text style="fill: rgb(255, 131, 57); font-family: Arial, sans-serif; font-size: 26.4px; font-weight: 700; paint-order: fill; text-transform: capitalize; word-spacing: 1px; white-space: pre;" transform="matrix(9.074304580688477, 0, 0, 12.530746459960938, -7381.4443359375, -1829.220947265625)" x="826.305" y="185.167">XAG</text>
+</svg>

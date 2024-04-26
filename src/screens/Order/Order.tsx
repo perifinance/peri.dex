@@ -4,7 +4,6 @@ import { RootState } from "reducers";
 import { getLastRates, getBalances } from "lib/thegraph/api";
 import { getFeeRateForExchange } from "lib/rates";
 import { contracts } from "lib";
-import { utils } from "ethers";
 import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
@@ -20,6 +19,9 @@ import { useMediaQuery } from "react-responsive";
 import "./Order.css";
 import RangeInput from "./RangeInput";
 import { updatePrice } from "reducers/coin/coinList";
+import { toWei } from "web3-utils";
+import { toBytes32, toBigInt, toBigNumber, fromBigNumber } from "lib/bigInt";
+import { extractMessage } from "lib/error";
 // import { resetChartData } from "reducers/chart/chart";
 
 type OrderProps = {
@@ -46,8 +48,8 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
 
     const [feeRate, setFeeRate] = useState(0n);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
-    const [gasPrice, setGasPrice] = useState(0n);
-    const [gasLimit, setGasLimit] = useState(0n);
+    const [gasPrice, setGasPrice] = useState("0");
+    // const [gasLimit, setGasLimit] = useState(0n);
     const [price, setPrice] = useState(0n);
     const [networkRate, setNetworkRate] = useState(0n);
     const [feePrice, setFeePrice] = useState(0n);
@@ -63,7 +65,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
 
     const getRate = useCallback(async () => {
         try {
-            if (!isExchageNetwork(networkId)) {
+            if (!isExchageNetwork(networkId) || !selectedCoins.destination.symbol) {
                 return;
             }
 
@@ -101,21 +103,23 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             dispatch(updateLastRateData(lastRateData));
             dispatch(updatePrice(twoCoin));
             setSourceRate(tmp.src.price);
-            // console.log("getRate", rates, tmp.src.price, tmp.dest.price);
+            console.log("getRate", rates, tmp.src.price, tmp.dest.price);
         } catch (e) {
             console.error("getRate error", e);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCoins]);
 
-    const getFeeRate = async () => {
+    const getFeeRate = useCallback(async () => {
         if (!selectedCoins.source.symbol || !selectedCoins.destination.symbol) return;
         try {
-            setFeeRate(await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol));
+            const feeRate = await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol);
+            console.log("getFeeRate", feeRate);
+            setFeeRate(feeRate);
         } catch (e) {
             console.log(e);
         }
-    };
+    }, [networkId, selectedCoins.destination.symbol, selectedCoins.source.symbol]);
 
     const getSourceBalance = async () => {
         if (!isConnect) {
@@ -151,7 +155,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                 setValidationMessage("Enter amount to exchange the symbol");
             } else if (isNaN(Number(value))) {
                 setValidationMessage("Please enter numbers only!");
-            } else if (utils.parseEther(value).toBigInt() > balance) {
+            } else if (toBigInt(value) > balance) {
                 setValidationMessage("Insufficient balance");
             } else if (selectedCoins.source.symbol === selectedCoins.destination.symbol) {
                 setValidationMessage("Cannot exchange same currencies");
@@ -169,8 +173,8 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         validationCheck(value);
         setPayAmount(value);
         try {
-            setPayAmountToUSD((utils.parseEther(value).toBigInt() * sourceRate) / 10n ** 18n);
-            const exchangeAmount = (utils.parseEther(value).toBigInt() * 10n ** 18n) / lastRateData.rate;
+            setPayAmountToUSD((toBigInt(value) * sourceRate) / 10n ** 18n);
+            const exchangeAmount = (toBigInt(value) * 10n ** 18n) / lastRateData.rate;
             // console.log("changePayAmount", value, exchangeAmount, lastRateData.rate);
             const feePrice = (exchangeAmount * feeRate) / 10n ** 18n;
             setReceiveAmount(exchangeAmount - feePrice);
@@ -180,47 +184,60 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         }
     };
 
-    const getNetworkFeePrice = () => {
+    const getNetworkFeePrice = useCallback( async () => {
         try {
-            getGasEstimate().then(() => {
-                const feePrice = gasLimit * gasPrice * networkRate;
-                // console.log("feePrice", feePrice, gasLimit, gasPrice, networkRate);
-                setNetworkFeePrice(feePrice / 10n ** 9n);
-            });
+            const gasLimit = await getGasLimit();
+            const feePrice = gasLimit * BigInt(toWei(gasPrice, "gwei")) * networkRate / 10n ** 18n;
+            console.log("feePrice", feePrice, gasLimit, gasPrice, networkRate);
+            setNetworkFeePrice(feePrice);
         } catch (e) {}
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gasPrice, networkRate]);
 
     const getPrice = useCallback(() => {
+        if (payAmount === "0") {
+            setPrice(0n);
+            setFeePrice(0n);
+            return;
+        }
         try {
-            const price = (BigInt(utils.parseEther(payAmount).toString()) * sourceRate) / 10n ** 18n;
+            const price = (toBigInt(payAmount) * sourceRate) / 10n ** 18n;
+            console.log("getPrice", price, "feeRate", feeRate);
             setPrice(price);
             setFeePrice((price * feeRate) / 10n ** 18n);
         } catch (e) {
             setPrice(0n);
             setFeePrice(0n);
         }
-    }, [payAmount, sourceRate, feeRate, setPrice, setFeePrice]);
+    }, [payAmount, sourceRate, feeRate]);
 
-    const getGasEstimate = async () => {
-        if (!isExchageNetwork(networkId)) {
-            console.log("Can't get the exchange gas estemate since the dex is not on this chain", networkId);
-            return "0";
-        }
+    const getGasLimit = async () => {
+        let gasLimit = 860000n;
 
-        let gasLimit = 600000n;
+        const coins = [
+            selectedCoins.source.symbol ? selectedCoins.source.symbol : "pUSD",
+            selectedCoins.destination.symbol ? selectedCoins.destination.symbol : "pBTC",
+        ].map(toBytes32);
+
+        // console.log("getGasEstimate", coins, toBigNumber(payAmount === "0" ? "1" : payAmount));
 
         try {
             gasLimit = BigInt(
                 await contracts.signers.PeriFinance.estimateGas.exchange(
-                    utils.formatBytes32String(selectedCoins.source.symbol),
-                    utils.parseEther(payAmount === "0" ? "1" : payAmount),
-                    utils.formatBytes32String(selectedCoins.destination.symbol)
+                    coins[0],
+                    toBigNumber(payAmount === "0" ? "1" : payAmount),
+                    coins[1]
                 )
             );
-        } catch (e) {}
+            
+        } catch (e) {
+            // NotificationManager.warning("No pUSD is available to exchange in your wallet.");
+        }
 
-        setGasLimit(gasLimit);
-        return ((gasLimit * 12n) / 10n).toString();
+        gasLimit = (gasLimit * 11n) / 10n;
+        console.log("gasLimit", gasLimit);
+        // setGasLimit(gasLimit);
+        return gasLimit;
     };
 
     const order = async () => {
@@ -243,21 +260,21 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         }
 
         const transactionSettings = {
-            gasPrice: (gasPrice * 10n ** 9n).toString(),
-            gasLimit: await getGasEstimate(),
+            gasPrice: toWei(gasPrice, "gwei"),
+            gasLimit: await getGasLimit(),
         };
 
-        console.log(
-            "utils.formatBytes32String(selectedCoins.destination.symbol)",
-            utils.formatBytes32String(selectedCoins.destination.symbol)
-        );
+        // console.log(
+        //     "symbol",
+        //     toBytes32(selectedCoins.destination.symbol)
+        // );
 
         try {
             let transaction;
             transaction = await contracts.signers.PeriFinance.exchange(
-                utils.formatBytes32String(selectedCoins.source.symbol),
-                utils.parseEther(payAmount),
-                utils.formatBytes32String(selectedCoins.destination.symbol),
+                toBytes32(selectedCoins.source.symbol),
+                toBigNumber(payAmount),
+                toBytes32(selectedCoins.destination.symbol),
                 transactionSettings
             );
 
@@ -283,6 +300,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         } catch (e) {
             console.log(e);
             setIsPending(false);
+            NotificationManager.warning(extractMessage(e));
         }
     };
 
@@ -292,7 +310,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             return false;
         }
-        const { source, destination } = { ...selectedCoins };
+        const { source, destination } = selectedCoins;
 
         dispatch(setSelectedCoin({ source: destination, destination: source }));
     };
@@ -300,6 +318,8 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
     const setNetworkFee = async () => {
         try {
             const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
+            console.log("setNetworkFee", fee, "networkRate", rate);
+
             setGasPrice(fee);
             setNetworkRate(rate);
             return rate;
@@ -312,19 +332,18 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         setPer(per);
         const convertPer = per > 0n ? (100n * 10n) / per : 0n;
         const perBalance = convertPer > 0n ? (balance * 10n) / convertPer : 0n;
-        changePayAmount(utils.formatEther(perBalance));
+        changePayAmount(fromBigNumber(perBalance));
     };
 
     useEffect(() => {
-        if (isReady && isConnect && selectedCoins.source.symbol && selectedCoins.destination.symbol) {
-            setTimeout(getRate, 500);
-            // const timeout = setInterval(() => {
-            //     getRate();
-            // }, 1000 * 60);
-            // return () => clearInterval(timeout);
-        }
+            // setTimeout(getRate, 500);
+            getRate();
+            const timeout = setInterval(() => {
+                getRate();
+            }, 1000 * 60);
+            return () => clearInterval(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, isConnect, selectedCoins]);
+    }, [isReady]);
 
     useEffect(() => {
         const source = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
@@ -337,23 +356,39 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
 
     useEffect(() => {
         dispatch(setLoading({ name: "balance", value: true }));
+        // console.log("useEffect", isReady, networkId, selectedCoins);
 
         if (isReady && networkId) {
             setNetworkFee();
+            
         }
 
         dispatch(setLoading({ name: "balance", value: false }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, networkId, selectedCoins]);
+    }, [isReady, networkId, lastRateData]);
+
+    useEffect(() => {
+        getPrice();
+    }, [getPrice]);
 
     useEffect(() => {
         if (isReady && SUPPORTED_NETWORKS[networkId]) {
             // console.log("getFeeRate");
             getFeeRate();
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isReady, networkId, getFeeRate]);
+
+    useEffect(() => {
+        // console.log("getNetworkFeePrice");
+        if (isReady && SUPPORTED_NETWORKS[networkId]) {
+            
             getNetworkFeePrice();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, networkId, gasLimit, gasPrice, networkRate]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [networkRate]);
 
     useEffect(() => {
         if (isReady && isConnect && address) {
@@ -370,14 +405,10 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             }
             validationCheck("0");
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, isConnect, address, selectedCoins]);
 
-    useEffect(() => {
-        getPrice();
-    }, [receiveAmount, getPrice]);
-
-    useEffect(() => {
+/*     useEffect(() => {
         if (!isConnect || selectedCoins) {
             setPayAmount("0");
             validationCheck("0");
@@ -387,7 +418,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             setPer(0n);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isConnect, selectedCoins]);
+    }, [isConnect, selectedCoins]); */
 
     return (
         <div className={`w-full h-full `}>
@@ -532,7 +563,9 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                 <span>GAS Fee</span>
                                 <div className="flex flex-nowrap items-center">
                                     <span className="font-medium">${formatCurrency(networkFeePrice, 5)}</span>
-                                    <span className="font-light text-[10px] tracking-tighter text-nowrap">{`( ${gasPrice.toString()} GWEI) `}</span>
+                                    <span className="font-light text-[10px] tracking-tighter text-nowrap">{`( ${
+                                        Number(gasPrice) < 1 ? Number(gasPrice).toFixed(4) : gasPrice
+                                    } GWEI) `}</span>
                                 </div>
                             </div>
                             <div className="flex pt-3 justify-between w-full">
@@ -545,7 +578,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                             </div>
 
                             <div className="flex pt-3 justify-between w-full">
-                                <div>Fee({utils.formatEther(feeRate * 100n)}%)</div>
+                                <div>Fee({fromBigNumber(feeRate * 100n)}%)</div>
                                 <div>${formatCurrency(feePrice, 6)}</div>
                             </div>
 
@@ -557,7 +590,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                     </div>
 
                                     <div className="flex py-2 justify-between w-full">
-                                        <div>Fee({utils.formatEther(feeRate * 100n)}%)</div>
+                                        <div>Fee({fromBigNumber(feeRate * 100n)}%)</div>
                                         <div>${formatCurrency(feePrice, 6)}</div>
                                     </div>
                                 </>

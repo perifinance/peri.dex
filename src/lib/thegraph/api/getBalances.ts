@@ -2,7 +2,9 @@
 // import {get} from "../service";
 
 import pynths from "configure/coins/pynths";
+
 import { contracts } from "lib/contract";
+
 import { getLastRates } from "./getLastRates";
 
 export const getBalance = async (
@@ -27,7 +29,7 @@ export const getBalance = async (
         };
     };
 
-    // console.log("getBalance", contracts[`ProxyERC20${coinName}`]);
+    // console.log(`ProxyERC20${coinName}`, contracts[`ProxyERC20${coinName}`]);
 
     try {
         if (decimal === 18) {
@@ -52,7 +54,7 @@ export const getBalance = async (
 export const getBalances = async ({ currencyName = undefined, networkId = undefined, address, rates = undefined }) => {
     try {
         if (currencyName) {
-            return getBalance(address, currencyName);
+            return getBalance( address, currencyName);
         } else {
             const promises = [];
 

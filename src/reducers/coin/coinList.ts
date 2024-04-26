@@ -7,12 +7,13 @@ type Coin = {
     symbol?: string;
     categories?: Array<string>;
     decimal?: number;
-    balance?: bigint;
+    key?: string;
     price?: bigint;
     change?: bigint;
     timestamp?: number;
+    isActive?: boolean;
 };
-type CoinList = {
+export type CoinList = {
     coinList: Array<Coin>;
 };
 

@@ -14,7 +14,7 @@ interface IBridgeStatus {
 
 const BridgeStatus = ({ selectedCoin, setIsProcessing }: IBridgeStatus) => {
     const { step, pendingCoins } = useSelector((state: RootState) => state.bridge);
-    const { networkId } = useSelector((state: RootState) => state.wallet);
+    const { networkId, address } = useSelector((state: RootState) => state.wallet);
     const [pendingCoin, setPendingCoin] = React.useState<PendingCoin>(null);
     const dispatch = useDispatch();
     const statusMsg = {
@@ -51,7 +51,7 @@ const BridgeStatus = ({ selectedCoin, setIsProcessing }: IBridgeStatus) => {
                 setIsProcessing(false);
             }
         }
-    }, [pendingCoins, selectedCoin]);
+    }, [pendingCoins, selectedCoin, address]);
 
     return (
         <div className="flex flex-col w-full">

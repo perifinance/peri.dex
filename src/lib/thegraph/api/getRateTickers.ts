@@ -1,11 +1,10 @@
-import { FEEDNETID } from "lib/network";
-
-import pynths from "configure/coins/pynths";
+import { pynthsList } from "configure/coins/pynthsList";
 
 import { chartRates } from "../queries";
 import { get } from "../service";
 
-export const getRateTickers = async (networkId = FEEDNETID) => {
+// Todo: pMATIC, pCAKE price is not available
+export const getRateTickers = async () => {
 	const promise = [];
 	let searchDate = Number((new Date().getTime() / 1000).toFixed(0)) - 60 * 60 * 24;
 	const data = {};
@@ -33,7 +32,9 @@ export const getRateTickers = async (networkId = FEEDNETID) => {
 		datas = null;
 	};
 
-	pynths[networkId.toString()].forEach((pynth) => {
+	// console.log("pynthsList", pynthsList);
+
+	pynthsList.forEach((pynth) => {
 		promise.push(setData(pynth.symbol));
 	});
 
