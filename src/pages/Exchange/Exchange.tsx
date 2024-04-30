@@ -14,12 +14,10 @@ import { networkInfo } from "configure/networkInfo";
 import { isExchageNetwork } from "lib/network";
 import { getRateTickers } from "lib/thegraph/api/getRateTickers";
 import { updatePrice } from "reducers/coin/coinList";
-import { updateLastRateData } from "reducers/rates";
 
 const Exchange = () => {
     const dispatch = useDispatch();
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
-    const { coinList } = useSelector((state: RootState) => state.coinList);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState(null);
@@ -89,32 +87,6 @@ const Exchange = () => {
         }
     }, [isConnect, networkId]);
 
-/*     const lastRateUpdate = useCallback(() => {
-        const src = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
-        const dest = coinList.find((coin) => coin.symbol === selectedCoins.destination.symbol);
-        // console.log("srcSymbol", src, dest);
-        if (src && dest) {
-            const lastRateData = {
-                timestamp: src.timestamp > dest.timestamp
-                    ? src.timestamp : dest.timestamp,
-                rate: src.price > 0n ? (dest.price * 10n ** 18n) / src.price : 0n,
-                symbols: `${src.symbol}/${dest.symbol}`,
-            };
-    
-            dispatch(updateLastRateData(lastRateData));
-        }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [coinList, selectedCoins.destination.symbol, selectedCoins.source.symbol]);
-
-    useEffect(() => {
-        if (coinList.length > 0){
-            lastRateUpdate();
-        }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastRateUpdate]); */
-
     useEffect(() => {
         if (!isConnect) {
             if (timeInterval) clearInterval(timeInterval);
@@ -130,6 +102,7 @@ const Exchange = () => {
         setTimeInterval(interval);
 
         return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect]);
 
     return (

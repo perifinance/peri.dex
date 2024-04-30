@@ -119,7 +119,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         } catch (e) {
             console.log(e);
         }
-    }, [networkId, selectedCoins.destination.symbol, selectedCoins.source.symbol]);
+    }, [selectedCoins.destination.symbol, selectedCoins.source.symbol]);
 
     const getSourceBalance = async () => {
         if (!isConnect) {
@@ -343,7 +343,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             }, 1000 * 60);
             return () => clearInterval(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady]);
+    }, [isReady, getRate]);
 
     useEffect(() => {
         const source = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
@@ -397,7 +397,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             } else {
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
                 setPayAmount("0");
-
                 setPayAmountToUSD(0n);
                 setReceiveAmount(0n);
                 setBalance(0n);

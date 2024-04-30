@@ -18,7 +18,6 @@ import BridgeStatus from "./BridgeStatus";
 import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
 import { fromBigNumber, toBigNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
-import { set } from "date-fns";
 
 const zeroSignature =
     "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -502,7 +501,7 @@ const Submit = () => {
         setPayAmount("");
         setGasPrice("0");
         setNetworkFeePrice(0n);
-        
+
     }, [selectedCoin, networkId, address]);
 
     // *** DropBox list handlers
