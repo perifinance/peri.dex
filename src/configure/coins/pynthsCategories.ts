@@ -1,7 +1,10 @@
 // eslint-disable-next-line
 export default [
     'All',
-    'Favorites',
+    'Crypto',
+    'Forex',
+    'Commodity',
+    // 'favorite',
     // 'DeFi',
     // 'NFT',  
     // 'Solana',

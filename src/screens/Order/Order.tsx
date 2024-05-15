@@ -8,7 +8,7 @@ import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
 import { getNetworkPrice } from "lib/price";
-import { setSelectedCoin } from "reducers/coin/selectedCoin";
+// import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { SUPPORTED_NETWORKS, isExchageNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
 import { setLoading } from "reducers/loading";
@@ -54,14 +54,15 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
     const [networkRate, setNetworkRate] = useState(0n);
     const [feePrice, setFeePrice] = useState(0n);
 
-    const [payAmount, setPayAmount] = useState("0");
-    const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
-    const [receiveAmount, setReceiveAmount] = useState(0n);
+    const [payAmount, setPayAmount] = useState("");
+    // const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
+    const [receiveAmount, setReceiveAmount] = useState("");
     // const [balance, setBalance] = useState(0n);
     const [isPending, setIsPending] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState("");
+    const [isBuy, setIsBuy] = useState(true);
 
     const getRate = useCallback(async () => {
         try {
@@ -84,15 +85,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                 }
                 twoCoin[item.currencyKey] = item.price;
             });
-
-            /* console.log(
-                "getRate src, dest",
-                selectedCoins.source.symbol,
-                selectedCoins.destination.symbol,
-                tmp.src,
-                tmp.dest
-            ); */
-
             const timeStamp = tmp.src.timestamp > tmp.dest.timestamp ? tmp.src.timestamp : tmp.dest.timestamp;
             const lastRateData = {
                 timestamp: timeStamp,
@@ -103,7 +95,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             dispatch(updateLastRateData(lastRateData));
             dispatch(updatePrice(twoCoin));
             setSourceRate(tmp.src.price);
-            console.log("getRate", rates, tmp.src.price, tmp.dest.price);
         } catch (e) {
             console.error("getRate error", e);
         }
@@ -111,15 +102,15 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
     }, [selectedCoins]);
 
     const getFeeRate = useCallback(async () => {
-        if (!selectedCoins.source.symbol || !selectedCoins.destination.symbol) return;
+        if (!selectedCoins.source?.symbol || !selectedCoins.destination?.symbol) return;
         try {
             const feeRate = await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol);
-            console.log("getFeeRate", feeRate);
+            console.debug("getFeeRate", feeRate);
             setFeeRate(feeRate);
         } catch (e) {
             console.log(e);
         }
-    }, [selectedCoins.destination.symbol, selectedCoins.source.symbol]);
+    }, [selectedCoins.destination?.symbol, selectedCoins.source?.symbol]);
 
     const getSourceBalance = async () => {
         if (!isConnect) {
@@ -127,11 +118,13 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             return;
         }
 
+        const sellCoin = isBuy ? selectedCoins.source : selectedCoins.destination;
+
         setIsRefreshing(true);
         const balance: any = await getBalances({
             address,
             networkId,
-            currencyName: selectedCoins.source.symbol ?? "pUSD",
+            currencyName: sellCoin.symbol ?? "pUSD",
         });
 
         setBalance(balance || 0n);
@@ -146,7 +139,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             if (!isConnect) {
                 setValidationMessage("Please connect your wallet");
             } else if (!isExchageNetwork(networkId)) {
-                console.log("validationCheck", networkId);
                 setValidationMessage(
                     `You just connected an unsupported netowork. Please switch to either polygon or moonriver.`
                 );
@@ -169,29 +161,44 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         }
     };
 
-    const changePayAmount = (value) => {
-        validationCheck(value);
-        setPayAmount(value);
-        try {
-            setPayAmountToUSD((toBigInt(value) * sourceRate) / 10n ** 18n);
-            const exchangeAmount = (toBigInt(value) * 10n ** 18n) / lastRateData.rate;
-            // console.log("changePayAmount", value, exchangeAmount, lastRateData.rate);
-            const feePrice = (exchangeAmount * feeRate) / 10n ** 18n;
-            setReceiveAmount(exchangeAmount - feePrice);
-        } catch (e) {
-            setPayAmountToUSD(0n);
-            setReceiveAmount(0n);
-        }
-    };
+    const changePayAmount = useCallback((amount:number|string, isPay:boolean) => {
+        // validationCheck(amount);
 
-    const getNetworkFeePrice = useCallback( async () => {
+        // isBuy ? setPayAmount(amount) : setReceiveAmount(toBigInt(amount) * lastRateData.rate / 10n ** 18n);
+        try {
+            // setPayAmountToUSD((toBigInt(amount) * sourceRate) / 10n ** 18n);
+            amount = amount === "." ? "0." : amount;
+            const receiveAmtNoFee = isPay === isBuy
+                ? (toBigInt(amount) * 10n ** 18n) / lastRateData.rate
+                : toBigInt(amount) * lastRateData.rate / 10n ** 18n;
+            
+            // console.log("changePayAmount", amount, receiveAmtNoFee, lastRateData.rate);
+            const feePrice = (receiveAmtNoFee * feeRate) / 10n ** 18n;
+            
+            const calcAmt = receiveAmtNoFee + feePrice * (isPay ? (-1n): 1n);
+            const payAmount = isPay ? amount.toString() : fromBigNumber(calcAmt);
+            const receiveAmount = isPay ? fromBigNumber(calcAmt) : amount.toString();
+
+            validationCheck(payAmount);
+                
+            console.debug("changePayAmount", amount, payAmount, feePrice, receiveAmount);
+            setPayAmount(payAmount);
+            setReceiveAmount(receiveAmount);
+        } catch (e) {
+            // setPayAmountToUSD(0n);
+            isBuy ? setReceiveAmount("") : setPayAmount("");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [feeRate, lastRateData.rate]);
+
+    const getNetworkFeePrice = useCallback(async () => {
         try {
             const gasLimit = await getGasLimit();
-            const feePrice = gasLimit * BigInt(toWei(gasPrice, "gwei")) * networkRate / 10n ** 18n;
-            console.log("feePrice", feePrice, gasLimit, gasPrice, networkRate);
+            const feePrice = (gasLimit * BigInt(toWei(gasPrice, "gwei")) * networkRate) / 10n ** 18n;
+            console.debug("feePrice", feePrice, gasLimit, gasPrice, networkRate);
             setNetworkFeePrice(feePrice);
         } catch (e) {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gasPrice, networkRate]);
 
     const getPrice = useCallback(() => {
@@ -202,7 +209,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         }
         try {
             const price = (toBigInt(payAmount) * sourceRate) / 10n ** 18n;
-            console.log("getPrice", price, "feeRate", feeRate);
+            console.debug("getPrice", price, "feeRate", feeRate);
             setPrice(price);
             setFeePrice((price * feeRate) / 10n ** 18n);
         } catch (e) {
@@ -212,37 +219,37 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
     }, [payAmount, sourceRate, feeRate]);
 
     const getGasLimit = async () => {
-        let gasLimit = 860000n;
+        let gasLimit = 1400000n;
 
         const coins = [
             selectedCoins.source.symbol ? selectedCoins.source.symbol : "pUSD",
             selectedCoins.destination.symbol ? selectedCoins.destination.symbol : "pBTC",
         ].map(toBytes32);
 
-        // console.log("getGasEstimate", coins, toBigNumber(payAmount === "0" ? "1" : payAmount));
-
+        console.debug("getGasEstimate", coins[isBuy?0:1], coins[isBuy?1:0], toBigInt(payAmount));
         try {
             gasLimit = BigInt(
                 await contracts.signers.PeriFinance.estimateGas.exchange(
-                    coins[0],
-                    toBigNumber(payAmount === "0" ? "1" : payAmount),
-                    coins[1]
+                    coins[isBuy?0:1],
+                    payAmount === "0" ? 1n : toBigInt(payAmount),
+                    coins[isBuy?1:0]
                 )
             );
-            
         } catch (e) {
+            console.log(e);
             // NotificationManager.warning("No pUSD is available to exchange in your wallet.");
         }
 
         gasLimit = (gasLimit * 11n) / 10n;
-        console.log("gasLimit", gasLimit);
+        console.debug("gasLimit", gasLimit);
         // setGasLimit(gasLimit);
         return gasLimit;
     };
 
     const order = async () => {
         if (!isValidation) {
-            NotificationManager.warning(validationMessage);
+            const message = !isConnect ? "Please Connect your wallet" : validationMessage;
+            NotificationManager.warning(message);
             return false;
         }
 
@@ -264,32 +271,32 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
             gasLimit: await getGasLimit(),
         };
 
-        // console.log(
-        //     "symbol",
-        //     toBytes32(selectedCoins.destination.symbol)
-        // );
+        const srcCoin = isBuy ? selectedCoins.source : selectedCoins.destination;
+        const destCoin = isBuy ? selectedCoins.destination : selectedCoins.source;
+
+        console.debug("order", srcCoin, destCoin, payAmount, transactionSettings);
 
         try {
             let transaction;
             transaction = await contracts.signers.PeriFinance.exchange(
-                toBytes32(selectedCoins.source.symbol),
+                toBytes32(srcCoin.symbol),
                 toBigNumber(payAmount),
-                toBytes32(selectedCoins.destination.symbol),
+                toBytes32(destCoin.symbol),
                 transactionSettings
             );
 
             dispatch(
                 updateTransaction({
                     hash: transaction.hash,
-                    message: `Buy ${selectedCoins.destination.symbol} from ${selectedCoins.source.symbol}`,
+                    message: `${isBuy ? "Buying":"Selling"} ${selectedCoins.destination.symbol}...`,
                     type: "Exchange",
                     action: () => {
                         getSourceBalance();
                         setPayAmount("0");
                         validationCheck("0");
                         setPer(0n);
-                        setPayAmountToUSD(0n);
-                        setReceiveAmount(0n);
+                        // setPayAmountToUSD(0n);
+                        setReceiveAmount("");
                         setIsPending(false);
                     },
                     error: () => {
@@ -304,7 +311,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         }
     };
 
-    const swapToCurrency = () => {
+    /* const swapToCurrency = () => {
         if (!isExchageNetwork(networkId)) {
             NotificationManager.warning(`This network is not supported. Please change to moonriver network`, "ERROR");
             // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
@@ -313,12 +320,12 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
         const { source, destination } = selectedCoins;
 
         dispatch(setSelectedCoin({ source: destination, destination: source }));
-    };
+    }; */
 
     const setNetworkFee = async () => {
         try {
             const [fee, rate] = await Promise.all([getNetworkFee(networkId), getNetworkPrice(networkId)]);
-            console.log("setNetworkFee", fee, "networkRate", rate);
+            console.debug("setNetworkFee", fee, "networkRate", rate);
 
             setGasPrice(fee);
             setNetworkRate(rate);
@@ -327,27 +334,16 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
     };
 
     const setPerAmount = (per) => {
-        // console.log("per", per);
+        console.debug("per", per);
 
         setPer(per);
         const convertPer = per > 0n ? (100n * 10n) / per : 0n;
         const perBalance = convertPer > 0n ? (balance * 10n) / convertPer : 0n;
-        changePayAmount(fromBigNumber(perBalance));
+        changePayAmount(fromBigNumber(perBalance), true);
     };
 
     useEffect(() => {
-            // setTimeout(getRate, 500);
-            getRate();
-            const timeout = setInterval(() => {
-                getRate();
-            }, 1000 * 60);
-            return () => clearInterval(timeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, getRate]);
-
-    useEffect(() => {
         const source = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
-        // console.log("sourceCoin", source);
 
         source && setSourceRate(source.price);
 
@@ -356,16 +352,14 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
 
     useEffect(() => {
         dispatch(setLoading({ name: "balance", value: true }));
-        // console.log("useEffect", isReady, networkId, selectedCoins);
 
         if (isReady && networkId) {
             setNetworkFee();
-            
         }
 
         dispatch(setLoading({ name: "balance", value: false }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, networkId, lastRateData]);
+    }, [isReady, networkId]);
 
     useEffect(() => {
         getPrice();
@@ -373,7 +367,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
 
     useEffect(() => {
         if (isReady && SUPPORTED_NETWORKS[networkId]) {
-            // console.log("getFeeRate");
             getFeeRate();
         }
 
@@ -381,81 +374,101 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
     }, [isReady, networkId, getFeeRate]);
 
     useEffect(() => {
-        // console.log("getNetworkFeePrice");
         if (isReady && SUPPORTED_NETWORKS[networkId]) {
-            
             getNetworkFeePrice();
         }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [networkRate]);
 
     useEffect(() => {
         if (isReady && isConnect && address) {
             if (isExchageNetwork(networkId)) {
                 getSourceBalance();
-            } else {
-                // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
-                setPayAmount("0");
-                setPayAmountToUSD(0n);
-                setReceiveAmount(0n);
-                setBalance(0n);
-                setPer(0n);
-            }
-            validationCheck("0");
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, networkId, isConnect, address, selectedCoins]);
-
-/*     useEffect(() => {
-        if (!isConnect || selectedCoins) {
+            } /* else { */
+            // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             setPayAmount("0");
-            validationCheck("0");
-            setPayAmountToUSD(0n);
-            setReceiveAmount(0n);
+            // setPayAmountToUSD(0n);
+            setReceiveAmount("");
             setBalance(0n);
             setPer(0n);
+            /* } */
+            validationCheck("0");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isConnect, selectedCoins]); */
+    }, [isReady, networkId, isConnect, address, isBuy, selectedCoins]);
+
 
     return (
-        <div className={`w-full h-full `}>
+        <div className={`w-full h-full`}>
             <div
-                className={`w-full bg-blue-900 rounded-t-lg px-4 hidden lg:flex ${
-                    isLaptop ? "lg:h-[9%]" : "lg:h-[12%]"
+                className={`w-full bg-blue-900 rounded-t-lg px-4 hidden lg:flex items-center ${
+                    isLaptop ? "lg:h-[8%]" : "lg:h-[12%]"
                 }`}
             >
-                <div className="flex space-x-1 py-2 items-end">
-                    <div className="relative w-14 h-8">
+                <div className="flex space-x-1 py-2 items-end cursor-pointer"
+                    id="list-caller"
+                    onClick={() => (isCoinList ? closeCoinList() : openCoinList("destination"))}
+                >
+                    <div className="relative w-11 h-7"
+                        id="list-caller"
+                    >
                         <img
+                            id="list-caller"
                             alt="dest_symgol"
-                            className="w-8 h-8 absolute bottom-0 left-0 z-[2]"
-                            src={`/images/currencies/${getSafeSymbol(selectedCoins.destination.symbol, false)}.svg`}
+                            className="w-7 h-7 absolute bottom-0 left-0 z-[2]"
+                            src={`/images/currencies/${selectedCoins.destination?.symbol ? getSafeSymbol(selectedCoins.destination.symbol, false): "pBTC"}.svg`}
                         ></img>
                         <img
                             alt="source_symgol"
-                            className="w-8 h-8 absolute bottom-0 left-4 z-[1]"
-                            src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
+                            className="w-7 h-7 absolute bottom-0 left-4 z-[1]"
+                            src={`/images/currencies/${selectedCoins.source?.symbol ? getSafeSymbol(selectedCoins.source.symbol) : "pUSD"}.svg`}
                         ></img>
                     </div>
-                    <div className="text-lg font-medium tracking-tighter ml-0 text-center">
+                    <div className="text-lg font-medium tracking-tighter ml-0 text-center" id="list-caller">
                         {getSafeSymbol(selectedCoins.destination.symbol, false)} /{" "}
                         {getSafeSymbol(selectedCoins.source.symbol)}
                     </div>
                 </div>
             </div>
             <div
-                className={`w-full h-fit lg:h-[88%] bg-blue-900 lg:rounded-b-lg px-4 ${
-                    isLaptop && "lg:h-[91%]"
-                } lg:flex lg:flex-col lg:justify-around `}
+                className={`w-full h-fit bg-blue-900 lg:rounded-b-lg px-4 ${
+                    isLaptop ? "lg:h-[92%]" : "lg:h-[88%]"
+                } lg:flex lg:flex-col lg:justify-around xs:mt-2 xs:pt-2 md:mt-0 md:pt-0`}
             >
                 <div className={`flex flex-col `}>
-                    <div className="flex justify-between">
+                    <div className="flex flex-row justify-between items-center mb-4">
+                        <button
+                            className={`w-[48%] bg-transparent border-2 cursor-pointer p-2 ${
+                                isBuy ? "border-cyan-450 text-cyan-450 font-medium border-[1px]":"border-blue-950"
+                            } hover:text-cyan-450 hover:font-medium rounded-md`}
+                            onClick={() => setIsBuy(true)}
+                        >
+                            Buy
+                        </button>
+                        <button
+                            className={`w-[48%] bg-transparent border-2 cursor-pointer p-2 ${
+                                isBuy ? "border-blue-950" : "border-red-400 text-red-400 font-medium border-[1px]"
+                            } hover:text-red-400 hover:font-medium rounded-md`}
+                            onClick={() => setIsBuy(false)}
+                        >
+                            Sell
+                        </button>
+                    </div>
+                    
+                    <div className="flex flex-col">
                         <div className="flex items-center space-x-1 pl-1 justify-start w-full text-xs">
                             <div className="flex flex-nowrap text-gray-400">
-                                <span className="">Available:</span>
-                                <span className="font-medium">{` ${formatCurrency(balance, 4)}`}</span>
+                                <span className="mr-2">Available:</span>
+                                <span className="font-medium">{`${formatCurrency(balance, 4)} ${
+                                    isBuy
+                                        ? selectedCoins?.source?.symbol 
+                                            ? getSafeSymbol(selectedCoins.source.symbol)
+                                            : "pUSD"
+                                        : selectedCoins?.destination?.symbol
+                                            ? getSafeSymbol(selectedCoins.destination.symbol, false)
+                                            : "pBTC"
+                                }`}</span>
                             </div>
                             <img
                                 className={`m-1 p-1 w-[16px] rounded-full bg-blue-600 cursor-pointer ${
@@ -466,59 +479,12 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                 onClick={() => getSourceBalance()}
                             />
                         </div>
-                        <div className="flex justify-end items-center font-medium tracking-tight text-xs w-full text-blue-600 px-3">
-                            <span>${formatCurrency(payAmountToUSD, 2)}</span>
+                        <div className="flex pt-3 justify-between w-full rounded-md bg-blue-950 text-gray-450 font-medium text-base p-2">
+                            <div>Price</div>
+                            <div className="w-[70%] text-right ">{formatCurrency(lastRateData.rate, 8)}</div>
                         </div>
                     </div>
-                    {/* ${isError && 'border border-red-500'} */}
-                    <div className="flex rounded-md bg-blue-950 text-base p-2 space-x-4 justify-between">
-                        <div
-                            id="list-caller"
-                            className="flex font-medium cursor-pointer items-center"
-                            onClick={() => (isCoinList ? closeCoinList() : openCoinList("source"))}
-                        >
-                            <img
-                                id="list-caller"
-                                className="w-6 h-6"
-                                alt="target-symbol"
-                                src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
-                            ></img>
-                            <div id="list-caller" className=" flex items-center flex-nowrap arrow-turn">
-                                <span id="list-caller" className="m-1 text-sm tracking-tighter">
-                                    {getSafeSymbol(selectedCoins.source.symbol)}
-                                </span>
-                                <img
-                                    id="list-caller"
-                                    alt="arrow"
-                                    className={`w-3 h-[6px] ${
-                                        isCoinList && coinListType === "source" && "rotate-[-90deg]"
-                                    }`}
-                                    src={`/images/icon/bottom_arrow.png`}
-                                />
-                            </div>
-                        </div>
-                        <input
-                            className="w-2/3 bg-blue-950 outline-none text-gray-300 font-medium text-right"
-                            type="text"
-                            value={payAmount}
-                            placeholder="0"
-                            onChange={(e) => {
-                                changePayAmount(e.target.value);
-                                setPer(0n);
-                            }}
-                            onFocus={(e) => e.target.select()}
-                        />
-                    </div>
-
-                    <div
-                        className="flex w-7 h-7 lg:w-9 lg:h-9 my-2 lg:my-3 bg-blue-950 rounded-full mx-auto cursor-pointer"
-                        onClick={() => swapToCurrency()}
-                    >
-                        <div className="m-auto">
-                            <img alt="execute" className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"}></img>
-                        </div>
-                    </div>
-                    <div className="flex rounded-md bg-blue-950 text-base p-2 space-x-4 justify-between">
+                    <div className="flex rounded-md bg-blue-950 text-base p-2 space-x-4 justify-between mt-2">
                         <div
                             id="list-caller"
                             className="flex font-medium cursor-pointer items-center"
@@ -537,7 +503,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                 <img
                                     id="list-caller"
                                     alt="arrow"
-                                    className={`w-3 h-[6px] ${
+                                    className={`w-3 h-[6px] xl:hidden ${
                                         isCoinList && coinListType === "destination" && "rotate-[-90deg]"
                                     }`}
                                     src={`/images/icon/bottom_arrow.png`}
@@ -545,14 +511,65 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                             </div>
                         </div>
                         <input
+                            id="tartget-symbol"
                             className="w-2/3 bg-blue-950 outline-none text-gray-300 font-medium text-right"
                             type="text"
-                            value={formatCurrency(receiveAmount, 8)}
-                            disabled
+                            placeholder="0"
+                            value={isBuy 
+                                ? (["0", "0.0"].includes(receiveAmount) ? "" : receiveAmount) 
+                                : (["0", "0.0"].includes(payAmount) ? "": payAmount)
+                            }
+                            onChange={(e) => {
+                                const value = e.target.value === "" ? "0" : e.target.value;
+                                changePayAmount(value, !isBuy);
+                                setPer(0n);
+                            }}
+                            onFocus={(e) => e.target.select()}
                         />
                     </div>
-                    <div className={`${isLaptop && "lg:mt-7"}`}>
-                        <RangeInput per={per} setPerAmount={setPerAmount} divide={4} />
+                    
+                    <div className={`${isLaptop && "lg:my-3"}`}>
+                        <RangeInput
+                            per={per}
+                            setPerAmount={setPerAmount}
+                            divide={4}
+                            bgColor={isBuy ? "bg-cyan-450" : "bg-red-400"}
+                            color={isBuy ? "text-cyan-450" : "text-red-400"}
+                        />
+                    </div>
+                    <div className="flex rounded-md bg-blue-950 text-base p-2 space-x-4 justify-between">
+                        <div
+                            id="list-caller"
+                            className="flex font-medium cursor-default items-center text-gray-450"
+                        >
+                            <img
+                                id="list-caller"
+                                className="w-6 h-6"
+                                alt="target-symbol"
+                                src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
+                            ></img>
+                            <div id="list-caller" className=" flex items-center flex-nowrap arrow-turn">
+                                <span id="list-caller" className="m-1 text-sm tracking-tighter">
+                                    {getSafeSymbol(selectedCoins.source.symbol)}
+                                </span>
+                            </div>
+                        </div>
+                        <input
+                            id="base-symbol"
+                            className="w-2/3 bg-blue-950 outline-none text-gray-300 font-medium text-right"
+                            type="text"
+                            value={isBuy 
+                                ? (["0", "0.0"].includes(payAmount) ? "": payAmount)
+                                : (["0", "0.0"].includes(receiveAmount) ? "" : receiveAmount)
+                            }
+                            placeholder="0"
+                            onChange={(e) => {
+                                const value = e.target.value === "" ? "0" : e.target.value;
+                                changePayAmount(value, isBuy);
+                                setPer(0n);
+                            }}
+                            onFocus={(e) => e.target.select()}
+                        />
                     </div>
                 </div>
                 <div className="flex flex-col justify-between pb-4">
@@ -567,10 +584,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                     } GWEI) `}</span>
                                 </div>
                             </div>
-                            <div className="flex pt-3 justify-between w-full">
-                                <div>Rate</div>
-                                <div>1 = {formatCurrency(lastRateData.rate, 8)}</div>
-                            </div>
+                            
                             <div className="flex pt-3 justify-between w-full">
                                 <div>Cost: </div>
                                 <div>${formatCurrency(price - feePrice, 18)}</div>
@@ -580,24 +594,12 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                 <div>Fee({fromBigNumber(feeRate * 100n)}%)</div>
                                 <div>${formatCurrency(feePrice, 6)}</div>
                             </div>
-
-                            {/* {BigInt(receiveAmount) > 0n && isValidation && (
-                                <>
-                                    <div className="flex py-2 justify-between w-full">
-                                        <div>Cost: </div>
-                                        <div>${formatCurrency(price - feePrice, 18)}</div>
-                                    </div>
-
-                                    <div className="flex py-2 justify-between w-full">
-                                        <div>Fee({fromBigNumber(feeRate * 100n)}%)</div>
-                                        <div>${formatCurrency(feePrice, 6)}</div>
-                                    </div>
-                                </>
-                            )} */}
                         </div>
                         <button
-                            className={`btn-base flex flex-row items-center mt-6 lg:my-6 mb-4 px-4 py-2 w-full ${
+                            className={`flex flex-row border-[1px] rounded-md items-center mt-6 lg:my-6 mb-4 px-4 py-2 w-full font-medium ${
                                 isLaptop && "lg:mt-14"
+                            } ${
+                                isBuy ? "border-cyan-450 text-cyan-450 ":"border-red-400 text-red-400"
                             }`}
                             onClick={() => order()}
                             disabled={isPending}
@@ -605,7 +607,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                             <div className="flex basis-1/3 justify-end pr-2">
                                 {isPending && (
                                     <svg
-                                        className="animate-spin h-5 w-5 text-blue-600"
+                                        className={`animate-spin h-5 w-5 ${isBuy ? "text-cyan-450" : "text-red-400"}`}
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
@@ -626,12 +628,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                                     </svg>
                                 )}
                             </div>
-                            <span className="basis-1/3 text-lg">Confirm</span>
+                            <span className="basis-1/3 text-lg text-nowrap">{`${isBuy ? "Buy":"Sell"} ${selectedCoins.destination.symbol}`}</span>
                         </button>
                     </div>
-                    {/* {!isValidation || !isConnect ? ( */}
                     <div
-                        className={`hidden bg-blue-950 w-full text-center break-wards text-blue-600 rounded-lg text-xs font-medium py-3 px-2 ${
+                        className={`hidden bg-blue-950 w-full text-center break-wards rounded-lg text-xs font-medium py-3 px-2 ${
                             isLaptop ? (isOrderMin ? "h-20 lg:block" : "lg:block") : ""
                         }`}
                     >
@@ -642,9 +643,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, coinListType, balance,
                             : "Unsupported Network"}
                     </div>
                 </div>
-                {/*  ) : (
-                    <></>
-                )} */}
             </div>
         </div>
     );

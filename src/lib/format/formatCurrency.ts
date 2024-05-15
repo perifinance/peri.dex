@@ -3,6 +3,7 @@ import { fromBigNumber } from "lib/bigInt";
 export const formatCurrency = (value, maxPrecision = 2) => {
     if (!value) return "0";
 
+    // console.log("value", value);
     let precision = 0;
     const cutValue = 10n ** BigInt(18 - maxPrecision);
     const cutDecimals = (value / cutValue) * cutValue;
@@ -12,11 +13,13 @@ export const formatCurrency = (value, maxPrecision = 2) => {
     const fraction = splitVal[1] ? splitVal[1] : "0";
 
     precision =
-        decimalVal < 10
-            ? fraction?.length > 2 && !Number(fraction.substring(0, 1))
-                ? fraction?.length > 4 && !Number(fraction.substring(0, 4))
-                    ? 8
-                    : 6
+        decimalVal < 100
+            ? decimalVal < 10
+                ? fraction?.length > 2 && !Number(fraction.substring(0, 2))
+                    ? fraction?.length > 4 && !Number(fraction.substring(0, 4))
+                        ? 8
+                        : 6
+                    : 5
                 : 4
             : 2;
 

@@ -11,7 +11,7 @@ type EthereumProvider = {
 
 declare global {
     interface Window {
-		utils: utils;
+		location: Location;
         ethereum?: EthereumProvider;
     }
 }

@@ -82,7 +82,7 @@ module.exports = {
                 sans: ["Graphik", "sans-serif"],
                 serif: ["Montserrat", "serif"],
             },
-            fontSize: {
+            /* fontSize: {
                 sm: [
                     ".875rem",
                     {
@@ -95,10 +95,13 @@ module.exports = {
                         lineHeight: "2rem",
                     },
                 ],
-            },
+            }, */
             colors: {
-                teal: "#4dc0b5",
-                "teal-lighter": "#a0f0ed",
+                /* teal: "#4dc0b5",
+                "teal-lighter": "#a0f0ed", */
+                cyan: {
+                    450: "#13dfff"
+                },
                 skyblue: {
                     500: "#13DFFF",
                     600: "#2cd3ed",
@@ -132,6 +135,7 @@ module.exports = {
                 gray: {
                     700: "#212121",
                     500: "#333333",
+                    450: "#848b96",
                     300: "#B1BAD7",
                     200: "#fffff2",
                 },

@@ -1,4 +1,4 @@
-import { ca, id } from "date-fns/locale";
+
 
 export const pynthsList = [
 	{
@@ -355,24 +355,6 @@ export const pynthsList = [
 	{
 		id: 39,
 		favorite: false,
-		name: "Japanese Yen",
-		symbol: "pJPY",
-		key: "JPY",
-		categories: ["forex"],
-		decimal: 18,
-	},
-	{
-		id: 40,
-		favorite: false,
-		name: "Swiss Franc",
-		symbol: "pCHF",
-		key: "CHF",
-		categories: ["forex"],
-		decimal: 18,
-	},
-	{
-		id: 41,
-		favorite: false,
 		name: "Australian Dollar",
 		symbol: "pAUD",
 		key: "AUD",
@@ -380,7 +362,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 42,
+		id: 40,
 		favorite: false,
 		name: "Canadian Dollar",
 		symbol: "pCAD",
@@ -389,7 +371,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 43,
+		id: 41,
 		favorite: false,
 		name: "New Zealand Dollar",
 		symbol: "pNZD",
@@ -398,7 +380,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 44,
+		id: 42,
 		favorite: false,
 		name: "DeFi Pulse Index",
 		symbol: "pDPI",
@@ -407,16 +389,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 45,
-		favorite: false,
-		name: "Fetch.ai",
-		symbol: "pFET",
-		key: "FET",
-		categories: ["crypto"],
-		decimal: 18,
-	},
-	{
-		id: 46,
+		id: 43,
 		favorite: false,
 		name: "Near Protocol",
 		symbol: "pNEAR",
@@ -425,7 +398,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 47,
+		id: 44,
 		favorite: false,
 		name: "Shiba Inu",
 		symbol: "pSHIB",
@@ -434,7 +407,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 48,
+		id: 45,
 		favorite: false,
 		name: "Paxos Gold",
 		symbol: "pPAXG",

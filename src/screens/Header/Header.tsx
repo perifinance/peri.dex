@@ -87,7 +87,7 @@ const Header = () => {
     }, [closeModalHandler]);
 
     return (
-        <header className="flex flex-row justify-between items-center h-[6%] sm:h-[10%] -mt-1 lg:mt-0 p-2">
+        <header className="flex flex-row justify-between items-center h-[6%] sm:h-[8%] -mt-1 lg:mt-0 p-2">
             <div className="flex h-full items-center">
                 <Link to="/">
                     <img

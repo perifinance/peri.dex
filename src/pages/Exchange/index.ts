@@ -1,3 +1,3 @@
 export {default as ExchangeTV} from './ExchangeTV';
 
-export {default} from './Exchange';
+export {default as Exchange} from './Exchange';

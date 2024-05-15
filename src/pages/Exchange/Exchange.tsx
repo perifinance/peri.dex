@@ -70,13 +70,12 @@ const Exchange = () => {
         setTimeout(() => setIsHide(true), 900);
     };
 
-    const init = useCallback(async () => {
+    const init = async () => {
         const rateTickers = await getRateTickers();
         // console.log("rateTickers", rateTickers);
 
         dispatch(updatePrice(rateTickers));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[]);
+    };
 
     useEffect(() => {
         if (isConnect) {
@@ -101,7 +100,7 @@ const Exchange = () => {
 
         setTimeInterval(interval);
 
-        return () => clearInterval(interval);
+        return () => clearInterval(interval); 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect]);
 

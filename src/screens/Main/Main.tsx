@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-d
 
 import Header from "../Header";
 import Assets from "pages/Assets";
-import Exchange from "pages/Exchange";
+import { Exchange, ExchangeTV } from "pages/Exchange";
 // import Futures from "pages/Futures";
 import Bridge from "pages/Bridge";
 import Loading from "components/loading";
@@ -22,7 +22,7 @@ const Main = () => {
     const dispatch = useDispatch();
 
     const getInboundings = async () => {
-        if (!Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !isConnect) { return; }
+        if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !isConnect) { return; }
 
         const contractName = {
             PERI: "BridgeState",
@@ -55,6 +55,7 @@ const Main = () => {
                     });
                 }
                 let promiseData = await Promise.all(datas);
+                // eslint-disable-next-line no-sequences
                 let returnValue = Object.keys(network).reduce((a, b) => ((a[b] = 0n), a), {});
 
                 promiseData.forEach((data) => {
@@ -105,7 +106,7 @@ const Main = () => {
     return (
         <div className="flex flex-col text-sm w-screen h-screen dark:text-inherent dark:bg-inherit font-Montserrat font-normal">
             <Loading></Loading>
-            <div className="w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen max-w-[100rem] space-y-4 ">
+            <div className="w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen max-w-[100rem] space-y-1 ">
                 <Router>
                     <Header></Header>
                     <Switch>
@@ -113,11 +114,8 @@ const Main = () => {
                             <Assets />
                         </Route>
                         <Route path="/exchange">
-                            <Exchange />
+                            <ExchangeTV />
                         </Route>
-                        {/* <Route path="/futures">
-                            <Futures />
-                        </Route> */}
                         <Route exact path="/bridge">
                             <Redirect to="/bridge/submit"></Redirect>
                         </Route>

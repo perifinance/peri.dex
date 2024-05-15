@@ -286,6 +286,7 @@ let pynths = {
         {
             id: 17,
             favorite: false,
+            name: "Aptos",
             symbol: "pAPT",
             key: "APT",
             categories: ["crypto"],
@@ -294,8 +295,36 @@ let pynths = {
         {
             id: 16,
             favorite: false,
+            name: "Optimism",
             symbol: "pOP",
             key: "OP",
+            categories: ["crypto"],
+            decimal: 18,
+        },
+        {
+            id: 5,
+            favorite: false,
+            name: "Avalanche",
+            symbol: "pAVAX",
+            key: "AVAX",
+            categories: ["crypto"],
+            decimal: 18,
+        }, 
+        {
+            id: 3,
+            favorite: false,
+            name: "Binance Coin",
+            symbol: "pBNB",
+            key: "BNB",
+            categories: ["crypto"],
+            decimal: 18,
+        },
+        {
+            id: 34,
+            favorite: false,
+            name: "Polygon",
+            symbol: "pMATIC",
+            key: "MATIC",
             categories: ["crypto"],
             decimal: 18,
         }
@@ -501,15 +530,6 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 45,
-            favorite: false,
-            name: "Fetch.ai",
-            symbol: "pFET",
-            key: "FET",
-            categories: ["crypto"],
-            decimal: 18,
-        },
-        {
             id: 32,
             favorite: false,
             name: "Fhantom",
@@ -546,7 +566,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 48,
+            id: 45,
             favorite: false,
             name: "PAX Gold",
             symbol: "pPAXG",
@@ -555,7 +575,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 46,
+            id: 43,
             favorite: false,
             name: "Near Protocol",
             symbol: "pNEAR",
@@ -564,7 +584,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 47,
+            id: 44,
             favorite: false,
             name: "Shiba Inu",
             symbol: "pSHIB",
@@ -617,7 +637,7 @@ let pynths = {
             categories: ["crypto"],
             decimal: 18,
         },
-        /* {
+        {
             id: 36,
             favorite: false,
             name: "Gold",
@@ -634,7 +654,7 @@ let pynths = {
             key: "XAG",
             categories: ["commodity"],
             decimal: 18,
-        }, */
+        },
         {
             id: 26,
             favorite: false,
@@ -653,26 +673,8 @@ let pynths = {
             categories: ["forex"],
             decimal: 18,
         },
-        /* {
+        {
             id: 39,
-            favorite: false,
-            name: "Japanese Yen",
-            symbol: "pJPY",
-            key: "JPY",
-            categories: ["forex"],
-            decimal: 18,
-        },
-        {
-            id: 40,
-            favorite: false,
-            name: "Swiss Franc",
-            symbol: "pCHF",
-            key: "CHF",
-            categories: ["forex"],
-            decimal: 18,
-        }, */
-        {
-            id: 41,
             favorite: false,
             name: "Australian Dollar",
             symbol: "pAUD",
@@ -1035,13 +1037,13 @@ let pynths = {
             categories: ["crypto"],
             decimal: 18,
         },
-        /* {
+        {
             id: 36,
             favorite: false,
             name: "Gold",
             symbol: "pXAU",
             key: "XAU",
-            categories: ["forex"],
+            categories: ["commodity"],
             decimal: 18,
         },
         {
@@ -1050,9 +1052,9 @@ let pynths = {
             name: "Silver",
             symbol: "pXAG",
             key: "XAG",
-            categories: ["forex"],
+            categories: ["commodity"],
             decimal: 18,
-        }, */
+        },
         {
             id: 38,
             favorite: false,
@@ -1062,26 +1064,8 @@ let pynths = {
             categories: ["forex"],
             decimal: 18,
         },
-        /* {
+        {
             id: 39,
-            favorite: false,
-            name: "Japanese Yen",
-            symbol: "pJPY",
-            key: "JPY",
-            categories: ["forex"],
-            decimal: 18,
-        },
-        {
-            id: 40,
-            favorite: false,
-            name: "Swiss Franc",
-            symbol: "pCHF",
-            key: "CHF",
-            categories: ["forex"],
-            decimal: 18,
-        }, */
-        {
-            id: 41,
             favorite: false,
             name: "Australian Dollar",
             symbol: "pAUD",
@@ -1089,8 +1073,8 @@ let pynths = {
             categories: ["forex"],
             decimal: 18,
         },
-        /* {
-            id: 42,
+        {
+            id: 40,
             favorite: false,
             name: "Canadian Dollar",
             symbol: "pCAD",
@@ -1099,24 +1083,14 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 43,
+            id: 41,
             favorite: false,
             name: "New Zealand Dollar",
             symbol: "pNZD",
             key: "NZD",
             categories: ["forex"],
             decimal: 18,
-        }, */
-        {
-            id: 44,
-            favorite: false,
-            name: "DeFi Pulse Index",
-            symbol: "pDPI",
-            key: "DPI",
-            categories: ["indexes"],
-            decimal: 18,
-        }
-        
+        },
     ],
     80001: [
         {

@@ -4,6 +4,8 @@ export const chartRates = ({ currencyName, page = 0, first = 1000, searchDate = 
     currencyName = currencyName[0] === "p" ? currencyName.substring(1) : currencyName;
     const skip = page * first;
 
+    // console.log("chartRates", currencyName, page, first, searchDate);
+
     const RateMapping = (data) => {
         return {
             currencyName: data.currencyName,

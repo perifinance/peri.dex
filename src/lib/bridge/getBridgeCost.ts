@@ -5,7 +5,8 @@ import { SUPPORTED_NETWORKS } from "lib/network";
 import { RPC_URLS } from "lib/rpcUrl";
 
 export const getBridgeCost = async (networkId:number|string ):Promise<any> => {
-	const network = SUPPORTED_NETWORKS[networkId].toLowerCase();
+	const network = SUPPORTED_NETWORKS[networkId]?.toLowerCase();
+	if (!network) return null;
 	try {
 		const sources = perifinance.getSource({ network })[
 			"SystemSettings"

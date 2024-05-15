@@ -12,7 +12,7 @@
 		"@apollo/client": "^3.7.17",
 		"@chainlink/contracts": "^0.0.10",
 		"@egjs/react-flicking": "^4.5.3",
-		"@perifinance/peri-finance": "^0.7.30",
+		"@perifinance/peri-finance": "^0.7.32",
 		"@reduxjs/toolkit": "^1.8.0",
 		"@safe-global/safe-apps-provider": "^0.17.1",
 		"@safe-global/safe-apps-sdk": "^8.1.0",
@@ -35,7 +35,7 @@
 		"@web3-onboard/trezor": "^2.4.3",
 		"@web3-onboard/trust": "^2.0.4",
 		"@web3-onboard/walletconnect": "^2.5.0",
-		"axios": "^0.27.2",
+		"axios": "^1.6.8",
 		"babel": "^6.23.0",
 		"babel-plugin-styled-components": "^1.13.3",
 		"babel-preset-react-app": "^10.0.1",
@@ -127,7 +127,8 @@
 		"rollup-plugin-postcss": "^4.0.2",
 		"stream-browserify": "^3.0.0",
 		"stream-http": "^3.2.0",
-		"tailwindcss": "^3.3.5",
-		"util": "^0.12.5"
+		"tailwindcss": "^3.4.3",
+		"util": "^0.12.5",
+		"vm-browserify": "^1.1.2"
 	}
 }

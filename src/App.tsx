@@ -24,12 +24,14 @@ import { end, start } from "lib/peformance";
 import { extractMessage } from "lib/error";
 import { getBridgeCost } from "lib/bridge/getBridgeCost";
 import { setCost } from "reducers/bridge/bridge";
+import { tr } from "date-fns/locale";
 // import { getRateTickers } from "lib/thegraph/api/getRateTickers";
 
 const App = () => {
     const { networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
     const themeState = useSelector((state: RootState) => state.theme.theme);
+    const { coinList } = useSelector((state: RootState) => state.coinList);
     const [rateTickers, setRateTickers] = useState({});
 
     const dispatch = useDispatch();
@@ -114,7 +116,7 @@ const App = () => {
     };
 
     const setIsAppReady = async () => {
-        console.log("setIsAppReady");
+        // console.log("setIsAppReady");
 
         dispatch(setAppReady());
     };
@@ -160,54 +162,92 @@ const App = () => {
         if (themeState === "dark") {
             document.getElementsByTagName("html")[0].classList.add("dark");
         }
-        setRateTickers(getRateTickers());
-        // eslint-disable-next-line
-    }, []);
 
-    const initializeCoinList = useCallback(async (coinList) => {
-        start("initializeCoinList");
+        getRateTickers().then((rateTickers) => setRateTickers(rateTickers));
+        const coinList = getCoinList(networkId);
+
+        // console.log("getCoinList", coinList);
         const newPynthsList:any = [...pynthsList];
-
-        const newCoinList:any = await Promise.all(newPynthsList.map((coin) => {
-            // const isActive = coinList.findIndex(e => e.symbol === coin.symbol) !== -1;
-            const { price, change, timestamp } = rateTickers[coin.symbol] 
-                ? rateTickers[coin.symbol] 
-                : { price: 0n, change: 0n, timestamp: 0n };
-            return {...coin, price, change, timestamp, isActive:false}
-        }));
-
-        // console.log("newCoinList", newCoinList);
-        // console.log("coinList", coinList);
-        coinList.forEach((coin) => newCoinList[newCoinList.findIndex(e => e.symbol === coin.symbol)].isActive = true);
-        
-        end();
-        dispatch(initCoinList(newCoinList));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[dispatch]);
-
-    // const init = /* useCallback( */async () => {
-    // // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }/* , [networkId]) */; 
-
-    useEffect(() => {
-        if (networkId) {
+        Promise.all(newPynthsList.map((coin) => {
+            if (!coinList) {
+                return {...coin, isActive: true};
+            }
             try {
-                const coinList = getCoinList(networkId);
-                if (!coinList) {
-                    return;
+                const idxFind = coinList.findIndex(e => e.symbol === coin.symbol);
+                if (idxFind !== -1) {
+                    return {...coin, isActive: true, favorite: coinList[idxFind].favorite};
                 }
-    
-                // console.log("coinList", coinList);
-                dispatch(setSelectedCoin({ source: coinList[0], destination: coinList[1] }));
-    
-                initializeCoinList(coinList);
-    
             } catch (e) {
                 console.log(e);
             }
+            return {...coin, isActive: false}
+        })).then((newCoinList) => {
+            dispatch(initCoinList(newCoinList as any));
+            // console.log("initCoinList", newCoinList);
+        });
+        
+        // eslint-disable-next-line
+    }, []);
+
+    const initializeCoinList = async () => {
+        // start("initializeCoinList");
+        // const newPynthsList:any = [...pynthsList];
+
+        const newCoinList:any = await Promise.all(coinList.map((coin) => {
+            // const isActive = netCoinList.findIndex(e => e.symbol === coin.symbol) !== -1;
+            const { price, change, timestamp, preClose } = rateTickers[coin.symbol] 
+                ? rateTickers[coin.symbol] 
+                : { price: 0n, change: 0n, timestamp: 0n, preClose: 0n};
+            return {...coin, price, change, timestamp, preClose}
+        }));
+        // console.log("newCoinList", newCoinList);
+
+        // end();
+        dispatch(initCoinList(newCoinList));
+    };
+
+    useEffect(() => {
+        // console.log("rateTickers : ", Object.keys(rateTickers).length);
+        if (Object.keys(rateTickers).length === 0) return;
+        try {
+            /* const coinList = getCoinList(networkId);
+            if (!coinList) {
+                return;
+            } */
+
+            initializeCoinList();
+
+        } catch (e) {
+            console.log(e);
         }
-    }, [dispatch, initializeCoinList, networkId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rateTickers]);
+
+    useEffect(() => {
+        if (pynthsList.length !== coinList.length ) return;
+
+        start("setCoinList");
+        const netCoinList = getCoinList(networkId);
+        if (!netCoinList) {
+            return;
+        }
+
+        dispatch(setSelectedCoin({ source: coinList[0], destination: coinList[1] }));
+
+        const newCoinList:any = coinList.map((coin, idx) => {
+            const idxFind = netCoinList.findIndex(e => e.symbol === coin.symbol);
+
+            const isActive = idxFind !== -1;
+            const favorite = idxFind !== -1 ? netCoinList[idxFind].favorite : false;
+
+            return {...coinList[idx], favorite, isActive};
+        });
+
+        dispatch(initCoinList(newCoinList));
+        end();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [networkId]);
 
     return (
         <div>

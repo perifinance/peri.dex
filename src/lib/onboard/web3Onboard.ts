@@ -76,11 +76,16 @@ export const web3Onboard: Web3Onboard = {
             qrModalOptions: {
                 enableAuthMode: true,
             },
-            requiredChains: Object.keys(process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET).filter((networkId) => {
-                return UNPOPULARNET[networkId] === undefined;
-            }),
+            requiredChains: [1, 137]/* Object.keys(process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET).filter(
+                (networkId) => UNPOPULARNET[networkId] === undefined && networkId !== "1337"
+              ) */,
+            optionalChains: Object.keys(process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET).filter(
+                (networkId) => !["1", "137", "1337"].includes(networkId) ),
+            // requiredChains: Object.keys(process.env.REACT_APP_ENV === 'production' ? MAINNET : TESTNET).filter((networkId) => {
+            //     return UNPOPULARNET[networkId] === undefined;
+            // }),
             
-            optionalChains: Object.keys(UNPOPULARNET).map((networkId) => networkId),
+            // optionalChains: Object.keys(UNPOPULARNET).map((networkId) => networkId),
             dappUrl: "https://dex.peri.finance",
             additionalOptionalMethods: ["wallet_switchEthereumChain", "wallet_addEthereumChain"],
         };
