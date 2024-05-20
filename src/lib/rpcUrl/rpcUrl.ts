@@ -6,7 +6,7 @@ export const RPC_URLS: object = {
 	4: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
 	5: `https://goerli.infura.io/v3/${INFURA_ID}`,
 	42: `https://kovan.infura.io/v3/${INFURA_ID}`,
-	56: "https://bsc-dataseed1.binance.org",
+	56: "https://bsc-dataseed2.binance.org",
 	97: "https://data-seed-prebsc-1-s1.binance.org:8545/",
 	137: "https://polygon-bor.publicnode.com",
 	// 137: `https://rpc-mainnet.maticvigil.com/v1/${process.env.REACT_APP_RPC_MATIC_ID}`,

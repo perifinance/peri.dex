@@ -1,7 +1,7 @@
 // TradingViewWidget.jsx
 
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "reducers";
 import {
     widget,
@@ -14,10 +14,10 @@ import {
     ChartingLibraryFeatureset,
 } from "charting_library";
 import datafeed from "lib/datafeed/datafeed";
-import { setUpdatePriceCallBack } from "lib/datafeed";
-import { toBigInt } from "lib/bigInt";
-import { updateCoin } from "reducers/coin/coinList";
-import { updateLastRateData } from "reducers/rates";
+import { setChartInterval } from "lib/datafeed";
+// import { toBigInt } from "lib/bigInt";
+// import { updateCoin } from "reducers/coin/coinList";
+// import { updateLastRateData } from "reducers/rates";
 import { useMediaQuery } from "react-responsive";
 
 const getLanguageFromURL = (): LanguageCode | null => {
@@ -26,8 +26,8 @@ const getLanguageFromURL = (): LanguageCode | null => {
     return results === null ? null : (decodeURIComponent(results[1].replace(/\+/g, " ")) as LanguageCode);
 };
 
-export default function TradingViewWidget({selectedCoin}) {
-    const dispatch = useDispatch();
+export default function TradingViewWidget({setSelectedCoin, isBuy}) {
+    // const dispatch = useDispatch();
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
 
@@ -67,8 +67,8 @@ export default function TradingViewWidget({selectedCoin}) {
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone as Timezone, // 'Etc/UTC',
             overrides: {
                 "paneProperties.backgroundType": "gradient",
-                "paneProperties.backgroundGradientEndColor": "#131832",
-                "paneProperties.backgroundGradientStartColor": "#020024",
+                "paneProperties.backgroundGradientEndColor": "#042044",
+                "paneProperties.backgroundGradientStartColor": "#01092c",
             },
             enabled_features,
             disabled_features,
@@ -94,9 +94,14 @@ export default function TradingViewWidget({selectedCoin}) {
             isMobile 
                 ? (overridesOptions["mainSeriesProperties.minTick"] = "100, 1, true")
                 : (overridesOptions["mainSeriesProperties.minTick"] = "10000, 1, true");
+            
             tvWidget.applyOverrides(overridesOptions);
             const chart = tvWidget.chart();
             chart.createStudy('Moving Average Double');
+
+            tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval) =>{
+                setChartInterval(interval);
+            });
             /*chart.getSeries().setChartStyleProperties(1, {
                 upColor: "#13dfff",
                 downColor: "#ff4976",
@@ -119,7 +124,7 @@ export default function TradingViewWidget({selectedCoin}) {
             // 		}));
             // 	button.innerHTML = 'Check API';
             // });
-            tvWidget.hideAllDrawingTools();
+            // tvWidget.hideAllDrawingTools();
 
             /* const priceScale = tvWidget.activeChart().getPanes()[0].getMainSourcePriceScale();
             priceScale.setAutoScale(true) */
@@ -128,14 +133,14 @@ export default function TradingViewWidget({selectedCoin}) {
         setTvWidget(tvWidget);
     };
 
-    const updatePrice = (data) => {
+    /* const updatePrice = (data) => {
         if (coinList.length === 0) return;
 
         try {
             const keys = data?.id?.split(".")[1].split("/");
 
             const idxFind = coinList.findIndex((e) => e.key === keys[0]);
-            if (idxFind === -1 || keys[1] !== "USD"/*  || !coinList[idxFind]?.timestamp */) {
+            if (idxFind === -1 || keys[1] !== "USD") {
                 // console.log("updatePrice", idxFind, keys, coinList[idxFind]);
                 return;
             }
@@ -161,10 +166,10 @@ export default function TradingViewWidget({selectedCoin}) {
         } catch (err) {
             console.error(err);
         }
-    };
+    }; */
 
     useEffect(() => {
-        coinList.length && setUpdatePriceCallBack(updatePrice);
+        // coinList.length && setUpdatePriceCallBack(updatePrice);
         if (chart && destination?.symbol) {
             // feeder.destination = destination;
 
@@ -183,10 +188,15 @@ export default function TradingViewWidget({selectedCoin}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [destination?.symbol, coinList.length, isConnect]);
 
-/*     useEffect(() => {
-        coinList.length && setUpdatePriceCallBack(updatePrice);
+    useEffect(() => {
+        const overridesOptions = {};
+        isBuy 
+                ? (overridesOptions["paneProperties.backgroundGradientEndColor"] = "#042044")
+                : (overridesOptions["paneProperties.backgroundGradientEndColor"] = "#221237");
+        tvWidget && tvWidget.applyOverrides(overridesOptions);
+        
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [coinList.length]); */
+    }, [isBuy]);
 
     useEffect(() => {
         if (feeder && feeder.chainId !== networkId ){
@@ -194,9 +204,9 @@ export default function TradingViewWidget({selectedCoin}) {
                 ? networkId.toString() 
                 : process.env.REACT_APP_DEFAULT_NETWORK_ID;
             
-            feeder.selectedCoin = selectedCoin;
+            feeder.setSelectedCoin = setSelectedCoin;
         }
-    }, [networkId, feeder]);
+    }, [networkId, feeder, destination]);
 
     useEffect(() => {
         createWidget();
@@ -204,6 +214,7 @@ export default function TradingViewWidget({selectedCoin}) {
         setFeeder(datafeed);
 
         return () => tvWidget && tvWidget.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

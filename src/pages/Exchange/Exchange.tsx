@@ -47,7 +47,7 @@ const Exchange = () => {
         setIsCoinList(true);
     };
 
-    const selectedCoin = (coin) => {
+    const setSelectedCoin = (coin) => {
         dispatch(setLoading({ name: "balance", value: true }));
 
         if (coin) {
@@ -100,14 +100,16 @@ const Exchange = () => {
 
         setTimeInterval(interval);
 
-        return () => clearInterval(interval); 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect]);
 
     return (
-        <div className={`flex flex-col mt-0 sm:mt-2 lg:flex-row w-full lg:justify-between lg:space-x-2 xl:space-x-4 overflow-x-hidden h-fit lg:h-[85%]`}>
+        <div
+            className={`flex flex-col mt-0 sm:mt-2 lg:flex-row w-full lg:justify-between lg:space-x-2 xl:space-x-4 overflow-x-hidden h-fit lg:h-[85%]`}
+        >
             <div className={`w-full lg:w-[77%] flex h-[50vh] lg:h-full lg:max-h-screen lg:grow lg:flex-col gap-2`}>
-                <div className="w-full lg:min-h-[45%] h-full lg:h-[67%] lg:px-5 lg:py-2 bg-blue-900 rounded-t-lg lg:rounded-lg ">
+                <div className="w-full lg:min-h-[45%] h-full lg:h-[67%] lg:px-5 lg:py-2 bg-blue-850 rounded-t-lg lg:rounded-lg ">
                     <Chart />
                 </div>
                 <div className="hidden lg:flex w-full lg:h-[32%]">
@@ -127,7 +129,7 @@ const Exchange = () => {
                     isHide={isHide}
                     isCoinList={isCoinList}
                     coinListType={coinListType}
-                    selectedCoin={selectedCoin}
+                    setSelectedCoin={setSelectedCoin}
                     closeCoinList={closeCoinList}
                 />
             </div>
@@ -135,4 +137,3 @@ const Exchange = () => {
     );
 };
 export default Exchange;
-

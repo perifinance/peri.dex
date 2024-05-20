@@ -4,20 +4,21 @@ import { RootState } from "reducers";
 import pynthsCategories from "configure/coins/pynthsCategories";
 import { updateFavorite } from "reducers/coin/coinList";
 import { formatCurrency } from "lib";
-import "./CoinList.css";
+import "css/CoinList.css";
 // import { use } from "i18next";
 // import { resetChartData } from "reducers/chart/chart";
 
 interface ICoinList {
-    isHide?: Boolean;
-    isCoinList?: Boolean;
+    isHide?: boolean;
+    isCoinList?: boolean;
     coinListType: any;
-    selectedCoin: Function;
+    setSelectedCoin: Function;
     closeCoinList?: Function;
-    isSideBar?: Boolean;
+    isSideBar?: boolean;
+    isBuy?: boolean;
 }
 
-const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinList, isSideBar=true }: ICoinList) => {
+const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoinList, isBuy, isSideBar = true }: ICoinList) => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [selectedCategory, setSelectedCategory] = useState("all");
@@ -60,7 +61,7 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
         }
 
         if (isFavoriteFilter) {
-            filterResult = filterResult?.sort((a, b) => (Number(b.favorite) - Number(a.favorite)));
+            filterResult = filterResult?.sort((a, b) => Number(b.favorite) - Number(a.favorite));
             // console.log("sorted", filterResult);
         }
 
@@ -77,7 +78,7 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
     const coinListRef = useRef<any>();
     const handleCloseModal = useCallback(
         (e) => {
-            if (e.target.id === "list-caller") return;
+            if (["list-caller", "symbol_search"].includes(e.target.id)) return;
             if (isCoinList && !coinListRef.current?.contains(e.target)) {
                 closeCoinList();
             }
@@ -94,14 +95,16 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
 
     return (
         <div
-            className={`w-fit mb-6 bg-blue-900 h-full overflow-hidden shadow-slate-400/50 shadow-sm z-10 ${
+            className={`w-fit mb-6 h-full overflow-hidden shadow-slate-400/50 shadow-sm z-10 ${
                 isSideBar ? "absolute top-0 right-0 rounded-l-lg " : "mr-1 rounded-lg"
+            } ${isCoinList ? "animate-r-fade-in " : "animate-r-fade-out"} ${
+                isHide ? "hidden" : "flex"
             } ${
-                isCoinList ? "animate-r-fade-in " : "animate-r-fade-out"
-            } ${isHide ? "hidden" : "flex"}`}
+                isBuy ? "from-cyan-950 to-cyan-950" : "from-red-950 to-red-950"
+            } bg-gradient-to-tl via-blue-950`}
         >
             <div
-                className={`h-full w-8 hover:bg-blue-850 hover:animate-x-bounce text-blue-300 ${
+                className={`h-full w-8 hover:animate-x-bounce text-blue-300 ${
                     isSideBar ? "flex flex-col" : "hidden"
                 } justify-between items-center hover:items-end py-20`}
                 id="list-caller"
@@ -113,54 +116,76 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
                 <img className="w-3 h-6 mr-[2px]" src="images/icon/double-arrow-right.svg" alt="double_arrow" />
                 <img className="w-3 h-6 mr-[2px]" src="images/icon/double-arrow-right.svg" alt="double_arrow" />
             </div>
-            <div className={`w-full py-2 ${isSideBar?"":" pl-2"}`}>
+            <div className={`w-full py-2 ${isSideBar ? "" : " pl-2"}`}>
                 <div className=" flex flex-col items-start mb-4 h-full" ref={coinListRef}>
                     {/* <div className="relative text-center mb-4 ml-4">
                         <div className="text-lg">Select a token</div>
                     </div> */}
                     {/* <div className={`flex w-full justify-center `}> */}
                     {/* {!isSideBar &&  */}
-                        <div className=" flex-row w-full justify-between min-w-[200px] pt-2 pr-2 flex"
-                            id="list-caller"
-                        >
-                            {pynthsCategories &&
-                                pynthsCategories.length > 0 &&
-                                pynthsCategories.map((category, index) => {
-                                    const lCatagory = category.toLowerCase();
-                                    return (
-                                        <div className="flex flex-col mx-1 items-center cursor-pointer w-[22%]" 
-                                            key={index}
+                    <div className=" flex-row w-full justify-between min-w-[200px] pt-1 pr-2 flex" id="list-caller">
+                        {pynthsCategories &&
+                            pynthsCategories.length > 0 &&
+                            pynthsCategories.map((category, index) => {
+                                const lCatagory = category.toLowerCase();
+                                return (
+                                    <div
+                                        className="flex flex-col mx-1 items-center cursor-pointer w-[22%]"
+                                        key={index}
+                                        id="list-caller"
+                                        onClick={() => setSelectedCategory(lCatagory)}
+                                    >
+                                        <img
                                             id="list-caller"
-                                            onClick={() => setSelectedCategory(lCatagory)}
-                                        >
-                                            <img
-                                                id="list-caller"
-                                                alt="category"
-                                                className={`w-4 h-4 ss:w-5 ss:h-5`}
-                                                src={`images/icon/${lCatagory}${selectedCategory === lCatagory?"_on":"_off"}.svg`}
-                                            />
-                                            <span className={`text-[6px] ss:text-[8px] text-blue-200 tracking-tighter ${
-                                                    selectedCategory === lCatagory
-                                                        ? "border-blue-500 text-blue-200 bg-blue-950 font-semibold"
-                                                        : "font-semibold text-blue-600 bg-blue-900"
-                                                }`}
-                                                id="list-caller"
-                                            >{`${category}`}</span>
-                                        </div>
-                                    );
-                                    
-                                })}
+                                            alt="category"
+                                            className={`w-3 h-3 ss:w-[17px] ss:h-[17px]`}
+                                            src={`images/icon/${lCatagory}${
+                                                selectedCategory === lCatagory ? "_on" : "_off"
+                                            }.svg`}
+                                        />
+                                        <span
+                                            className={`text-[6px] ss:text-[7px] text-blue-200 tracking-tighter ${
+                                                selectedCategory === lCatagory
+                                                    ? "border-blue-500 text-blue-200 font-semibold"
+                                                    : "font-semibold text-blue-600 "
+                                            }`}
+                                            id="list-caller"
+                                        >{`${category}`}</span>
+                                    </div>
+                                );
+                            })}
+                        <div
+                            className="flex flex-col mx-1 items-center cursor-pointer w-[22%]"
+                            key={5}
+                            id="list-caller"
+                            onClick={() => setIsFavoriteFilter(!isFavoriteFilter)}
+                        >
+                            <img
+                                id="list-caller"
+                                className="w-3 h-3 ss:w-[17px] ss:h-[17px] my-auto cursor-pointer"
+                                src={`images/icon/bookmark_${isFavoriteFilter ? "on" : "off"}.svg`}
+                                alt="bookmark"
+                            ></img>
+                            <span
+                                className={`text-[6px] ss:text-[7px] text-blue-200 tracking-tighter ${
+                                    isFavoriteFilter
+                                        ? "border-blue-500 text-blue-200 font-semibold"
+                                        : "font-semibold text-blue-600 "
+                                }`}
+                                id="list-caller"
+                            >{`Favorite`}</span>
                         </div>
-                        
-                        {/* <img
+                    </div>
+
+                    {/* <img
                             className="w-5 h-5 my-auto cursor-pointer mx-2"
                             onClick={() => setIsFavoriteFilter(!isFavoriteFilter)}
                             src={`images/icon/bookmark_${isFavoriteFilter ? "on" : "off"}.svg`}
                             alt="bookmark"
                         ></img> 
                             </div> */}
-                    <div className="flex flex-nowrap justify-between w-[95%] pl-1 ss:py-3">
-                        <div className="flex items-center bg-blue-950 rounded-md ss:px-2 w-[85%] overflow-y-auto">
+                    <div className="flex flex-nowrap justify-between w-[94%] py-[2px] pb-1 ss:pb-[6px]">
+                        <div className="flex items-center bg-blue-950 rounded-[4px] pl-2 w-full overflow-y-auto">
                             <svg
                                 className="fill-current text-gray-300 w-4 h-4"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -173,44 +198,85 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
                             </svg>
                             <input
                                 id="symbol_search"
-                                className="rounded-md bg-blue-950 w-[116px] text-blue-200 leading-tight border-none focus:outline-none py-2 px-2 text-xs"
+                                className="rounded-md bg-blue-950 w-[88%] text-blue-200 leading-tight border-none focus:outline-none py-2 px-2 text-xs text-center"
                                 type="text"
                                 placeholder="Symbol or Name"
                                 onChange={(e) => setSearchValue(e.target.value)}
                             />
                         </div>
-                        <img
+                        {/* <img
                             id="list-caller"
                             className="w-4 h-4 my-auto cursor-pointer"
                             onClick={() => setIsFavoriteFilter(!isFavoriteFilter)}
                             src={`images/icon/bookmark_${isFavoriteFilter ? "on" : "off"}.svg`}
                             alt="bookmark"
-                        ></img>
+                        ></img> */}
                     </div>
                     <div className={`w-full text-xs scrollbarOn max-h-640 lg:h-[94%] pr-3 flex flex-col gap-1`}>
                         {filterCoinList?.length > 0 &&
                             filterCoinList.map((coin, index) => {
-                                if (coin.symbol === 'pUSD') return null;
+                                if (coin.symbol === "pUSD") return null;
                                 return (
                                     coin && (
                                         <div
                                             key={index}
                                             className={`flex flex-row justify-between px-1 py-1 items-center ${
-                                                selectedCoins[coinListType]?.id === coin?.id 
-                                                    ? "bg-blue-950 text-gray-300" 
-                                                    : coin.isActive 
-                                                        ? "hover:bg-blue-950 cursor-pointer text-gray-300" 
-                                                        : "bg-blue-900  text-gray-600"
-                                            }`}
+                                                selectedCoins[coinListType]?.id === coin?.id
+                                                    ? " border-[1px] border-cyan-850/25 bg-skyblue-950 text-gray-300"
+                                                    : coin.isActive
+                                                    ? "hover:bg-blue-950 cursor-pointer text-gray-300"
+                                                    : " text-gray-600"
+                                            } rounded-[4px]`}
                                             onClick={() => {
                                                 if (coin.isActive && selectedCoins[coinListType]?.id !== coin?.id) {
                                                     // dispatch(resetChartData());
-                                                    selectedCoin(coin);
+                                                    setSelectedCoin(coin.symbol);
                                                 }
                                             }}
                                         >
+                                            
+                                            {/* <div className="w-[15px] h-[15px] my-auto">
+                                                <img
+                                                    className={`w-[15px] h-[15px] ${
+                                                        coin?.isActive ? "opacity-100" : "opacity-50"
+                                                    }`}
+                                                    src={`images/currencies/${coin?.symbol}.svg`}
+                                                    alt={`ccy-${coin?.symbol}`}
+                                                />
+                                            </div> */}
+                                            <div className="w-14 text-xs px-1">{coin?.symbol}</div>
                                             <div
-                                                className="w-4 h-4 flex justify-center items-center"
+                                                className={`w-11 text-end text-[10px] font-medium ${
+                                                    coin?.isActive
+                                                        ? coin?.upDown
+                                                            ? coin?.upDown > 0
+                                                                ? "text-blue-500"
+                                                                : "text-red-400"
+                                                            : "text-gray-300"
+                                                        : "text-gray-600"
+                                                }`}
+                                            >
+                                                {formatCurrency(coin?.price, 8)}
+                                            </div>
+                                            <div
+                                                className={`w-11 text-end text-[10px] font-medium text-nowrap ${
+                                                    coin?.isActive
+                                                        ? coin?.change !== 0n
+                                                            ? coin?.change > 0n
+                                                                ? "text-blue-500"
+                                                                : "text-red-400"
+                                                            : "text-gray-300"
+                                                        : "text-gray-600"
+                                                }`}
+                                            >
+                                                {coin?.change !== 0n ? (coin?.change > 0n ? "▲" : "▼") : ""}
+                                                {coin?.change < 0n
+                                                    ? formatCurrency(coin?.change, 2).substring(1)
+                                                    : formatCurrency(coin?.change, 2)}
+                                                %
+                                            </div>
+                                            <div
+                                                className="w-[10px] h-[10px] flex justify-center items-center"
                                                 onClick={(e) => {
                                                     if (!coin.isActive) return;
                                                     setFavorite(coin);
@@ -219,27 +285,13 @@ const CoinList = ({ isHide, isCoinList, coinListType, selectedCoin, closeCoinLis
                                                 }}
                                             >
                                                 <img
-                                                    className={`w-2 h-4 object-contain ${coin.isActive ? "opacity-100" : "opacity-30"}`} 
+                                                    className={`w-[10px] h-[10px] ${
+                                                        coin.isActive ? "opacity-100" : "opacity-30"
+                                                    }`}
                                                     src={`images/icon/bookmark_${coin?.favorite ? "on" : "off"}.svg`}
                                                     alt="favorite"
                                                 ></img>
                                             </div>
-                                            <div className="w-4 h-4 my-auto">
-                                                <img
-                                                    className={`w-4 h-4 ${coin?.isActive ? "opacity-100" : "opacity-50"}`}
-                                                    src={`images/currencies/${coin?.symbol}.svg`}
-                                                    alt="network"
-                                                />
-                                            </div>
-                                            <div className="w-14 text-xs px-1">{coin?.symbol}</div>
-                                            <div className={`w-11 text-end text-[10px] font-medium ${
-                                                coin?.isActive ? coin?.upDown ? "text-blue-500" : "text-red-400" : "text-gray-600"
-                                            }`}>{formatCurrency(coin?.price, 8)}</div>
-                                            <div className={`w-11 text-end text-[10px] font-medium text-nowrap ${
-                                                coin?.isActive ? coin?.change !== 0n ? coin?.change > 0n ? "text-blue-500" : "text-red-400" : "text-gray-300" : "text-gray-600"
-                                            }`}>
-                                                {coin?.change !== 0n ? coin?.change > 0n ? "▲" : "▼" : ""}
-                                                {coin?.change < 0n ? formatCurrency(coin?.change, 2).substring(1) : formatCurrency(coin?.change, 2)}%</div>
                                         </div>
                                     )
                                 );

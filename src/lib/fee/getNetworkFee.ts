@@ -24,6 +24,7 @@ const api = {
 	11155111: mainnet,
 }
 export const getNetworkFee = async (networkId): Promise<string> => {
+	// console.log("getNetworkFee", networkId);
 	try {
 		const gasPrice = await api[networkId](networkId);
 		const gasFee = (parseInt(gasPrice) > 1
@@ -31,7 +32,7 @@ export const getNetworkFee = async (networkId): Promise<string> => {
 			: Math.round(Number(gasPrice) * 1e9) / 1e9
 		).toString();
 
-		// console.log("gasFee", gasFee);
+		console.log("gasFee", gasFee);
 		return gasFee;
 	} catch (e) {}
 	

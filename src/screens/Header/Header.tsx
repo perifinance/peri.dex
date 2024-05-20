@@ -24,9 +24,7 @@ const Header = () => {
     const [networks, setNetworks] = useState({});
 
     const getNetworkName = (networkId) => {
-        return networkInfo[networkId] === undefined
-            ? "Unsupported Network"
-            : networkInfo[networkId].chainName;
+        return networkInfo[networkId] === undefined ? "Unsupported Network" : networkInfo[networkId].chainName;
     };
 
     const onConnect = async () => {
@@ -39,19 +37,11 @@ const Header = () => {
     const menuRef = useRef<HTMLDivElement>(null);
     const closeModalHandler = useCallback(
         (e) => {
-            if (
-                isNetworkList &&
-                e.target.id !== "net_caller" &&
-                !netRef.current?.contains(e.target)
-            ) {
+            if (isNetworkList && e.target.id !== "net_caller" && !netRef.current?.contains(e.target)) {
                 setIsNetworkList(false);
             }
 
-            if (
-                isMenuList &&
-                e.target.id !== "menu_caller" &&
-                !menuRef.current?.contains(e.target)
-            ) {
+            if (isMenuList && e.target.id !== "menu_caller" && !menuRef.current?.contains(e.target)) {
                 setIsMenuList(false);
             }
         },
@@ -90,11 +80,7 @@ const Header = () => {
         <header className="flex flex-row justify-between items-center h-[6%] sm:h-[8%] -mt-1 lg:mt-0 p-2">
             <div className="flex h-full items-center">
                 <Link to="/">
-                    <img
-                        className="object-contain w-14 h-8 lg:w-20 lg:h-14"
-                        src="/images/logo/logo.svg"
-                        alt="Logo"
-                    />
+                    <img className="object-contain w-14 h-8 lg:w-20 lg:h-14" src="/images/logo/logo.svg" alt="Logo" />
                 </Link>
                 <nav className="flex items-center w-0 justify-between lg:visible lg:w-auto lg:ml-4">
                     <ul>
@@ -127,6 +113,16 @@ const Header = () => {
                         <li key="2" className="text-xl font-bold inline m-4">
                             <Link
                                 className={`hidden lg:inline-block hover:text-blue-600 ${
+                                    location.pathname === "/swap" && "text-blue-600"
+                                }`}
+                                to="/swap"
+                            >
+                                SWAP
+                            </Link>
+                        </li>
+                        <li key="3" className="text-xl font-bold inline m-4">
+                            <Link
+                                className={`hidden lg:inline-block hover:text-blue-600 ${
                                     location.pathname.includes("/bridge") && "text-blue-600"
                                 }`}
                                 to="/bridge/submit"
@@ -134,7 +130,7 @@ const Header = () => {
                                 BRIDGE
                             </Link>
                         </li>
-                        <li key="3" className="text-xl font-bold inline m-4">
+                        <li key="4" className="text-xl font-bold inline m-4">
                             <a
                                 className={`hidden lg:inline-block hover:text-blue-600 ${
                                     location.pathname.includes("/dashboard") && "text-blue-600"
@@ -154,23 +150,19 @@ const Header = () => {
                 {isConnect && (
                     <div
                         id="net_caller"
-                        className={`flex items-center bg-blue-900 text-base shadow-sm shadow-slate-400/50 ${
+                        className={`flex items-center bg-blue-850 text-base shadow-sm shadow-slate-400/50 ${
                             isNetworkList ? "rounded-b-none" : "rounded-l-lg"
                         } hover:shadow-slate-300/70  active:shadow-inner active:shadow-slate-700`}
                         onClick={() => setIsNetworkList(!isNetworkList)}
                     >
                         <div className="relative m-1 ">
-                            <button
-                                id="net_caller"
-                                className="block self-center bg-blue-900  rounded "
-                            >
+                            <button id="net_caller" className="block self-center bg-blue-850  rounded ">
                                 <img
                                     id="net_caller"
                                     className="w-5 h-5 m-1 self-center rounded object-scale-down"
                                     src={`/images/network/${
                                         SUPPORTED_NETWORKS[networkId] &&
-                                        (!location.pathname.includes("/exchange") ||
-                                            isExchageNetwork(networkId))
+                                        (!location.pathname.includes("/exchange") || isExchageNetwork(networkId))
                                             ? networkId
                                             : "unsupported"
                                     }.svg`}
@@ -178,7 +170,7 @@ const Header = () => {
                                 />
                             </button>
                             <div
-                                className={`absolute top-0 left-0 rounded-b-md bg-blue-900 shadow-sm shadow-slate-600 hover:shadow-slate-300/70 -mx-1 mt-9 ${
+                                className={`absolute top-0 left-0 rounded-b-md bg-blue-850 shadow-sm shadow-slate-600 hover:shadow-slate-300/70 -mx-1 mt-9 ${
                                     isNetworkList ? "block" : "hidden"
                                 } text-sm z-40`}
                                 ref={netRef}
@@ -186,7 +178,7 @@ const Header = () => {
                                 <ul className="w-min py-1">
                                     {Object.keys(networks).map((key) => (
                                         <li
-                                            className="w-full hover:bg-blue-950 cursor-pointer bg-blue-900 px-3 "
+                                            className="w-full hover:bg-blue-950 cursor-pointer bg-blue-850 px-3 "
                                             key={key}
                                             onClick={() => {
                                                 changeNetwork(key);
@@ -196,7 +188,7 @@ const Header = () => {
                                         >
                                             <div
                                                 className={`inline-flex grow items-center py-2 pr-8  ${
-                                                    Number(key) === networkId 
+                                                    Number(key) === networkId
                                                 }`}
                                             >
                                                 <img
@@ -204,31 +196,20 @@ const Header = () => {
                                                     src={`/images/network/${key}.svg`}
                                                     alt="network"
                                                 ></img>
-                                                <span className="block text-sm">
-                                                    {getNetworkName(key)}
-                                                </span>
+                                                <span className="block text-sm">{getNetworkName(key)}</span>
                                             </div>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         </div>
-                        <div
-                            id="net_caller"
-                            className="flex bg-transparent rounded-l-lg text-base "
-                        >
+                        <div id="net_caller" className="flex bg-transparent rounded-l-lg text-base ">
                             {SUPPORTED_NETWORKS[networkId] && (
-                                <div
-                                    id="net_caller"
-                                    className={`text-gray-400 font-medium text-sm mr-2 my-auto `}
-                                >
+                                <div id="net_caller" className={`text-gray-400 font-medium text-sm mr-2 my-auto `}>
                                     {
                                         /* location.pathname.includes("/bridge") ||
                                 isExchageNetwork(networkId)
-                                    ?  */ address &&
-                                            address.slice(0, 6) +
-                                                "..." +
-                                                address.slice(-4, address.length)
+                                    ?  */ address && address.slice(0, 6) + "..." + address.slice(-4, address.length)
                                         /*  : "" */
                                     }
                                 </div>
@@ -249,7 +230,7 @@ const Header = () => {
                 </div> */}
 
                 <button
-                    className={`w-9 h-full mt-0 bg-blue-900 shadow-sm shadow-slate-400/50
+                    className={`w-9 h-full mt-0 bg-blue-850 shadow-sm shadow-slate-400/50
                         hover:shadow-slate-300/70 active:shadow-inner active:shadow-slate-700 " ${
                             isConnect ? "rounded-r-lg" : "rounded-lg"
                         }`}
@@ -305,6 +286,12 @@ const Header = () => {
                                 Portfolio
                             </Link>
                             <Link
+                                to="/swap"
+                                className={`block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent`}
+                            >
+                                Swap
+                            </Link>
+                            <Link
                                 to="/bridge"
                                 className="block px-4 py-2 text-sm capitalize text-gray-200 hover:bg-blue-700 hover:text-inherent"
                             >
@@ -321,9 +308,7 @@ const Header = () => {
                         </div>
                     )}
                 </div>
-                
             </div>
-            
         </header>
     );
 };

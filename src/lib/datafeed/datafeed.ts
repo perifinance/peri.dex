@@ -1,3 +1,4 @@
+import { pynthsList } from "configure/coins/pynthsList";
 import pynths from "configure/coins/pynths";
 import { subscribeOnStream, unsubscribeFromStream } from "./streaming";
 
@@ -6,10 +7,14 @@ const API_ENDPOINT = "https://benchmarks.pyth.network/v1/shims/tradingview";
 // Use it to keep a record of the most recent bar on the chart
 const lastBarsCache = new Map();
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 const datafeed = {
     chainId: '137',
     destination: null,
-    selectedCoin: null, 
+    setSelectedCoin: null, 
     searchPynths: (searchValue) => {
         searchValue = searchValue.includes("USD") ? searchValue.replace("USD", "") : searchValue;
         const filteredPynths = pynths[datafeed.chainId].filter(
@@ -17,13 +22,15 @@ const datafeed = {
                     e.symbol.toLocaleLowerCase().includes(searchValue.toLowerCase()) ||
                     e.key.toLocaleLowerCase().includes(searchValue.toLowerCase())
         );
+        
         return filteredPynths.map((e) => {
+            const category = capitalizeFirstLetter(e.categories[0]).replace("Commodity", "Metal").replace("Forex","FX") + ".";
             return {
                 symbol: e.symbol+"pUSD",
-                full_name: "Crypto."+e.symbol+"/USD",
+                full_name: category+e.symbol+"/USD",
                 description: "Pynth "+e.symbol+" / Pynth pUSD",
                 exchange: "OnChain",
-                ticker: "Crypto."+e.key+"/USD",
+                ticker: category+e.key+"/USD",
                 type: e.categories[0],
             };
         });
@@ -67,9 +74,7 @@ const datafeed = {
                     
                     console.debug("[resolveSymbol]: datafeed.destination", datafeed.destination?.key, symbol);
                     if ( datafeed.destination && datafeed.destination.key !== symbol) {
-                        const idx = pynths[datafeed.chainId].findIndex((e) => e.key === symbol);
-                        const selCoin = {...pynths[datafeed.chainId][idx]};
-                        datafeed.selectedCoin && datafeed.selectedCoin(selCoin, 'destination');
+                        datafeed.setSelectedCoin && datafeed.setSelectedCoin(`p${symbol}`, 'destination');
                     }
                 })
                 .catch((error) => {
@@ -100,6 +105,7 @@ const datafeed = {
                             high: data.h[i],
                             open: data.o[i],
                             close: data.c[i],
+                            volume: data.v[i],
                         });
                     }
                     if (firstDataRequest) {

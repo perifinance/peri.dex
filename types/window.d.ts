@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { utils } from 'ethers';
 type EthereumProvider = {
 	on: (event: string, cb: () => void) => void;
 	isConnected: () => boolean;
@@ -10,8 +9,9 @@ type EthereumProvider = {
 }
 
 declare global {
-    interface Window {
+	interface Window {
+		Browser: any;
 		location: Location;
-        ethereum?: EthereumProvider;
-    }
+		ethereum?: EthereumProvider;
+	}
 }

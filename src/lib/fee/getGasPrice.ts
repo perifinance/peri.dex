@@ -9,6 +9,8 @@ export const getGasPrice = async (networkId):Promise<string> => {
 				return '130';
 			case 137:
 				return '130';
+			case 8453:
+				return '0.1';
 			default:
 				return '1';
 		}
@@ -27,6 +29,7 @@ export const testGasPrice = async (networkId):Promise<string> => {
 }
 
 const estimateGasPice = async (network, priority) => {
+	console.log(process.env.REACT_APP_INFURA_API_KEY + ':' + process.env.REACT_APP_INFURA_API_SECRET_KEY);
 	const Auth = Buffer.from(
 		process.env.REACT_APP_INFURA_API_KEY + ':' + process.env.REACT_APP_INFURA_API_SECRET_KEY
 	).toString('base64');
@@ -34,7 +37,10 @@ const estimateGasPice = async (network, priority) => {
 	const gasStationUrl = `https://gas.api.infura.io/networks/${network}/suggestedGasFees`;
 
 	const { high, medium, low } = await fetch(gasStationUrl, {
-			headers: { Authorization: `Basic ${Auth}` },
+			headers: { 
+				'Content-Type': 'application/json',
+				Authorization: `Basic ${Auth}`,
+			},
 		}).then(response => response.json());
 
 		// console.log("medium", medium);

@@ -17,17 +17,19 @@ import TradingViewWidget from "screens/TradingView/TradingViewWidget";
 import { useMediaQuery } from "react-responsive";
 // import { getPreCloses/* , getSymbolTicker */ } from "lib/pyth";
 import { getRatePreCloses } from "lib/thegraph/api/getRateTickers";
-
+import { updateLastRateData } from "reducers/rates";
 
 const ExchangeTV = () => {
     const dispatch = useDispatch();
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
-    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
     const { coinList } = useSelector((state: RootState) => state.coinList);
+    const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState("destination");
-    const [balance, setBalance] = useState(0n);
+    const [balance, setBalance] = useState([0n, 0n]);
     const [isHide, setIsHide] = useState(true);
+    const [isBuy, setIsBuy] = useState(true);
     const isXLargePanel = useMediaQuery({ query: `(max-width: 1280px)` });
     const [timeInterval, setTimeInterval] = useState(null);
 
@@ -53,23 +55,24 @@ const ExchangeTV = () => {
         setIsCoinList(true);
     };
 
-    const selectedCoin = (coin, type = '') => {
-        // dispatch(setLoading({ name: "balance", value: true }));
-        console.debug("selectedCoin", coin, type);
+    const setSelectedCoin = (symbol, type = "destination") => {
+        if (destination && destination.symbol === symbol) return;
 
-        if (coin) {
-            if (selectedCoins.destination.symbol === coin.symbol || selectedCoins.source.symbol === coin.symbol) {
-                NotificationManager.warning(`Please select a different token`, "", 2000);
-            } else {
-                if ([coinListType, type].includes("source")) {
-                    dispatch(setSourceCoin(coin));
-                } else if ([coinListType, type].includes("destination")) {
-                    dispatch(setDestinationCoin(coin));
-                }
+        const index = coinList.findIndex((e) => e.symbol === symbol);
+
+        if (index !== -1) {
+            const coin = coinList[index];
+            console.debug("setSelectedCoin", coin, type);
+            if ([coinListType, type].includes("source")) {
+                dispatch(setSourceCoin(coin));
+            } else if ([coinListType, type].includes("destination")) {
+                dispatch(setDestinationCoin(coin));
             }
+            const rate = coinList[index].price;
+            dispatch(updateLastRateData({...lastRateData, symbols: coin.symbol, index, rate}));
+        } else {
+            console.debug("setSelectedCoin index not found", symbol, type);
         }
-        // setIsCoinList(false);
-        // dispatch(setLoading({ name: "balance", value: false }));
     };
 
     const closeCoinList = () => {
@@ -80,9 +83,9 @@ const ExchangeTV = () => {
     const init = () => {
         const tmpCoinList = [...coinList];
         tmpCoinList.forEach((e) => {
-            const coin = {...e};
+            const coin = { ...e };
             getRatePreCloses(coin.symbol).then((data) => {
-                console.debug("updatePreClose dispatch", data);
+                // console.debug("updatePreClose dispatch", data);
                 if (data.timestamp > 0) {
                     coin.preClose = data.preClose;
                     coin.timestamp = data.timestamp;
@@ -108,35 +111,38 @@ const ExchangeTV = () => {
             return;
         }
 
-        const interval = setInterval(init, 60000*5);
+        const interval = setInterval(init, 60000 * 5);
 
         setTimeInterval(interval);
 
         return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, coinList.length]);
 
     return (
-        <div className={`flex flex-col mt-0 lg:flex-row w-full lg:justify-between lg:space-x-2 overflow-x-hidden h-fit lg:h-[90%]`}>
-            <div className={`w-full lg:w-[77%] flex h-[50vh] lg:h-full lg:max-h-screen lg:grow lg:flex-row lg:space-x-2`}>
+        <div
+            className={`flex flex-col mt-0 lg:flex-row w-full lg:justify-between lg:space-x-2 overflow-x-hidden h-fit lg:h-[90%]`}
+        >
+            <div
+                className={`w-full lg:w-[77%] flex h-[50vh] lg:h-full lg:max-h-screen lg:grow lg:flex-row lg:space-x-2`}
+            >
                 <div className="hidden xl:flex">
                     <CoinList
-                            isHide={false}
-                            isCoinList={true}
-                            coinListType={"destination"}
-                            selectedCoin={selectedCoin}
-                            closeCoinList={closeCoinList}
-                            isSideBar={false}
+                        isHide={false}
+                        isCoinList={true}
+                        coinListType={"destination"}
+                        setSelectedCoin={setSelectedCoin}
+                        closeCoinList={closeCoinList}
+                        isSideBar={false}
+                        isBuy={isBuy}
                     />
                 </div>
-                <div className="lg:flex-col w-full lg:space-y-1" >
-                    <div className="w-full lg:min-h-[45%] h-full lg:h-[67%] bg-blue-900 lg:rounded-lg ">
-                        <TradingViewWidget 
-                            selectedCoin={selectedCoin}
-                        />
+                <div className="lg:flex-col w-full lg:space-y-1">
+                    <div className="w-full lg:min-h-[45%] h-full lg:h-[67%] bg-blue-850 lg:rounded-lg ">
+                        <TradingViewWidget setSelectedCoin={setSelectedCoin} isBuy={isBuy}/>
                     </div>
                     <div className="hidden lg:flex w-full lg:h-[32.5%]">
-                        <OrderHistories balance={balance} />
+                        <OrderHistories balance={balance} isBuy={isBuy}/>
                     </div>
                 </div>
             </div>
@@ -148,18 +154,22 @@ const ExchangeTV = () => {
                     openCoinList={openCoinList}
                     balance={balance}
                     setBalance={setBalance}
+                    isBuy={isBuy}
+                    setIsBuy={setIsBuy}
                 />
 
-                {isXLargePanel && <CoinList
-                    isHide={isHide}
-                    isCoinList={isCoinList}
-                    coinListType={coinListType}
-                    selectedCoin={selectedCoin}
-                    closeCoinList={closeCoinList}
-                />}
+                {isXLargePanel && (
+                    <CoinList
+                        isHide={isHide}
+                        isCoinList={isCoinList}
+                        coinListType={coinListType}
+                        setSelectedCoin={setSelectedCoin}
+                        closeCoinList={closeCoinList}
+                        isBuy={isBuy}
+                    />
+                )}
             </div>
         </div>
     );
 };
 export default ExchangeTV;
-

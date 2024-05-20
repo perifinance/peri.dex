@@ -17,14 +17,14 @@ import { contracts } from "lib/contract";
 import { getCoinList } from "lib/coinList";
 
 import Main from "./screens/Main";
-import "./App.css";
+import "css/App.css";
 import { getRateTickers } from "lib/thegraph/api/getRateTickers";
 import { pynthsList } from "configure/coins/pynthsList";
 import { end, start } from "lib/peformance";
 import { extractMessage } from "lib/error";
 import { getBridgeCost } from "lib/bridge/getBridgeCost";
 import { setCost } from "reducers/bridge/bridge";
-import { tr } from "date-fns/locale";
+import { is } from "date-fns/locale";
 // import { getRateTickers } from "lib/thegraph/api/getRateTickers";
 
 const App = () => {
@@ -32,6 +32,7 @@ const App = () => {
     const transaction = useSelector((state: RootState) => state.transaction);
     const themeState = useSelector((state: RootState) => state.theme.theme);
     const { coinList } = useSelector((state: RootState) => state.coinList);
+    const { isReady } = useSelector((state: RootState) => state.app);
     const [rateTickers, setRateTickers] = useState({});
 
     const dispatch = useDispatch();
@@ -195,10 +196,10 @@ const App = () => {
 
         const newCoinList:any = await Promise.all(coinList.map((coin) => {
             // const isActive = netCoinList.findIndex(e => e.symbol === coin.symbol) !== -1;
-            const { price, change, timestamp, preClose } = rateTickers[coin.symbol] 
+            const { price, change, high, low, timestamp, preClose } = rateTickers[coin.symbol] 
                 ? rateTickers[coin.symbol] 
-                : { price: 0n, change: 0n, timestamp: 0n, preClose: 0n};
-            return {...coin, price, change, timestamp, preClose}
+                : { price: 0n, change: 0n, high: 0n, low: 0n, timestamp: 0n, preClose: 0n};
+            return {...coin, price, high, low, change, timestamp, preClose}
         }));
         // console.log("newCoinList", newCoinList);
 
@@ -247,7 +248,7 @@ const App = () => {
         end();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [networkId]);
+    }, [networkId, isReady]);
 
     return (
         <div>

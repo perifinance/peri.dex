@@ -4,9 +4,11 @@ type Coin = {
     id?: number;
     favorite?: boolean;
     name?: string;
+    key?: string;
     symbol?: string;
     categories?: Array<string>;
     decimal?: number;
+    index?: number;
 };
 
 export type selectedCoin = {

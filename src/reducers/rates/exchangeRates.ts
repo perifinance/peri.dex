@@ -4,6 +4,7 @@ export type LastRateData = {
     timestamp: number;
     rate: bigint;
     symbols: string;
+    index: number;
 };
 
 export type ExchangeRatesState = {
@@ -23,6 +24,7 @@ const initialState: ExchangeRatesState = {
         timestamp: 0,
         rate: 0n,
         symbols: "",
+        index: 0,
     },
 };
 

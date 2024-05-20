@@ -4,7 +4,7 @@ import { updateChart, setChartBase, addChartData } from "reducers/chart/chart";
 import { UTCTimestamp } from "lightweight-charts";
 import { RootState } from "reducers";
 // import { CHART_DEFAULT_ITEM_COUNT } from "configure/chart";
-import LWChart from "./LWChart";
+import LWChart from "./LWchart";
 /* import coinList from "reducers/coin/coinList";
 import { balance } from "lib/thegraph/queries"; */
 

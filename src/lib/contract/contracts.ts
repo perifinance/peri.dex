@@ -188,13 +188,11 @@ export const contracts: Contracts = {
             }
 
             await Promise.all(Object.keys(this.addressList).map((name) => {
-                // console.log(name, naming[name]);
                 if (naming[name]) {
                     const source =
                         typeof naming[name] === "string"
                             ? this.sources[naming[name]]
                             : this.sources[naming[name][this.chainId]];
-                    // console.log(name, this.addressList[name], this.signers);
                     this.signers[name] = new ethers.Contract(
                         this.addressList[name].address,
                         source ? source.abi : ERC20.abi,
@@ -208,8 +206,10 @@ export const contracts: Contracts = {
                         this.signers["pUSD"] = this.signers[name];
                     }
 
+                    // console.debug("connect contracts", this.signers[name])
                     return this.signers[name];
                 }
+
                 return null;
             }));
             setIsAppReady();

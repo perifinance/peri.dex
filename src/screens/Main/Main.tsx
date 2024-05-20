@@ -1,4 +1,4 @@
-import /* React, */ { useEffect } from "react";
+import { /* React, */ useCallback, useEffect } from "react";
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 
 import Header from "../Header";
@@ -14,33 +14,49 @@ import { RootState } from "reducers";
 import { TESTNET, MAINNET, SUPPORTED_NETWORKS } from "lib/network";
 import { updateBridgeStatus } from "reducers/bridge/bridge";
 import Portfolio from "pages/Portfolio/Portfolio";
+import { getBalances } from "lib/thegraph/api";
+import { toBigInt, toNumber } from "lib/bigInt";
+import { initPynthBalance, /* updatePynthBalances */ } from "reducers/wallet/pynthBlances";
+import { PynthBalance } from "reducers/wallet/pynthBlances";
+import { setLoading } from "reducers/loading";
+import { updateCoin } from "reducers/coin/coinList";
+import { updateLastRateData } from "reducers/rates";
+import { subscribeOnStreamByMain } from "lib/datafeed";
+import Swap from "pages/swap/Swap";
 
 const Main = () => {
     // const { isConnect } = useSelector((state: RootState) => state.wallet);
-    const {address, networkId, isConnect} = useSelector((state: RootState) => state.wallet);
+    const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const { obsolete } = useSelector((state: RootState) => state.bridge);
+    const { isReady } = useSelector((state: RootState) => state.app);
+    // const { balancePynths } = useSelector((state: RootState) => state.pynthBlances);
+    const { coinList } = useSelector((state: RootState) => state.coinList);
+    const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const dispatch = useDispatch();
 
     const getInboundings = async () => {
-        if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !isConnect) { return; }
+        if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !isConnect) {
+            return;
+        }
 
         const contractName = {
             PERI: "BridgeState",
             pUSD: "BridgeStatepUSD",
         };
         try {
-            const network = !Object.keys(MAINNET).includes(networkId.toString()) 
-                ? !Object.keys(TESTNET).includes(networkId.toString()) 
-                ? process.env.REACT_APP_ENV ==="production" 
-                ? MAINNET : TESTNET : TESTNET : MAINNET; 
+            const network = !Object.keys(MAINNET).includes(networkId.toString())
+                ? !Object.keys(TESTNET).includes(networkId.toString())
+                    ? process.env.REACT_APP_ENV === "production"
+                        ? MAINNET
+                        : TESTNET
+                    : TESTNET
+                : MAINNET;
             Object.keys(contractName).forEach(async (key) => {
-                if (contracts[contractName[key]] === undefined) { 
+                if (contracts[contractName[key]] === undefined) {
                     // console.log('contracts[contractName[key]] === undefined', contracts[contractName[key]]);
-                    return; 
+                    return;
                 }
-                const ids = await contracts[contractName[key]].applicableInboundIds(
-                    address
-                );
+                const ids = await contracts[contractName[key]].applicableInboundIds(address);
 
                 let datas = [];
                 let totalAmount = 0n;
@@ -66,32 +82,117 @@ const Main = () => {
                     }
                 });
 
-                dispatch(updateBridgeStatus({ coin:key, total: totalAmount, pendings: returnValue }));
-
+                dispatch(updateBridgeStatus({ coin: key, total: totalAmount, pendings: returnValue }));
             });
         } catch (e) {
             console.log(e);
         }
-
     };
+
+    const updatePrice = (data) => {
+        if (coinList.length === 0) return;
+
+        try {
+            const keys = data?.id?.split(".")[1].split("/");
+
+            const idxFind = coinList.findIndex((e) => e.key === keys[0]);
+            if (idxFind === -1 || keys[1] !== "USD"/*  || !coinList[idxFind]?.timestamp */) {
+                // console.log("updatePrice", idxFind, keys, coinList[idxFind]);
+                return;
+            }
+
+            const bnPrice = toBigInt(data.p);
+            /* const high = bnPrice > coinList[idxFind].high ? bnPrice : coinList[idxFind].high;
+            const low = bnPrice < coinList[idxFind].low ? bnPrice : coinList[idxFind].low; */
+            const newCoin = {
+                ...coinList[idxFind],
+                price: bnPrice,
+                // change: data.change,
+                /* high,
+                low, */
+                timestamp: data.t,
+            };
+            dispatch(updateCoin(newCoin));
+
+            if (isConnect && destination.symbol === coinList[idxFind].symbol) {
+                const lastRateData = {
+                    timestamp: data.t,
+                    rate: bnPrice,
+                    symbols: data?.id?.split(".")[1],
+                    index: idxFind,
+                };
+
+                // console.log("lastRateData", lastRateData);
+                dispatch(updateLastRateData(lastRateData));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const setPynthBalances = useCallback(async () => {
+        // console.log("setPynthBalances", isReady, networkId, address);
+        // console.log("window.location.href", window.location.href);
+        
+        if (!isReady) return;
+
+        const isPortFolio = window.location.href.includes("assets") || window.location.href.includes("portfolio");
+
+        if (isPortFolio) {
+            dispatch(setLoading({ name: "balance", value: true }));
+        }
+
+        try {
+            // let rates = await getLastRates({ currencyName: govCoin[networkId] });
+            let balancePynths = (await getBalances({ networkId, address })) as Array<PynthBalance>;
+
+            balancePynths.sort((a, b) => toNumber(b.amount - a.amount));
+
+            // console.log("balancePynths", balancePynths);
+
+            dispatch(initPynthBalance({ balancePynths }));
+        } catch (e) {
+            console.error("init error", e);
+        }
+
+        if (isPortFolio) {
+            dispatch(setLoading({ name: "balance", value: false }));
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [networkId, address, isReady]);
+
+    useEffect(() => {
+        /* if (balancePynths?.length === 0) { */
+            setPynthBalances();
+        /* }  */
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setPynthBalances]);
 
     useEffect(() => {
         // console.log('useEffect obsolete', obsolete);
         getInboundings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [obsolete]);
 
     useEffect(() => {
-        if (isNaN(networkId) || networkId === 0 || networkId === undefined) { return; }
+        coinList.length && subscribeOnStreamByMain(updatePrice);
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [coinList.length, destination?.symbol, isConnect]);
+
+    useEffect(() => {
+        if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
+            return;
+        }
 
         const timeout = setTimeout(() => {
             getInboundings();
         }, 1000);
-        
+
         const setIntervals = setInterval(() => {
             getInboundings();
         }, 1000 * 60);
-
 
         if (!isConnect) {
             clearTimeout(timeout);
@@ -99,14 +200,14 @@ const Main = () => {
         }
 
         return () => clearInterval(setIntervals);
-        
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, networkId]);
 
     return (
-        <div className="flex flex-col text-sm w-screen h-screen dark:text-inherent dark:bg-inherit font-Montserrat font-normal">
+        <div className="flex flex-col text-sm w-screen h-fit lg:h-screen dark:text-inherent dark:bg-inherit font-Montserrat font-normal">
             <Loading></Loading>
-            <div className="w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen max-w-[100rem] space-y-1 ">
+            <div className="flex flex-col items-center w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen space-y-1 ">
                 <Router>
                     <Header></Header>
                     <Switch>
@@ -115,6 +216,9 @@ const Main = () => {
                         </Route>
                         <Route path="/exchange">
                             <ExchangeTV />
+                        </Route>
+                        <Route path="/swap">
+                            <Swap />
                         </Route>
                         <Route exact path="/bridge">
                             <Redirect to="/bridge/submit"></Redirect>
@@ -136,4 +240,3 @@ const Main = () => {
     );
 };
 export default Main;
-

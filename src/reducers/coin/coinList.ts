@@ -12,7 +12,9 @@ type Coin = {
     change?: bigint;
     timestamp?: number;
     isActive?: boolean;
-    upDown?: boolean;
+    upDown?: number;
+    high?: bigint;
+    low?: bigint;
     preClose?: bigint;
 };
 export type CoinList = {
@@ -34,22 +36,27 @@ export const coinListSlice = createSlice({
         updateCoin: (state, actions: PayloadAction<Coin>) => {
             const idx = state.coinList.findIndex((coin) => coin.id === actions.payload.id);
             if (idx === -1) {
-                return state;
+                return;
             }
             const existCoin = state.coinList[idx];
             // console.log(existCoin.timestamp, actions.payload.timestamp);
-            if (existCoin.timestamp > actions.payload.timestamp) {
-                return state;
+            if (existCoin.timestamp > actions.payload.timestamp || existCoin.price === actions.payload.price) {
+                return;
             }
-
-            state.coinList[idx].change = existCoin.preClose 
+            const change = existCoin.preClose 
                 ? (actions.payload.price - existCoin.preClose) * 10n**18n / existCoin.preClose * 100n 
                 : 0n;
-            state.coinList[idx].upDown = existCoin.price <= actions.payload.price;
-            state.coinList[idx].price = actions.payload.price;
-            state.coinList[idx].timestamp = actions.payload.timestamp;
-
-            return state;
+            const upDown = existCoin.price === actions.payload.price
+                ? 0
+                : existCoin.price < actions.payload.price
+                    ? 1
+                    : -1;
+            const high = actions.payload.price > existCoin.high ? actions.payload.price : existCoin.high;
+            const low = existCoin.low !== 0n && actions.payload.price < existCoin.low ? actions.payload.price : existCoin.low;
+            const newCoin = {...state.coinList[idx], timestamp:actions.payload.timestamp, price:actions.payload.price
+                , high, low, change, upDown};
+            state.coinList[idx] = newCoin;
+            return;
         },
         updateFavorite: (state, actions: PayloadAction<Coin>) => {
             const idx = state.coinList.findIndex((coin) => coin.id === actions.payload.id);
@@ -60,7 +67,7 @@ export const coinListSlice = createSlice({
             return state;
         },
         updatePrice: (state, actions: PayloadAction<any>) => {
-            let existList = [...state.coinList];
+            let existList = [].concat(state.coinList);
             const payload = actions.payload;
             const newList = existList.map((coin) => {
                 const newCoin = {

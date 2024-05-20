@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { VictoryPie } from "victory";
 import { contracts } from "lib/contract";
-import { getBalances } from "lib/thegraph/api";
 import { formatCurrency } from "lib";
 import { isExchageNetwork } from "lib/network";
 
-import { setLoading } from "reducers/loading";
+// import { setLoading } from "reducers/loading";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
+import { toNumber } from "lib/bigInt";
 type PortfolioProps = {
     standAlone?: boolean;
 };
@@ -17,11 +17,11 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
     const { isReady } = useSelector((state: RootState) => state.app);
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
+    const { balancePynths } = useSelector((state: RootState) => state.pynthBlances);
 
-    const [balances, setBalances] = useState([]);
     const [totalAssets, setTotalAssets] = useState(0n);
     const [chartDatas, setChartDatas] = useState([]);
-
+    const [balances, setBalances] = useState([]);
     const [chartColors, setChartColors] = useState([]);
 
     const getAddressColor = (address) => {
@@ -29,27 +29,29 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
     };
 
     const init = useCallback(async () => {
-        dispatch(setLoading({ name: "balance", value: true }));
+        if (balancePynths.length === 0) return;
+
+        // dispatch(setLoading({ name: "balance", value: true }));
 
         let colors = [];
 
         try {
-            // let rates = await getLastRates({ currencyName: govCoin[networkId] });
-            let balances: any = await getBalances({ networkId, address });
-            setBalances(balances);
-            // console.log("balances", balances);
-            const totalAssets = balances.reduce((a, c) => a + c.balanceToUSD, 0n);
-            setTotalAssets(totalAssets);
+            let totalAssets = 0n;
+            const balances = balancePynths.map((c) => {
+                const price = coinList.find((e) => e.symbol === c.currencyName)?.price ?? 0n;
+                const amount = c.amount as bigint;
+                const balanceToUSD = c.currencyName === "pUSD" ? amount : (amount * price) / 10n ** 18n;
+                totalAssets += balanceToUSD;
+                return { ...c, balanceToUSD };
+            });
 
-            // console.log("totalAssets", totalAssets);
+            setTotalAssets(totalAssets);
 
             const pieChart = balances.map((e) => {
                 e.currencyName === "pUSD"
                     ? colors.push("#1e91f8")
                     : colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
-                const value = totalAssets ? formatCurrency((e.balanceToUSD * 100n * 10n ** 18n) / totalAssets, 2): 0;
-
-                // console.log("currencyName", e.currencyName, "value", value);
+                const value = totalAssets ? formatCurrency((e.balanceToUSD * 100n * 10n ** 18n) / totalAssets, 2) : 0;
 
                 return {
                     x: `${value}%`,
@@ -57,15 +59,20 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                 };
             });
 
-            setChartDatas(pieChart.length > 0 ? pieChart : [{ x: "0%", y: 1 }]);
+            pieChart.sort((a, b) => b.y - a.y);
+            balances.sort((a, b) => toNumber(b.balanceToUSD) - toNumber(a.balanceToUSD));
+
+            setBalances(balances);
+            setChartDatas(totalAssets > 0n ? pieChart : [{ x: "100%", y: 1 }]);
             setChartColors(colors);
-            dispatch(setLoading({ name: "balance", value: false }));
+            // dispatch(setLoading({ name: "balance", value: false }));
         } catch (e) {
             console.error("init error", e);
         }
 
-        dispatch(setLoading({ name: "balance", value: false }));
-    }, [coinList, address, networkId]);
+        // dispatch(setLoading({ name: "balance", value: false }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [balancePynths, coinList[1]]);
 
     useEffect(() => {
         if (isReady && coinList && address && isConnect) {
@@ -77,25 +84,27 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                 // 	"ERROR"
                 // );
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
-                setBalances([]);
                 setTotalAssets(0n);
+                setBalances([]);
                 setChartDatas([]);
                 setChartColors([]);
             }
+            return;
         }
+
         if (!isConnect) {
-            setBalances([]);
             setTotalAssets(0n);
+            setBalances([]);
             setChartDatas([]);
             setChartColors([]);
         }
-    }, [init, isReady, coinList, address, networkId, isConnect]);
+    }, [/* isReady, address, networkId, */ init, isConnect]);
 
     return (
         <div
-            className={`lg:flex flex-col items-center w-[98%] lg:w-[30%] min-h-[98%] bg-blue-900 rounded-lg pb-2 ${
+            className={`lg:flex flex-col items-center w-[98%] lg:w-[30%] min-h-[99%] rounded-lg pb-3 mb-2 ${
                 standAlone ? "flex " : "hidden h-[98%]"
-            }`}
+            } bg-gradient-to-tl from-cyan-950 via-blue-950 to-cyan-950 `}
         >
             <div className="flex py-2 justify-between items-center w-[90%] ">
                 <div className="font-bold text-base md:text-lg lg:text-base">Portfolio</div>
@@ -130,8 +139,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                         className={`flex flex-col items-start w-[40%] text-[10px] sm:text-sm lg:text-[11px] xl:text-xs`}
                     >
                         {balances.map(({ currencyName, amount }, index) =>
-                            amount > 0n 
-                            ? (
+                            amount > 0n ? (
                                 <div className="flex w-11/12" key={index}>
                                     <div className="flex pb-1 md:pb-2 lg:pb-1 items-center justify-between w-[95%]">
                                         <div className=" w-7/12">{currencyName}</div>
@@ -144,9 +152,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                                         <div className="w-5/12 flex justify-end">{chartDatas[index]?.y}%</div>
                                     </div>
                                 </div>
-                            ) : (
-                                null
-                            )
+                            ) : null
                         )}
                     </div>
                 </div>
@@ -156,13 +162,16 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
             </div>
             <div className={`flex flex-col w-[95%] mb-1 overflow-y-auto `}>
                 {balances.length > 0 &&
-                    balances.map(({ currencyName, amount, balanceToUSD }, index) =>
-                        amount > 0n ? (
+                    balances.map(
+                        ({ currencyName, amount }, index) => (
+                            /* amount > 0n ? ( */
                             <div
-                                className="text-[9px] sm:text-xs md:text-[11px] xl:text-xs bg-blue-950 m-1 p-[6px] rounded-md"
+                                className={`text-[9px] sm:text-xs md:text-[11px] xl:text-xs m-1 p-[6px] rounded-md ${
+                                    index % 2 === 0 ? "bg-gradient-to-l" : "bg-gradient-to-r"
+                                }  from-blue-950 via-cyan-950 to-blue-950`}
                                 key={currencyName}
                             >
-                                <div className="flex justify-between">
+                                <div className="flex justify-between px-4">
                                     <div className="flex items-center text-xs ss:text-sm">
                                         <img
                                             className="w-6 h-6 pr-1"
@@ -183,14 +192,22 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                                         </div>
                                         <div className="text-right  mt-1">
                                             <span className="ml-1">$</span>
-                                            <span>{formatCurrency(balanceToUSD, 4)}</span>
+                                            <span>
+                                                {formatCurrency(
+                                                    ((coinList.find((e) => e.symbol === currencyName)?.price ?? 0n) *
+                                                        amount) /
+                                                        10n ** 18n,
+                                                    4
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        ) : (
-                            null
                         )
+                        /* ) : (
+                            null
+                        ) */
                     )}
             </div>
         </div>

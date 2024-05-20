@@ -39,17 +39,32 @@ export const getRateTickers = async () => {
 				const lastPrice = BigInt(datas[datas.length - 1].price) * 10n**10n;
 				const firstPrice = BigInt(datas[0].price) * 10n**10n;
 				const change = lastPrice > 0n ? (lastPrice - firstPrice) * 10n**18n / lastPrice * 100n : 0n;
-				data[currencyName] = {timestamp, price: lastPrice, change, preClose: firstPrice}; 
+				const high = datas.reduce((prev, curr) => {
+					const bnHigh = typeof prev == "number" 
+						? BigInt(prev) * 10n**10n
+						: prev;
+					const bnCurr = BigInt(curr.price) * 10n**10n;
+					return bnHigh > bnCurr ? bnHigh : bnCurr;
+				});
+				const low = datas.reduce((prev, curr) => {
+					const bnLow = typeof prev == "number" 
+						? BigInt(prev) * 10n**10n
+						: prev;
+					const bnCurr = BigInt(curr.price) * 10n**10n;
+					return bnLow < bnCurr ? bnLow : bnCurr;
+				});
+				// console.log(currencyName, {timestamp, price: lastPrice, change, high, low, preClose: firstPrice});
+				data[currencyName] = {timestamp, price: lastPrice, change, high, low, preClose: firstPrice};
 				return;
 			} catch (error) {
 				console.log(error);
 			}
 		} else if (currencyName === "pUSD") {
-			data[currencyName] = {timestamp:0n, price: 10n**18n, change:0n, preClose:10n**18n};
+			data[currencyName] = {timestamp:0n, price: 10n**18n, high: 10n**18n, low: 10n**18n,change:0n, preClose:10n**18n};
 			return;
 		}
 
-		data[currencyName] = {timestamp:0n, price: 0n, change:0n, preClose:0n}; 
+		data[currencyName] = {timestamp:0n, price: 0n, high: 0n, low: 0n, change:0n, preClose:0n}; 
 		datas = null;
 	};
 

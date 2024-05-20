@@ -6,7 +6,7 @@ export const toBigNumber = (value: BigNumberish):BigNumber => {
 };
 
 export const fromBigNumber = (value: BigNumberish):string => {
-    return formatEther(String(value));
+    return Number((formatEther(String(value)))).toString();
 };
 
 export const toBytes32 = (value: string):BytesLike => {

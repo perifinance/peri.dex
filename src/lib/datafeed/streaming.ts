@@ -2,8 +2,19 @@
 const streamingUrl = "https://benchmarks.pyth.network/v1/shims/tradingview/streaming";
 const channelToSubscription = new Map();
 let fnUpdatePrice = null;
+let chartInterval = 15*60*1000;
 
 export const setUpdatePriceCallBack = (fn) => fnUpdatePrice = fn; 
+
+export const setChartInterval = (resolution:string) => {
+    const multiplier = {D: 24*60*60*1000, W: 7*24*60*60*1000, M: 30*24*60*60*1000};
+    if (["D", "W", "M"].includes(resolution)) {
+        chartInterval = parseInt(resolution.substring(0, resolution.length - 2)) * multiplier[resolution[resolution.length-1]];
+    } else {
+        chartInterval = parseInt(resolution) * 60 * 1000;
+    }
+    console.debug("[stream] Set chart interval:", chartInterval);
+};
 
 function handleStreamingData(data) {
     const { id, p, t } = data;
@@ -130,9 +141,16 @@ function startStreaming(retries = 3, delay = 3000) {
 function getNextDailyBarTime(barTime) {
     const date = new Date(barTime/*  * 1000 */);
     // console.debug("[stream] Next daily bar time(today):", date);
-    date.setDate(date.getDate() + 1);
+    date.setTime(date.getTime() + chartInterval);
     // console.debug("[stream] Next daily bar time:", barTime, date);
     return date.getTime() /* / 1000 */;
+}
+
+export function subscribeOnStreamByMain(fnUpdatePrice) {
+
+    setUpdatePriceCallBack(fnUpdatePrice);
+    
+    startStreaming();
 }
 
 export function subscribeOnStream(
@@ -156,7 +174,7 @@ export function subscribeOnStream(
         handlers: [handler],
     };
     channelToSubscription.set(channelString, subscriptionItem);
-    console.debug("[subscribeBars]: Subscribe to streaming. Channel:", channelString);
+    console.debug("[subscribeBars]: Subscribe to streaming. Channel:", channelString, subscriptionItem);
 
     // Start streaming when the first subscription is made
     startStreaming();

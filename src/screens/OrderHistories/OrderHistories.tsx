@@ -9,7 +9,12 @@ import { networkInfo } from "configure/networkInfo";
 import { useMediaQuery } from "react-responsive";
 // import { changeNetwork } from "lib/network";
 
-const OrderHistories = ({ balance }) => {
+type OrderHistoriesProps = {
+    balance: any;
+    isBuy?: boolean;
+};
+
+const OrderHistories = ({ balance, isBuy }:OrderHistoriesProps) => {
     const { address, isConnect, networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
     const [histories, setHistories] = useState([]);
@@ -52,11 +57,13 @@ const OrderHistories = ({ balance }) => {
     }, [isConnect]);
 
     return (
-        <div className="items-center w-full h-full grow-0 bg-blue-900 rounded-lg pt-1 px-2">
+        <div className={`items-center w-full h-full grow-0 rounded-lg pt-1 px-2 ${
+            isBuy ? "from-cyan-950 to-blue-950" : "from-red-950 to-blue-950"
+        } bg-gradient-to-br `}>
             <div className="flex w-full h-full">
                 <div className="relative w-full h-full flex items-center">
                     <table className="h-[90%] w-full">
-                        <thead className="border-b-[0.01px] border-blue-800 h-8">
+                        <thead className="border-b-[0.01px] border-blue-750 h-8">
                             <tr className="text-blue-300">
                                 <th className="font-medium w-15">Chain</th>
                                 <th className="font-medium">Date/Time</th>

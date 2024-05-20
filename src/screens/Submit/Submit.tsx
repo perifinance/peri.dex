@@ -18,6 +18,7 @@ import BridgeStatus from "./BridgeStatus";
 import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
 import { fromBigNumber, toBigNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
+// import "css/BridgeRangeInput.css";
 
 const zeroSignature =
     "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -32,7 +33,7 @@ const btnBridgeMsg = {
 const Submit = () => {
     const { cost, step, pendingCoins } = useSelector((state: RootState) => state.bridge);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
-    const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
+    // const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
     // const { isReady } = useSelector((state: RootState) => state.app);
     const [payAmount, setPayAmount] = useState("0");
     const [per, setPer] = useState(0n);
@@ -120,6 +121,30 @@ const Submit = () => {
         return 0n;
     };
 
+    const checkBalance = async (contract) => {
+        if (contract === undefined) return 'Please refresh and try it again.';
+
+        try {
+            const transferable = contract.transferablePeriFinance
+                ? await contract.transferablePeriFinance(address)
+                : await contract.balanceOf(address);
+
+            console.log("checkBalance", transferable, payAmount);
+            
+            if (transferable.toBigInt() < toBigNumber(payAmount)) {
+                if (selectedFromNetwork) {
+                    const selecNetwork = networks.find((e) => selectedFromNetwork.id === e.id);
+                    if (selecNetwork) selecNetwork.balance[selectedCoin?.name]= BigInt(transferable);
+                }
+                return "Insufficient balance. Please check your balance and try again.";
+            }
+
+            return transferable;
+        } catch (err) {
+            return extractMessage(err);
+        }
+    }
+
     const setPerAmount = (per) => {
         setPer(per);
         const balance = getBalance();
@@ -187,7 +212,7 @@ const Submit = () => {
         return (gasLimit * 12n) / 10n; */
     };
 
-    const getGasPrice = useCallback( async () => {
+    const getGasPrice = useCallback(async () => {
         if (step !== 0 && step !== 2) {
             return;
         }
@@ -200,7 +225,16 @@ const Submit = () => {
                 getNetworkPrice(networkId),
             ]);
 
-            console.log("gasPrice", BigInt(toWei(gasPrice, "gwei")), "gasLimit", gasLimit, "rate", rate, "cost", BigInt(cost[key]));
+            console.log(
+                "gasPrice",
+                BigInt(toWei(gasPrice, "gwei")),
+                "gasLimit",
+                gasLimit,
+                "rate",
+                rate,
+                "cost",
+                BigInt(cost[key])
+            );
             setGasPrice(gasPrice);
             setNetworkFeePrice((rate * (BigInt(toWei(gasPrice, "gwei")) * gasLimit + BigInt(cost[key]))) / 10n ** 18n);
         } catch (error) {
@@ -214,9 +248,17 @@ const Submit = () => {
             return;
         }
 
-        if (contracts.signers[selectedCoin.contract] === undefined) {
-            // console.log("selectedCoin.contract", selectedCoin.contract);
-            NotificationManager.warning("Please refresh it and try it again.");
+        let contract;
+        try {
+            contract = contracts.signers[selectedCoin.contract];
+        } catch (e) {
+            console.log(e);
+        }
+
+        const transferable = await checkBalance(contract);
+        console.log("transferable", transferable);
+        if (typeof transferable == 'string') {
+            NotificationManager.warning(transferable);
             return;
         }
 
@@ -252,21 +294,18 @@ const Submit = () => {
             // console.log("mySignature", mySignature);
             // const cost = (await getBridgeTransferGasCost()).toString();
 
-            const [gasPrice, gasLimit] = await Promise.all([
-                getNetworkFee(networkId),
-                getGasLimit(),
-            ]);
+            const [gasPrice, gasLimit] = await Promise.all([getNetworkFee(networkId), getGasLimit()]);
 
             const transactionSettings = {
                 gasPrice: toWei(gasPrice, "gwei").toString(),
                 gasLimit: gasLimit.toString(),
-                value: transferCost
+                value: transferCost,
             };
 
             let transaction;
             let rsv = utils.splitSignature(mySignature);
 
-            transaction = await contracts.signers[selectedCoin.contract].overchainTransfer(
+            transaction = await contract.overchainTransfer(
                 toBigNumber(payAmount),
                 selectedToNetwork.id,
                 [rsv.r, rsv.s, rsv.v],
@@ -494,14 +533,13 @@ const Submit = () => {
 
     useEffect(() => {
         // console.log("cost", Object.values(cost).map(BigInt));
-        Object.keys(cost).length && getGasPrice();
-    }, [getGasPrice, lastRateData]);
+        (cost && Object.keys(cost)?.length) && getGasPrice();
+    }, [getGasPrice]);
 
     useEffect(() => {
         setPayAmount("");
         setGasPrice("0");
         setNetworkFeePrice(0n);
-
     }, [selectedCoin, networkId, address]);
 
     // *** DropBox list handlers
@@ -536,15 +574,15 @@ const Submit = () => {
     }, [closeModalHandler]);
 
     return (
-        <div className="flex flex-col bg-blue-900 px-3 lg:px-4 py-2">
-            <div className="flex flex-col lg:flex-row  lg:space-x-3 z-5">
-                <div className="basis-2/5 flex flex-col items-start w-full">
+        <div className="flex flex-col p-2 lg:w-full lg:h-full lg:justify-around">
+            <div className="flex flex-col lg:flex-row lg:space-x-6 z-5 border-[1px] border-cyan-850/50 bg-cyan-950 p-3 lg:p-10 rounded-xl lg:justify-between">
+                <div className="basis-2/5 flex flex-col items-start w-full lg:basis-[44%] ">
                     <div className="w-full">
                         <div className="text-xs pl-1">Source</div>
                         <div className="py-1 relative">
                             <div
                                 id="from_caller"
-                                className="flex p-3 font-semibold bg-blue-950 rounded-md justify-between cursor-pointer"
+                                className="flex p-3 font-semibold rounded-md justify-between cursor-pointer border-[1px] border-cyan-850/25 bg-skyblue-950"
                                 onClick={() => setIsFromNetworkList(!isFromNetworkList)}
                             >
                                 <span id="from_caller" className="mx-1">
@@ -568,7 +606,7 @@ const Submit = () => {
                                 </svg>
                             </div>
                             <div
-                                className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600 my-1 ${
+                                className={`absolute w-full rounded-md  bg-gradient-to-b from-cyan-950 to-blue-950 my-1 ${
                                     isFromNetworkList ? "block" : "hidden"
                                 } z-10`}
                                 ref={fromRef}
@@ -591,11 +629,11 @@ const Submit = () => {
                     </div>
 
                     <div
-                        className="flex self-center items-center mx-auto -mb-4 w-9 h-9 bg-blue-950 rounded-full cursor-pointer"
+                        className="flex self-center items-center mx-auto -mb-4 w-9 h-9 rounded-full cursor-pointer"
                         onClick={() => networkSwap()}
                     >
                         <div className="transform-gpu m-auto">
-                            <img className="w-4 h-5 align-middle" src={"/images/icon/exchange.png"} alt="netswap" />
+                            <img className="w-4 h-5 align-middle " src={"/images/icon/exchange.png"} alt="netswap" />
                         </div>
                     </div>
 
@@ -605,7 +643,7 @@ const Submit = () => {
                         <div className="py-1 relative">
                             <div
                                 id="to_caller"
-                                className="flex p-3 font-semibold bg-blue-950 rounded-md justify-between cursor-pointer"
+                                className="flex p-3 font-semibold border-[1px] border-cyan-850/25 bg-skyblue-950 rounded-md justify-between cursor-pointer"
                                 onClick={() => setIsToNetworkList(!isToNetworkList)}
                             >
                                 <span id="to_caller" className="mx-1">
@@ -629,7 +667,7 @@ const Submit = () => {
                                 </svg>
                             </div>
                             <div
-                                className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600  my-1 ${
+                                className={`absolute w-full rounded-md bg-gradient-to-b from-cyan-950 to-blue-950 my-1 ${
                                     isToNetworkList ? "block" : "hidden"
                                 }  z-50`}
                                 ref={toRef}
@@ -664,13 +702,13 @@ const Submit = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex basis-3/5 flex-col w-full">
+                <div className="flex basis-3/5 flex-col w-full lg:basis-[52%] items-end">
                     <div className="flex pb-1 ml-1 justify-between w-full text-xs">
                         <span>{`Available `}</span>
                         <span className="mx-1 font-medium">{` ${formatCurrency(getBalance(), 4)}`}</span>
                     </div>
                     <div className="flex flex-col w-full">
-                        <div className="flex lg:rounded-md bg-blue-950 justify-between w-full">
+                        <div className="flex lg:rounded-md border-[1px] border-cyan-850/25 bg-skyblue-950 justify-between w-full">
                             <div className="py-1 relative font-semibold z-1">
                                 <div
                                     id="coin_caller"
@@ -704,7 +742,7 @@ const Submit = () => {
                                     </svg>
                                 </div>
                                 <div
-                                    className={`absolute w-full bg-blue-900 rounded-md shadow-md shadow-slate-600  my-2 ${
+                                    className={`absolute w-full rounded-md bg-cyan-950 my-2 ${
                                         isCoinList ? "block" : "hidden"
                                     } z-99`}
                                     ref={availableRef}
@@ -743,7 +781,7 @@ const Submit = () => {
                             </div>
 
                             <input
-                                className="w-2/3 bg-blue-950 outline-none text-right font-medium rounded-lg px-2 text-base"
+                                className="w-2/3 bg-inherit outline-none text-right font-medium rounded-lg px-2 text-base"
                                 type="text"
                                 value={payAmount}
                                 onChange={(e) => setPayAmount(e.target.value)}
@@ -754,7 +792,7 @@ const Submit = () => {
                             <div className="flex flex-col pt-3 w-full">
                                 <div className="flex justify-between ">
                                     <input
-                                        className="cursor-pointer w-full mr-1"
+                                        className="cursor-pointer w-full mr-1 bg-blue-600"
                                         type="range"
                                         min="0"
                                         max="100"
@@ -773,7 +811,7 @@ const Submit = () => {
                                     </span>
                                     <span
                                         className={`base-1/5 text-center cursor-pointer ${
-                                            per === 25n && "text-blue-600"
+                                            per === 20n && "text-blue-600"
                                         }`}
                                         onClick={() => setPerAmount(20n)}
                                     >
@@ -781,7 +819,7 @@ const Submit = () => {
                                     </span>
                                     <span
                                         className={`base-1/5 text-center cursor-pointer ${
-                                            per === 25n && "text-blue-600"
+                                            per === 40n && "text-blue-600"
                                         }`}
                                         onClick={() => setPerAmount(40n)}
                                     >
@@ -789,7 +827,7 @@ const Submit = () => {
                                     </span>
                                     <span
                                         className={`base-1/5 text-center cursor-pointer ${
-                                            per === 50n && "text-blue-600"
+                                            per === 60n && "text-blue-600"
                                         }`}
                                         onClick={() => setPerAmount(60n)}
                                     >
@@ -797,7 +835,7 @@ const Submit = () => {
                                     </span>
                                     <span
                                         className={`base-1/5 text-center cursor-pointer ${
-                                            per === 75n && "text-blue-600"
+                                            per === 80n && "text-blue-600"
                                         }`}
                                         onClick={() => setPerAmount(80n)}
                                     >
@@ -813,9 +851,9 @@ const Submit = () => {
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex items-center self-end h-8 border border-blue-200/50 rounded-md text-sm ml-1 px-1 bg-blue-950">
+                            <div className="flex items-center self-end h-8 border border-cyan-850/50 rounded-md text-sm ml-1 px-1 bg-skyblue-950">
                                 <input
-                                    className="w-6 bg-blue-950 outline-none"
+                                    className="w-6 bg-skyblue-950 outline-none"
                                     type="number"
                                     max="100"
                                     value={per.toString()}
@@ -831,8 +869,8 @@ const Submit = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex flex-col-reverse items-center lg:flex-row justify-between lg:space-x-2 xl:space-x-4">
-                <div className="flex flex-col justify-start w-full basis-2/5 my-6">
+            <div className="flex flex-col-reverse items-center lg:flex-row justify-between lg:p-5 my-4 lg:my-0 lg:space-x-2 xl:space-x-4 border-[1px] border-cyan-850/50 bg-cyan-950 rounded-lg">
+                <div className="flex flex-col justify-start w-[90%] basis-[42%] my-3 lg:my-6">
                     {/* <div className="mt-0"> */}
                     <div className="flex justify-between w-full lg:justify-center mt-1 text-[11px]">
                         <span className="font-medium mr-3">Network Fee:</span>
@@ -847,12 +885,13 @@ const Submit = () => {
                     {/* </div> */}
 
                     <button
-                        className="btn-base flex flex-row items-center my-4 py-2 w-full text-inherent lg:w-48 lg:mx-auto"
+                        className=" flex flex-row justify-center items-center px-10 my-2 lg:my-4 py-2 w-full text-inherent lg:w-48 lg:mx-auto rounded-lg hover:bg-gradient-to-l
+                        bg-gradient-to-t active:bg-gradient-to-br from-cyan-450/10 to-blue-950 border-cyan-450 text-blue-500 font-medium border-[1px]"
                         onClick={() => onExecute()}
                         disabled={isProcessing}
                     >
-                        <div className="flex basis-1/3 justify-end pr-2">
-                            {isProcessing && (
+                        <div className={`basis-1/3 justify-end pr-2 ${isProcessing ? "flex" : "hidden"}`}>
+                            {/* {isProcessing && ( */}
                                 <svg
                                     className="animate-spin h-5 w-5 text-blue-500"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -873,24 +912,26 @@ const Submit = () => {
                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                     ></path>
                                 </svg>
-                            )}
+                           {/*  )} */}
                         </div>
                         <span className="basis-1/3 text-lg">{btnBridgeMsg[step as number]}</span>
                     </button>
                 </div>
-                <div className="flex w-full lg:basis-3/5">
+                <div className="flex w-full lg:basis-[53%]">
                     <BridgeStatus selectedCoin={selectedCoin.name} setIsProcessing={setIsProcessing} />
                 </div>
             </div>
-            <div className="bg-blue-950 w-full text-center break-wards text-cyan-300/70 rounded-lg text-xs font-medium p-2">
-                {validationMessage}
-            </div>
+            <div className="flex flex-col w-full ">
+                <div className="bg-gradient-to-br from-cyan-950 to-blue-950 w-full lg:py-4 text-center break-wards text-blue-600 rounded-lg text-xs font-medium p-2">
+                    {validationMessage}
+                </div>
 
-            <div className="w-auto text-gray-300 items-center p-2">
-                <span className="text-lg font-bold pb-4">Notice</span>
-                <p className="leading-tight">
-                    It may take up to 10 minutes before the step 2 is processed. Please be patient.
-                </p>
+                <div className="w-auto text-gray-300 items-center p-2 lg:mt-1">
+                    <span className="text-lg font-bold pb-4">Notice</span>
+                    <p className="leading-tight text-[12.5px] lg:text-base">
+                        It may take up to 10 minutes before the step 2 is processed. Please be patient.
+                    </p>
+                </div>
             </div>
         </div>
     );
