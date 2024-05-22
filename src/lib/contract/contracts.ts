@@ -5,6 +5,8 @@ import { ethers, providers } from "ethers";
 import { SUPPORTED_NETWORKS } from "../network";
 import { RPC_URLS } from "../rpcUrl";
 import ERC20 from "../contract/abi/ERC20.json";
+import { useEffect, useState } from "react";
+
 // import { clear } from 'console'
 
 const naming = {
@@ -98,8 +100,6 @@ const naming = {
 type Contracts = {
     chainId: number;
     sources?: any;
-    provider?: any;
-    wallet?: any;
     BridgeStatepUSD?: any;
     BridgeState?: any;
     ExchangeRates?: any;
@@ -107,8 +107,9 @@ type Contracts = {
     PeriFinance?: any;
     pUSD?: any;
     SystemSettings?: any;
-    init: (networkId: number) => void;
-    connect: (address: string, setIsReady: any) => void;
+    provider: any;
+    init: (networkId: number) => Promise<Contracts> | null;
+    connect: (provider:any, address: string) => Promise<boolean>;
     clear: () => void;
     signer: any;
     signers?: {
@@ -124,18 +125,18 @@ type Contracts = {
 
 export const contracts: Contracts = {
     chainId: 0,
-    wallet: null,
     signer: undefined,
     signers: {},
     provider: null,
-    init(networkId) {
+    async init(networkId) {
+        console.log("init", networkId);
         try {
             if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
-                return false;
+                return null;
             }
             this.chainId = networkId;
 
-            this.provider = new providers.JsonRpcProvider(RPC_URLS[this.chainId], this.chainId);
+            const provider = new providers.JsonRpcProvider(RPC_URLS[this.chainId], this.chainId);
 
             this.sources = perifinance.getSource({
                 network: SUPPORTED_NETWORKS[this.chainId]?.toLowerCase(),
@@ -152,7 +153,9 @@ export const contracts: Contracts = {
                 deploymentPath: null,
             });
 
-            Object.keys(this.addressList).forEach((name) => {
+            console.log("init", this.addressList);
+
+            await Promise.all(Object.keys(this.addressList).map((name) => {
                 if (naming[name]) {
                     const source =
                         typeof naming[name] === "string"
@@ -162,7 +165,7 @@ export const contracts: Contracts = {
                     this[name] = new ethers.Contract(
                         this.addressList[name].address,
                         source ? source.abi : ERC20.abi,
-                        this.provider
+                        provider
                     );
                     if (name === "ProxyERC20") {
                         this["PeriFinance"] = this[name];
@@ -171,22 +174,31 @@ export const contracts: Contracts = {
                         this["pUSD"] = this[name];
                     }
                 }
-            });
+
+                return naming[name];
+            }));
         } catch (e) {
             console.error("contract init ERROR:", e);
+            return null;
         }
+
+        return this;
     },
 
-    async connect(address, setIsAppReady) {
-        if (this.addressList === undefined) return;
+    async connect(provider, address) {
+        // console.log("connect", this.addressList);
+        if (this.addressList === undefined) return false;
+
+        // console.log("connect", provider, address);
 
         try {
-            this.signer = new providers.Web3Provider(this.wallet.provider).getSigner(address);
-
-            if (this.signer === undefined || this.signers === null || this.signers === undefined) {
-                return;
+            this.provider = new providers.Web3Provider(provider);
+            this.signer = this.provider.getSigner(address);
+            if (this.signer === undefined) {
+                return false;
             }
 
+            // console.log("signer", this.signer);
             await Promise.all(Object.keys(this.addressList).map((name) => {
                 if (naming[name]) {
                     const source =
@@ -212,16 +224,61 @@ export const contracts: Contracts = {
 
                 return null;
             }));
-            setIsAppReady();
+            /* setIsAppReady();
+            IsContractsReady = true; */
         } catch (e) {
             console.error("contract connect ERROR:", e);
+            return false;
         }
+        return true;
         // console.log("contract connect", this.signers);
     },
     clear() {
         this.signer = null;
-        this.signers = null;
+        this.signers = {};
         this.wallet = null;
         this.provider = null;
     },
+};
+
+let isContractsReady = false;
+
+export declare type useContractsT = () => [{
+    contracts: Contracts;
+    IsContractsReady: boolean;
+    web3Provider?: any;
+}, (networkId:number) => Promise<void>, (provider:any, address: string) => Promise<void>, () => void];
+
+export const useContracts : useContractsT = () => {
+    const [contract, setContracts] = useState({ contracts: contracts, IsContractsReady: isContractsReady });
+    const [web3Provider, setWeb3Provider] = useState<any>(contracts.provider);
+
+    const initContracts = async (networkId:number) => {
+        contracts.init(networkId).then((res) => {
+            setContracts({ contracts: res, IsContractsReady: false });
+        });
+    };
+
+    const connctContract = async (provider:any, address: string) => {
+        // ethersPrivider = provider;
+        const res = await contracts.connect(provider, address);
+        console.log("res", res, contracts.signers);
+        if (res) {
+            setWeb3Provider(contracts.provider);
+            setContracts({ contracts: contracts, IsContractsReady: true });
+        } else {
+            setContracts({ contracts: null, IsContractsReady: false });
+        }
+    };
+
+    const clearContracts = () => {
+        contracts.clear();
+        setContracts({ contracts: null, IsContractsReady: false });
+    };
+
+    useEffect(() => {
+        isContractsReady = contract.IsContractsReady
+    }, [contract]);
+
+    return [{...contract, web3Provider}, initContracts, connctContract, clearContracts];
 };

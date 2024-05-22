@@ -1,8 +1,15 @@
 // import { Link, useLocation } from "react-router-dom";
 
-import UniswapWideget from "screens/UniswapWidget/UniswapWidget";
+import { useEffect } from "react";
+import KyberswapWidget from "screens/Swap/Kyberswap";
 
-const Swap = () => {
+const Swap = ({setStopUpdate}) => {
+    useEffect(() => {
+        setStopUpdate(true);
+        return () => {
+            setStopUpdate(false);
+        }
+    }, [setStopUpdate]);
 
     return (
         <div className="flex justify-self-center items-center lg:space-x-4 lg:h-[82%]">
@@ -12,7 +19,7 @@ const Swap = () => {
                         Swap
                     </div>
                 </div> */}
-				<UniswapWideget></UniswapWideget>
+				<KyberswapWidget></KyberswapWidget>
             </div>
         </div>
     );

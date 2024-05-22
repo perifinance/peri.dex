@@ -1,4 +1,4 @@
-import { /* React, */ useCallback, useEffect } from "react";
+import { /* React, */ useCallback, useEffect, useState } from "react";
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 
 import Header from "../Header";
@@ -8,7 +8,7 @@ import { Exchange, ExchangeTV } from "pages/Exchange";
 import Bridge from "pages/Bridge";
 import Loading from "components/loading";
 // import { setLoading } from "reducers/loading/loading";
-import { contracts } from "lib/contract";
+import { useContracts } from "lib/contract";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
 import { TESTNET, MAINNET, SUPPORTED_NETWORKS } from "lib/network";
@@ -23,6 +23,7 @@ import { updateCoin } from "reducers/coin/coinList";
 import { updateLastRateData } from "reducers/rates";
 import { subscribeOnStreamByMain } from "lib/datafeed";
 import Swap from "pages/swap/Swap";
+import { setAppReady } from "reducers/app";
 
 const Main = () => {
     // const { isConnect } = useSelector((state: RootState) => state.wallet);
@@ -33,9 +34,11 @@ const Main = () => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const dispatch = useDispatch();
+    const [{ contracts }] = useContracts();
+    const [stopUpdate, setStopUpdate] = useState(false);
 
     const getInboundings = async () => {
-        if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !isConnect) {
+        if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !contracts) {
             return;
         }
 
@@ -101,15 +104,11 @@ const Main = () => {
                 return;
             }
 
+            // console.log("updatePrice", data);
             const bnPrice = toBigInt(data.p);
-            /* const high = bnPrice > coinList[idxFind].high ? bnPrice : coinList[idxFind].high;
-            const low = bnPrice < coinList[idxFind].low ? bnPrice : coinList[idxFind].low; */
             const newCoin = {
                 ...coinList[idxFind],
                 price: bnPrice,
-                // change: data.change,
-                /* high,
-                low, */
                 timestamp: data.t,
             };
             dispatch(updateCoin(newCoin));
@@ -131,7 +130,7 @@ const Main = () => {
     };
 
     const setPynthBalances = useCallback(async () => {
-        // console.log("setPynthBalances", isReady, networkId, address);
+        console.log("setPynthBalances", isReady, networkId, address);
         // console.log("window.location.href", window.location.href);
         
         if (!isReady) return;
@@ -163,6 +162,7 @@ const Main = () => {
     }, [networkId, address, isReady]);
 
     useEffect(() => {
+        console.log("setPynthBalances", isReady);
         /* if (balancePynths?.length === 0) { */
             setPynthBalances();
         /* }  */
@@ -170,18 +170,22 @@ const Main = () => {
     }, [setPynthBalances]);
 
     useEffect(() => {
-        // console.log('useEffect obsolete', obsolete);
+        console.log('useEffect obsolete', obsolete);
         getInboundings();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [obsolete]);
 
     useEffect(() => {
-        coinList.length && subscribeOnStreamByMain(updatePrice);
+        console.log("coinList", coinList, isConnect);
+        !stopUpdate 
+            ? coinList.length && subscribeOnStreamByMain(updatePrice)
+            : subscribeOnStreamByMain(null);
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [coinList.length, destination?.symbol, isConnect]);
+    }, [coinList.length, destination?.symbol, isConnect, stopUpdate]);
 
     useEffect(() => {
+        console.log("isConnect", isConnect, networkId);
         if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
             return;
         }
@@ -218,7 +222,7 @@ const Main = () => {
                             <ExchangeTV />
                         </Route>
                         <Route path="/swap">
-                            <Swap />
+                            <Swap setStopUpdate={setStopUpdate}/>
                         </Route>
                         <Route exact path="/bridge">
                             <Redirect to="/bridge/submit"></Redirect>

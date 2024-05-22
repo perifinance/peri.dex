@@ -43,6 +43,7 @@ const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoin
         if (!coinList?.length) {
             return;
         }
+
         let filterResult = coinList?.slice();
 
         if (filterResult && selectedCategory === "Favorites") {
@@ -67,6 +68,7 @@ const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoin
 
         setFilterCoinList(filterResult);
     }, [selectedCategory, isFavoriteFilter, searchValue, coinList]);
+
 
     // useEffect(() => {
     //     if (coinList.length > 0) {

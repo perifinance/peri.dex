@@ -12,8 +12,8 @@ import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { setAppReady } from "reducers/app";
 // import { changeNetwork } from 'lib/network'
 
-import { web3Onboard } from "lib/onboard/web3Onboard";
-import { contracts } from "lib/contract";
+// import { web3Onboard } from "lib/onboard/web3Onboard";
+import { useContracts } from "lib/contract";
 import { getCoinList } from "lib/coinList";
 
 import Main from "./screens/Main";
@@ -24,9 +24,12 @@ import { end, start } from "lib/peformance";
 import { extractMessage } from "lib/error";
 import { getBridgeCost } from "lib/bridge/getBridgeCost";
 import { setCost } from "reducers/bridge/bridge";
-import { is } from "date-fns/locale";
-// import { getRateTickers } from "lib/thegraph/api/getRateTickers";
+import { init, useWallets, useConnectWallet } from "@web3-onboard/react";
+import { getInitOptions } from "lib/onboard";
+import { providers } from "ethers";
 
+
+init(getInitOptions('dark', false));
 const App = () => {
     const { networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
@@ -34,10 +37,16 @@ const App = () => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { isReady } = useSelector((state: RootState) => state.app);
     const [rateTickers, setRateTickers] = useState({});
+    
+
+    const [{ wallet }, connect] = useConnectWallet();
+    const connectedWallets = useWallets();
+    const [{ contracts, IsContractsReady }, initContracts, connectContracts, clearContracts] = useContracts();
 
     const dispatch = useDispatch();
 
     const setOnboard = async () => {
+        
         // let networkId = Number(process.env.REACT_APP_DEFAULT_NETWORK_ID);
         // try {
         //     // @ts-ignore
@@ -51,7 +60,7 @@ const App = () => {
 
         // dispatch(updateNetwork({ networkId: networkId }));
         try {
-            web3Onboard.init(
+            /* web3Onboard.init(
                 {
                     wallet: async (wallet) => {
                         if (wallet?.provider !== undefined) {
@@ -97,7 +106,7 @@ const App = () => {
                 },
                 themeState,
                 false
-            );
+            ); */
         } catch (e) {
             console.log(e);
             localStorage.clear();
@@ -107,19 +116,14 @@ const App = () => {
 
         if (selectedWallet) {
             try {
-                await web3Onboard.connect(selectedWallet);
+                const options = selectedWallet ? { autoSelect: { label: selectedWallet, disableModals: true } } : undefined;
+                await connect(options);
             } catch (e) {
                 console.log(e);
             }
         }
 
         // dispatch(setAppReady());
-    };
-
-    const setIsAppReady = async () => {
-        // console.log("setIsAppReady");
-
-        dispatch(setAppReady());
     };
 
     const getState = useCallback(async () => {
@@ -149,6 +153,56 @@ const App = () => {
             console.log(error);
         }
     }, [transaction, dispatch]);
+
+
+    useEffect(() => {
+        console.log("IsContractsReady", IsContractsReady);
+        IsContractsReady && dispatch(setAppReady());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [IsContractsReady]);
+
+    useEffect(() => {
+
+        if (wallet) {
+            localStorage.setItem("selectedWallet", wallet.label);
+            // dispatch(setAppReady());
+            console.log("wallet.accounts[0].address", wallet.accounts[0].address);
+            dispatch(updateAddress({ address: wallet.accounts[0].address }));
+
+            const wProvider = new providers.Web3Provider(wallet.provider, "any");
+            wProvider?.getNetwork().then((res: any) => {
+                console.log("networkId", res.chainId);
+                // if (networkId === res.chainId) return;
+                dispatch(updateNetwork({ networkId: res.chainId }));
+                initContracts(res.chainId).then(
+                    () => connectContracts(wallet.provider, wallet.accounts[0].address)
+                );
+            });
+            
+        } else {
+            dispatch(clearWallet());
+            dispatch(updateAddress({ address: null }));
+            clearContracts();
+            console.log("wallet clear");
+            // dispatch(updateIsConnect(false));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [wallet]);
+
+    useEffect(() => {
+        console.log("connectedWallets", connectedWallets);
+        if (connectedWallets.length) {
+            const connectedWalletsLabelArray = connectedWallets.map(({ label }) => label);
+            localStorage.setItem("connectedWallets", JSON.stringify(connectedWalletsLabelArray));
+            dispatch(updateIsConnect(true));
+
+        } else {
+            dispatch(updateIsConnect(false));
+            // clearContracts();
+        }
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [connectedWallets]);
 
     useEffect(() => {
         if (transaction.hash) {
@@ -208,7 +262,7 @@ const App = () => {
     };
 
     useEffect(() => {
-        // console.log("rateTickers : ", Object.keys(rateTickers).length);
+        console.log("rateTickers : ", Object.keys(rateTickers).length);
         if (Object.keys(rateTickers).length === 0) return;
         try {
             /* const coinList = getCoinList(networkId);

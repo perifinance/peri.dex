@@ -4,7 +4,7 @@ import { RootState } from "reducers";
 // import { getLastRates } from "lib/thegraph/api";
 import { getBalance } from "lib/balance";
 import { getFeeRateForExchange } from "lib/rates";
-import { contracts } from "lib";
+import { useContracts } from "lib";
 import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
@@ -45,6 +45,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const isOrderMin = useMediaQuery({ query: `(min-height: 880px)` });
     const isLaptop = useMediaQuery({ query: `(min-height: 768px)` });
+    const [{ contracts }] = useContracts();
 
     const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
@@ -55,7 +56,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     const [gasLimit, setGasLimit] = useState(0n);
     // const [gasLimit, setGasLimit] = useState(0n);
     const [price, setPrice] = useState(0n);
-    const [networkRate, setNetworkRate] = useState(0n);
+    // const [networkRate, setNetworkRate] = useState(0n);
     const [feePrice, setFeePrice] = useState(0n);
 
     const [payAmount, setPayAmount] = useState("");
@@ -195,7 +196,10 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     );
 
     const getNetworkFeePrice = useCallback(async () => {
+        console.log("getNetworkFeePrice", nativeIndex);
         if (nativeIndex === -1 || !coinList[nativeIndex] ) return;
+
+        console.log("getNetworkFeePrice", nativeIndex, coinList[nativeIndex]);
 
         try {
             const nativePrice = coinList[nativeIndex].price;
@@ -205,7 +209,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             setNetworkFeePrice(feePrice);
         } catch (e) {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [feePrice, coinList]);
+    }, [feePrice, nativeIndex]);
 
     const getPrice = useCallback(() => {
         if (payAmount === "0") {
@@ -227,7 +231,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     const getGasLimit = async () => {
         let gasLimit = 1400000n;
 
-        console.debug("gasLimit", gasLimit, selectedCoins, payAmount);
+        console.debug("gasLimit", gasLimit, selectedCoins, payAmount, contracts);
 
         const coins = [
             selectedCoins?.source?.symbol ? selectedCoins.source.symbol : "pUSD",
@@ -351,20 +355,21 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         const perBalance = convertPer > 0n ? (selBalance * 10n) / convertPer : 0n;
         changePayAmount(fromBigNumber(perBalance), true);
     };
-
+/* 
     useEffect(() => {
+        
         const source = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
 
         source && setSourceRate(source.price);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [coinList]);
+    }, [coinList]); */
 
     useEffect(() => {
         // dispatch(setLoading({ name: "balance", value: true }));
         console.debug("Order useEffect", isReady, networkId, coinList.length);
 
-        if (isReady && networkId) {
+        if (isReady && networkId && coinList.length > 0) {
             setNetworkFee();
         }
         if (coinList.length > 0) {
@@ -547,12 +552,12 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                         <img
                                             id="list-caller"
                                             alt="dest_symgol"
-                                            className="w-5 h-5 absolute bottom-0 left-0 z-[2]"
+                                            className="w-4 h-4 md:w-5 md:h-5 absolute bottom-0 left-0 z-[2]"
                                             src={`/images/currencies/${selectedCoins.destination?.symbol ? getSafeSymbol(selectedCoins.destination.symbol, false): "pBTC"}.svg`}
                                         ></img>
                                         <img
                                             alt="source_symgol"
-                                            className="w-5 h-5 absolute bottom-0 left-3 z-[1]"
+                                            className="w-4 h-4 md:w-5 md:h-5 absolute bottom-0 left-3 z-[1]"
                                             src={`/images/currencies/${selectedCoins.source?.symbol ? getSafeSymbol(selectedCoins.source.symbol) : "pUSD"}.svg`}
                                         ></img>
                                     </div>

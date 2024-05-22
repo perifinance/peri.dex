@@ -16,7 +16,7 @@ import mewWallet from "@web3-onboard/mew-wallet";
 import fortmatic from "@web3-onboard/fortmatic";
 import safeModule from "@web3-onboard/gnosis";
 import { OnboardAPI } from "@web3-onboard/core";
-import { BuiltInThemes, WalletState } from "@web3-onboard/core/dist/types";
+import { WalletState } from "@web3-onboard/core/dist/types";
 import { Chain } from "@web3-onboard/common/dist/types";
 import ledgerModule from "@web3-onboard/ledger";
 import metamaskSDK from "@web3-onboard/metamask";
@@ -195,7 +195,7 @@ export const web3Onboard: Web3Onboard = {
         };
 
         this.onboard = init({
-            theme: colorMode as BuiltInThemes,
+            theme: colorMode as "light" | "dark",
             wallets,
             chains,
             appMetadata,

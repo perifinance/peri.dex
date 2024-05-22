@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toWei } from "web3-utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";
-import { contracts, formatCurrency } from "lib";
+import { formatCurrency, useContracts } from "lib";
 import { SUPPORTED_NETWORKS, MAINNET, TESTNET } from "lib/network";
 import { getBalanceNetwork } from "lib/balance";
 import { getNetworkFee } from "lib/fee";
@@ -18,6 +18,7 @@ import BridgeStatus from "./BridgeStatus";
 import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
 import { fromBigNumber, toBigNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
+import { useConnectWallet } from "@web3-onboard/react";
 // import "css/BridgeRangeInput.css";
 
 const zeroSignature =
@@ -33,6 +34,7 @@ const btnBridgeMsg = {
 const Submit = () => {
     const { cost, step, pendingCoins } = useSelector((state: RootState) => state.bridge);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
+    const [{ contracts }] = useContracts();
     // const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
     // const { isReady } = useSelector((state: RootState) => state.app);
     const [payAmount, setPayAmount] = useState("0");
@@ -63,6 +65,7 @@ const Submit = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState("");
+    const [{ wallet }] = useConnectWallet();
     const dispatch = useDispatch();
 
     const validationCheck = () => {
@@ -161,7 +164,7 @@ const Submit = () => {
         }
         try {
             dispatch(setLoading({ name: "balance", value: true }));
-            await changeNetwork(chainId);
+            await changeNetwork(chainId, wallet);
             dispatch(resetBridgeStatus(networkId));
             dispatch(setLoading({ name: "balance", value: false }));
         } catch (error) {
@@ -250,7 +253,7 @@ const Submit = () => {
 
         let contract;
         try {
-            contract = contracts.signers[selectedCoin.contract];
+            contract = contracts?.signers[selectedCoin.contract];
         } catch (e) {
             console.log(e);
         }
@@ -273,7 +276,7 @@ const Submit = () => {
 
         try {
             const messageHashBytes = utils.arrayify(messageHash);
-            const mySignature = await contracts.signer.signMessage(messageHashBytes);
+            const mySignature = await contracts?.signer.signMessage(messageHashBytes);
 
             if (mySignature === zeroSignature) {
                 NotificationManager.warning("Signature is not valid. Please refresh it and try it again.");
@@ -325,7 +328,7 @@ const Submit = () => {
                                 coin: selectedCoin.name,
                             })
                         );
-                        changeNetwork(selectedToNetwork.id);
+                        changeNetwork(selectedToNetwork.id, wallet);
                         initBalances();
                     },
                     error: () => {
@@ -352,7 +355,7 @@ const Submit = () => {
             return;
         }
 
-        if (contracts.signers[selectedCoin.contract] === undefined) {
+        if (contracts?.signers[selectedCoin.contract] === undefined) {
             NotificationManager.warning("Please refresh it and try it again.");
             return;
         }
@@ -378,7 +381,7 @@ const Submit = () => {
             console.log(selectedCoin.contract, networkId, transactionSettings);
 
             let transaction;
-            transaction = await contracts.signers[selectedCoin.contract].claimAllBridgedAmounts(transactionSettings);
+            transaction = await contracts?.signers[selectedCoin.contract].claimAllBridgedAmounts(transactionSettings);
             dispatch(
                 updateTransaction({
                     hash: transaction.hash,

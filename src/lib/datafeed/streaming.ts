@@ -8,12 +8,12 @@ export const setUpdatePriceCallBack = (fn) => fnUpdatePrice = fn;
 
 export const setChartInterval = (resolution:string) => {
     const multiplier = {D: 24*60*60*1000, W: 7*24*60*60*1000, M: 30*24*60*60*1000};
-    if (["D", "W", "M"].includes(resolution)) {
-        chartInterval = parseInt(resolution.substring(0, resolution.length - 2)) * multiplier[resolution[resolution.length-1]];
+    if (["1D", "1W", "1M"].includes(resolution)) {
+        chartInterval = parseInt(resolution[0]) * multiplier[resolution[resolution.length-1]];
     } else {
         chartInterval = parseInt(resolution) * 60 * 1000;
     }
-    console.debug("[stream] Set chart interval:", chartInterval);
+    console.debug("[stream] Set chart interval:", chartInterval, resolution);
 };
 
 function handleStreamingData(data) {

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { VictoryPie } from "victory";
-import { contracts } from "lib/contract";
+import { useContracts } from "lib/contract";
 import { formatCurrency } from "lib";
 import { isExchageNetwork } from "lib/network";
 
@@ -23,6 +23,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
     const [chartDatas, setChartDatas] = useState([]);
     const [balances, setBalances] = useState([]);
     const [chartColors, setChartColors] = useState([]);
+    const [{ contracts }] = useContracts();
 
     const getAddressColor = (address) => {
         return `#${address.substr(2, 6)}`;

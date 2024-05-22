@@ -4,11 +4,12 @@ import { Link, useLocation } from "react-router-dom";
 import { RootState } from "reducers";
 import { useSelector, useDispatch } from "react-redux";
 import { clearWallet, clearBalances, updateIsConnect } from "reducers/wallet";
-import { web3Onboard } from "lib/onboard";
+// import { web3Onboard } from "lib/onboard";
 import { changeNetwork, SUPPORTED_NETWORKS, isExchageNetwork, MAINNET, TESTNET } from "lib/network";
 import "./Header.css";
 import { networkInfo } from "configure/networkInfo";
 import { resetBridgeStatus } from "reducers/bridge/bridge";
+import { useConnectWallet } from "@web3-onboard/react";
 // import { get } from "http";
 // const networkColor = {
 //     80001: "#53cbc9",
@@ -17,11 +18,11 @@ import { resetBridgeStatus } from "reducers/bridge/bridge";
 const Header = () => {
     const location = useLocation();
     const dispatch = useDispatch();
-    const { address, networkId } = useSelector((state: RootState) => state.wallet);
+    const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [isMenuList, setIsMenuList] = useState(false);
-    const { isConnect } = useSelector((state: RootState) => state.wallet);
     const [isNetworkList, setIsNetworkList] = useState(false);
     const [networks, setNetworks] = useState({});
+    const [{ wallet }, connect, disconnect] = useConnectWallet();
 
     const getNetworkName = (networkId) => {
         return networkInfo[networkId] === undefined ? "Unsupported Network" : networkInfo[networkId].chainName;
@@ -29,7 +30,7 @@ const Header = () => {
 
     const onConnect = async () => {
         try {
-            await web3Onboard.connect(undefined);
+            await connect();
         } catch (e) {}
     };
 
@@ -60,7 +61,7 @@ const Header = () => {
     }, [dispatch, networkId]);
 
     const onDisConnect = () => {
-        web3Onboard.disconnect();
+        disconnect(wallet);
         localStorage.removeItem("selectedWallet");
         dispatch(clearWallet());
         dispatch(clearBalances());
@@ -181,7 +182,7 @@ const Header = () => {
                                             className="w-full hover:bg-blue-950 cursor-pointer bg-blue-850 px-3 "
                                             key={key}
                                             onClick={() => {
-                                                changeNetwork(key);
+                                                changeNetwork(key, wallet);
                                                 setIsNetworkList(false);
                                                 dispatch(resetBridgeStatus(networkId));
                                             }}
@@ -206,12 +207,7 @@ const Header = () => {
                         <div id="net_caller" className="flex bg-transparent rounded-l-lg text-base ">
                             {SUPPORTED_NETWORKS[networkId] && (
                                 <div id="net_caller" className={`text-gray-400 font-medium text-sm mr-2 my-auto `}>
-                                    {
-                                        /* location.pathname.includes("/bridge") ||
-                                isExchageNetwork(networkId)
-                                    ?  */ address && address.slice(0, 6) + "..." + address.slice(-4, address.length)
-                                        /*  : "" */
-                                    }
+                                    {address && address.slice(0, 6) + "..." + address.slice(-4, address.length)}
                                 </div>
                             )}
                         </div>
@@ -234,12 +230,12 @@ const Header = () => {
                         hover:shadow-slate-300/70 active:shadow-inner active:shadow-slate-700 " ${
                             isConnect ? "rounded-r-lg" : "rounded-lg"
                         }`}
-                    onClick={() => (isConnect ? onDisConnect() : onConnect())}
+                    onClick={() => (wallet ? onDisConnect() : onConnect())}
                 >
                     <img
                         className="w-4 h-4 mx-auto"
                         alt="Connect Button"
-                        src={`/images/icon/power_${isConnect ? "on" : "off"}.png`}
+                        src={`/images/icon/power_${wallet ? "on" : "off"}.png`}
                     />
                 </button>
 
