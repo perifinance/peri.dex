@@ -1,4 +1,4 @@
-import { SwapWidget, darkTheme, Theme } from '@uniswap/widgets'
+// import { SwapWidget, darkTheme, Theme } from '@uniswap/widgets'
 import '@uniswap/widgets/fonts.css'
 import { providers } from 'ethers';
 import { contracts } from 'lib';
@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux'
 import { RootState } from 'reducers'
 import { tokenList } from 'lib/tokenList';
-
+/* 
 const theme: Theme = {
 	"accent": "hsl(221, 96%, 64%)",
 	"accentSoft": "rgba(75,131,251,0.24)",
@@ -34,7 +34,7 @@ const theme: Theme = {
 	"warning": "hsl(44, 86%, 51%)",
 	"error": "hsla(5, 97%, 71%, 1)",
 	"currentColor": "currentColor"
-}
+} */
 interface ProviderMessage {
 	type: string;
 	data: unknown;
@@ -61,7 +61,7 @@ export default function UniswapWidget() {
 		console.error(error);
 	}
 	useEffect(() => {
-		console.log(darkTheme);
+		// console.log(darkTheme);
 		if (!isReady || !networkId) return;
 		setPeriAddress(tokenList.find(token => token.symbol === "PERI" && token.chainId === networkId)?.address);
 		setPUSDAddress(tokenList.find(token => token.symbol === "pUSD" && token.chainId === networkId)?.address);
@@ -87,8 +87,8 @@ export default function UniswapWidget() {
 	return (
 		<div className='w-full h-full lg:h-[82%] flex justify-center items-center'>
 			<div className="Uniswap h-[50%]">
-				<SwapWidget 
-					/* width={"100%"} */
+				{/* <SwapWidget 
+					width={"100%"}
 					theme={theme}
 					// defaultChainId={Number(networkId)}
 					onError={onWidgetError}
@@ -98,7 +98,7 @@ export default function UniswapWidget() {
 					defaultOutputTokenAddress={pUSDAddress}
 					// jsonRpcUrlMap={RPC_URLS[networkId]} 
 					// tokenList={tokenList} 
-				/>
+				/> */}
 			</div>
 		</div>
 	);
