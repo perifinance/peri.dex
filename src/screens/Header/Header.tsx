@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { RootState } from "reducers";
 import { useSelector, useDispatch } from "react-redux";
 import { clearWallet, clearBalances, updateIsConnect } from "reducers/wallet";
-// import { web3Onboard } from "lib/onboard";
+import { web3Onboard } from "lib/onboard";
 import { changeNetwork, SUPPORTED_NETWORKS, isExchageNetwork, MAINNET, TESTNET } from "lib/network";
 import "./Header.css";
 import { networkInfo } from "configure/networkInfo";
@@ -22,7 +22,7 @@ const Header = () => {
     const [isMenuList, setIsMenuList] = useState(false);
     const [isNetworkList, setIsNetworkList] = useState(false);
     const [networks, setNetworks] = useState({});
-    const [{ wallet }, connect, disconnect] = useConnectWallet();
+    // const [{ wallet }, connect, disconnect] = useConnectWallet();
 
     const getNetworkName = (networkId) => {
         return networkInfo[networkId] === undefined ? "Unsupported Network" : networkInfo[networkId].chainName;
@@ -30,7 +30,8 @@ const Header = () => {
 
     const onConnect = async () => {
         try {
-            await connect();
+            // await connect();
+            await web3Onboard.connect(undefined);
         } catch (e) {}
     };
 
@@ -61,7 +62,8 @@ const Header = () => {
     }, [dispatch, networkId]);
 
     const onDisConnect = () => {
-        disconnect(wallet);
+        // disconnect(wallet);
+        web3Onboard.disconnect();
         localStorage.removeItem("selectedWallet");
         dispatch(clearWallet());
         dispatch(clearBalances());
@@ -182,7 +184,8 @@ const Header = () => {
                                             className="w-full hover:bg-blue-950 cursor-pointer bg-blue-850 px-3 "
                                             key={key}
                                             onClick={() => {
-                                                changeNetwork(key, wallet);
+                                                // Todo: change network
+                                                // changeNetwork(key, wallet);
                                                 setIsNetworkList(false);
                                                 dispatch(resetBridgeStatus(networkId));
                                             }}
@@ -230,12 +233,12 @@ const Header = () => {
                         hover:shadow-slate-300/70 active:shadow-inner active:shadow-slate-700 " ${
                             isConnect ? "rounded-r-lg" : "rounded-lg"
                         }`}
-                    onClick={() => (wallet ? onDisConnect() : onConnect())}
+                    onClick={() => (isConnect ? onDisConnect() : onConnect())}
                 >
                     <img
                         className="w-4 h-4 mx-auto"
                         alt="Connect Button"
-                        src={`/images/icon/power_${wallet ? "on" : "off"}.png`}
+                        src={`/images/icon/power_${isConnect ? "on" : "off"}.png`}
                     />
                 </button>
 

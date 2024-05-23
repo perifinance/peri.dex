@@ -5,14 +5,10 @@ import { NotificationContainer, NotificationManager } from "react-notifications"
 import { RootState } from "reducers";
 
 import { updateAddress, updateNetwork, updateIsConnect, clearWallet } from "reducers/wallet";
-// import { clearWallet, clearBalances } from 'reducers/wallet'
 import { resetTransaction } from "reducers/transaction";
 import { initCoinList } from "reducers/coin/coinList";
 import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { setAppReady } from "reducers/app";
-// import { changeNetwork } from 'lib/network'
-
-// import { web3Onboard } from "lib/onboard/web3Onboard";
 import { useContracts } from "lib/contract";
 import { getCoinList } from "lib/coinList";
 
@@ -25,11 +21,10 @@ import { extractMessage } from "lib/error";
 import { getBridgeCost } from "lib/bridge/getBridgeCost";
 import { setCost } from "reducers/bridge/bridge";
 import { init, useWallets, useConnectWallet } from "@web3-onboard/react";
-import { getInitOptions } from "lib/onboard";
+import { getInitOptions, web3Onboard } from "lib/onboard";
 import { providers } from "ethers";
 
-
-init(getInitOptions('dark', false));
+// init(getInitOptions('dark', false));
 const App = () => {
     const { networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
@@ -37,10 +32,9 @@ const App = () => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { isReady } = useSelector((state: RootState) => state.app);
     const [rateTickers, setRateTickers] = useState({});
-    
 
-    const [{ wallet }, connect] = useConnectWallet();
-    const connectedWallets = useWallets();
+    // const [{ wallet }, connect] = useConnectWallet();
+    // const connectedWallets = useWallets();
     const [{ contracts, IsContractsReady }, initContracts, connectContracts, clearContracts] = useContracts();
 
     const dispatch = useDispatch();
@@ -60,18 +54,18 @@ const App = () => {
 
         // dispatch(updateNetwork({ networkId: networkId }));
         try {
-            /* web3Onboard.init(
+            web3Onboard.init(
                 {
                     wallet: async (wallet) => {
                         if (wallet?.provider !== undefined) {
-                            contracts.wallet = wallet;
+                            // contracts.wallet = wallet;
                             localStorage.setItem("selectedWallet", wallet.label);
                             dispatch(setCost({}));
                         } else {
                             contracts.clear();
                         }
                     },
-                    address: async (newAddress) => {
+                    address: async (provider, newAddress) => {
                         // console.log('contract connect call in address', newAddress);
 
                         try {
@@ -80,7 +74,7 @@ const App = () => {
                                 dispatch(clearWallet());
                                 dispatch(updateAddress({ address: null }));
                             } else {
-                                contracts.connect(newAddress, setIsAppReady);
+                                contracts.connect(provider, newAddress);
                                 dispatch(updateIsConnect(true));
                                 dispatch(updateAddress({ address: newAddress }));
                             }
@@ -106,7 +100,7 @@ const App = () => {
                 },
                 themeState,
                 false
-            ); */
+            );
         } catch (e) {
             console.log(e);
             localStorage.clear();
@@ -117,13 +111,18 @@ const App = () => {
         if (selectedWallet) {
             try {
                 const options = selectedWallet ? { autoSelect: { label: selectedWallet, disableModals: true } } : undefined;
-                await connect(options);
+                // await connect(options);
+                await web3Onboard.connect(options);
             } catch (e) {
                 console.log(e);
             }
         }
 
         // dispatch(setAppReady());
+    };
+
+    const setIsAppReady = () => {
+        dispatch(setAppReady());
     };
 
     const getState = useCallback(async () => {
@@ -160,7 +159,7 @@ const App = () => {
         IsContractsReady && dispatch(setAppReady());
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [IsContractsReady]);
-
+/* 
     useEffect(() => {
 
         if (wallet) {
@@ -203,7 +202,7 @@ const App = () => {
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [connectedWallets]);
-
+ */
     useEffect(() => {
         if (transaction.hash) {
             getState();

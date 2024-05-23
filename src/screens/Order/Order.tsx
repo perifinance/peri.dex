@@ -402,12 +402,12 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     }, [isReady, networkId, getFeeRate]);
 
     useEffect(() => {
-        if (isReady && SUPPORTED_NETWORKS[networkId]) {
+        if (SUPPORTED_NETWORKS[networkId]) {
             getNetworkFeePrice();
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getNetworkFeePrice]);
+    }, [getNetworkFeePrice, isReady]);
 
     useEffect(() => {
         if (isReady && isConnect && address) {

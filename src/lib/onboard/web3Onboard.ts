@@ -33,9 +33,9 @@ type Web3Onboard = {
     selectedAddress: string;
     selectedNetwork: string;
     init: (subscriptions: any, colorMode: string, autoConnect: boolean) => void;
-    connect: (walletLabel: any) => Promise<void>;
+    connect: (walletLabel: any|void) => Promise<void>;
     disconnect: () => void;
-    address: (address: any) => void;
+    address: (provider:any, address: any) => void;
     network: (networkId: any) => void;
     wallet: (wallet: WalletState) => void;
     _onWalletUpdated: (wallets: WalletState[]) => void;
@@ -222,13 +222,13 @@ export const web3Onboard: Web3Onboard = {
             web3Onboard.selectedNetwork = chainId;
             web3Onboard.network(chainId);
             web3Onboard.selectedAddress = address;
-            web3Onboard.address(address);
+            web3Onboard.address(primaryWallet.provider, address);
         }
 
         if (web3Onboard.selectedAddress !== address) {
             // console.log(`walletUpdated->  address: ${address}`);
             web3Onboard.selectedAddress = address;
-            web3Onboard.address(address);
+            web3Onboard.address(primaryWallet.provider, address);
         }
 
         if (!primaryWallet?.provider) {

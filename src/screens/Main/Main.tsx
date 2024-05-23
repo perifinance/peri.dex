@@ -203,7 +203,10 @@ const Main = () => {
             clearInterval(setIntervals);
         }
 
-        return () => clearInterval(setIntervals);
+        return () => {
+            clearTimeout(timeout);
+            clearInterval(setIntervals);
+        }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, networkId]);
