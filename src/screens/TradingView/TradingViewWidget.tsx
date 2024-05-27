@@ -19,6 +19,8 @@ import { setChartInterval } from "lib/datafeed";
 // import { updateCoin } from "reducers/coin/coinList";
 // import { updateLastRateData } from "reducers/rates";
 import { useMediaQuery } from "react-responsive";
+import useSelectedCoin from "hooks/useSelectedCoin";
+// import { setSelectedCoin } from "reducers/coin/selectedCoin";
 
 const getLanguageFromURL = (): LanguageCode | null => {
     const regex = new RegExp("[\\?&]lang=([^&#]*)");
@@ -26,17 +28,18 @@ const getLanguageFromURL = (): LanguageCode | null => {
     return results === null ? null : (decodeURIComponent(results[1].replace(/\+/g, " ")) as LanguageCode);
 };
 
-export default function TradingViewWidget({setSelectedCoin, isBuy}) {
+export default function TradingViewWidget({isBuy}) {
     // const dispatch = useDispatch();
     const { coinList } = useSelector((state: RootState) => state.coinList);
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
-
+    // const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const [tvWidget, setTvWidget] = useState<IChartingLibraryWidget>(null);
     const [chart, setChart] = useState<IChartWidgetApi>(null);
-
-    const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const [feeder, setFeeder] = useState(null);
     const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+
+    const [{ selectedCoins }, setSelectedCoin] = useSelectedCoin();
+    const { destination } = selectedCoins;
     // const isNarrowMobile = useMediaQuery({ query: `(max-width: 320px)` });
 
     const createWidget = () => {
@@ -193,7 +196,7 @@ export default function TradingViewWidget({setSelectedCoin, isBuy}) {
         isBuy 
                 ? (overridesOptions["paneProperties.backgroundGradientEndColor"] = "#042044")
                 : (overridesOptions["paneProperties.backgroundGradientEndColor"] = "#221237");
-        tvWidget && tvWidget.applyOverrides(overridesOptions);
+        tvWidget?.applyOverrides(overridesOptions);
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isBuy]);
@@ -213,7 +216,11 @@ export default function TradingViewWidget({setSelectedCoin, isBuy}) {
         datafeed.destination = destination;
         setFeeder(datafeed);
 
-        return () => tvWidget && tvWidget.remove();
+        return () => {
+            tvWidget?.remove();
+            setTvWidget(null);
+            setFeeder(null);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

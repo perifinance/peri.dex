@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 export type AppSliceState = {
 	isReady: boolean;
@@ -14,8 +14,8 @@ export const appSlice = createSlice({
 	name: sliceName,
 	initialState,
 	reducers: {
-		setAppReady: state => {
-			return {...state, isReady: true};
+		setAppReady(state, actions: PayloadAction<boolean>) {
+			return {...state, isReady: actions.payload};
 		},
 	},
 });

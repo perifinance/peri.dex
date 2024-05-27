@@ -7,7 +7,7 @@ import theme from "./theme/theme";
 
 import exchangeRates from "./rates/exchangeRates";
 
-import networkFee from "./networkFee/networkFee";
+// import networkFee from "./networkFee/networkFee";
 
 import transaction from "./transaction/transaction";
 
@@ -27,7 +27,7 @@ const reducers = combineReducers({
 	balances,
 	pynthBlances,
 	exchangeRates,
-	networkFee,
+	// networkFee,
 	transaction,
 	loading,
 	coinList,

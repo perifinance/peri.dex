@@ -17,21 +17,24 @@ import TradingViewWidget from "screens/TradingView/TradingViewWidget";
 import { useMediaQuery } from "react-responsive";
 // import { getPreCloses/* , getSymbolTicker */ } from "lib/pyth";
 import { getRatePreCloses } from "lib/thegraph/api/getRateTickers";
-import { updateLastRateData } from "reducers/rates";
+import useInterval from "hooks/useInterval";
+// import { updateLastRateData } from "reducers/rates";
+// import { toNumber } from "lib/bigInt";
 
 const ExchangeTV = () => {
     const dispatch = useDispatch();
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
-    const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
-    const { coinList } = useSelector((state: RootState) => state.coinList);
+    // const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
+    const { coinList, symbolMap } = useSelector((state: RootState) => state.coinList);
     const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState("destination");
     const [balance, setBalance] = useState([0n, 0n]);
     const [isHide, setIsHide] = useState(true);
     const [isBuy, setIsBuy] = useState(true);
-    const isXLargePanel = useMediaQuery({ query: `(max-width: 1280px)` });
-    const [timeInterval, setTimeInterval] = useState(null);
+    const isNotWideDevice = useMediaQuery({ query: `(max-width: 1280px)` });
+    // const [timeInterval, setTimeInterval] = useState(null);
+    const { initInterval, stopInterval } = useInterval();
 
     const openCoinList = (type) => {
         if (!isConnect) {
@@ -55,41 +58,20 @@ const ExchangeTV = () => {
         setIsCoinList(true);
     };
 
-    const setSelectedCoin = (symbol, type = "destination") => {
-        if (destination && destination.symbol === symbol) return;
-
-        const index = coinList.findIndex((e) => e.symbol === symbol);
-
-        if (index !== -1) {
-            const coin = coinList[index];
-            console.debug("setSelectedCoin", coin, type);
-            if ([coinListType, type].includes("source")) {
-                dispatch(setSourceCoin(coin));
-            } else if ([coinListType, type].includes("destination")) {
-                dispatch(setDestinationCoin(coin));
-            }
-            const rate = coinList[index].price;
-            dispatch(updateLastRateData({...lastRateData, symbols: coin.symbol, index, rate}));
-        } else {
-            console.debug("setSelectedCoin index not found", symbol, type);
-        }
-    };
-
     const closeCoinList = () => {
         setIsCoinList(false);
         setTimeout(() => setIsHide(true), 900);
     };
 
     const init = () => {
-        const tmpCoinList = [...coinList];
-        tmpCoinList.forEach((e) => {
+        coinList.forEach((e) => {
             const coin = { ...e };
             getRatePreCloses(coin.symbol).then((data) => {
                 // console.debug("updatePreClose dispatch", data);
                 if (data.timestamp > 0) {
-                    coin.preClose = data.preClose;
-                    coin.timestamp = data.timestamp;
-                    dispatch(updatePreClose(coin));
+                    // coin.preClose = data.preClose;
+                    // coin.timestamp = data.timestamp;
+                    dispatch(updatePreClose({preClose: data.preClose, symbol: coin.symbol}));
                 }
             });
         });
@@ -107,15 +89,12 @@ const ExchangeTV = () => {
     useEffect(() => {
         // console.log("coinList", coinList, isConnect);
         if (!isConnect || coinList.length === 0) {
-            if (timeInterval) clearInterval(timeInterval);
+            stopInterval();
             return;
         }
 
-        const interval = setInterval(init, 60000 * 5);
+        initInterval(init, 60000 * 5);
 
-        setTimeInterval(interval);
-
-        return () => clearInterval(interval);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, coinList.length]);
 
@@ -130,8 +109,6 @@ const ExchangeTV = () => {
                     <CoinList
                         isHide={false}
                         isCoinList={true}
-                        coinListType={"destination"}
-                        setSelectedCoin={setSelectedCoin}
                         closeCoinList={closeCoinList}
                         isSideBar={false}
                         isBuy={isBuy}
@@ -139,17 +116,16 @@ const ExchangeTV = () => {
                 </div>
                 <div className="lg:flex-col w-full lg:space-y-1">
                     <div className="w-full lg:min-h-[45%] h-full lg:h-[67%] bg-blue-850 lg:rounded-lg ">
-                        <TradingViewWidget setSelectedCoin={setSelectedCoin} isBuy={isBuy}/>
+                        <TradingViewWidget isBuy={isBuy} />
                     </div>
                     <div className="hidden lg:flex w-full lg:h-[32.5%]">
-                        <OrderHistories balance={balance} isBuy={isBuy}/>
+                        <OrderHistories balance={balance} isBuy={isBuy} />
                     </div>
                 </div>
             </div>
             <div className={`w-full lg:w-[25%] lg:h-full h-fit relative`}>
                 <Order
                     isCoinList={isCoinList}
-                    coinListType={coinListType}
                     closeCoinList={closeCoinList}
                     openCoinList={openCoinList}
                     balance={balance}
@@ -158,12 +134,10 @@ const ExchangeTV = () => {
                     setIsBuy={setIsBuy}
                 />
 
-                {isXLargePanel && (
+                {isNotWideDevice && (
                     <CoinList
                         isHide={isHide}
                         isCoinList={isCoinList}
-                        coinListType={coinListType}
-                        setSelectedCoin={setSelectedCoin}
                         closeCoinList={closeCoinList}
                         isBuy={isBuy}
                     />

@@ -1,29 +1,30 @@
-import { /* React, */ useCallback, useEffect, useState } from "react";
-import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
+import React, { useCallback, useEffect, useRef } from "react";
+import { /* BrowserRouter as Router, */ Switch, Route, Redirect, useLocation } from "react-router-dom";
 
-import Header from "../Header";
 import Assets from "pages/Assets";
-import { Exchange, ExchangeTV } from "pages/Exchange";
+import { ExchangeTV } from "pages/Exchange";
 // import Futures from "pages/Futures";
 import Bridge from "pages/Bridge";
-import Loading from "components/loading";
 // import { setLoading } from "reducers/loading/loading";
-import { useContracts } from "lib/contract";
+import { useContracts } from "lib";
 import { useDispatch, useSelector } from "react-redux";
+// import { useAppSelector } from "store";
 import { RootState } from "reducers";
 import { TESTNET, MAINNET, SUPPORTED_NETWORKS } from "lib/network";
 import { updateBridgeStatus } from "reducers/bridge/bridge";
 import Portfolio from "pages/Portfolio/Portfolio";
 import { getBalances } from "lib/thegraph/api";
-import { toBigInt, toNumber } from "lib/bigInt";
 import { initPynthBalance, /* updatePynthBalances */ } from "reducers/wallet/pynthBlances";
 import { PynthBalance } from "reducers/wallet/pynthBlances";
 import { setLoading } from "reducers/loading";
 import { updateCoin } from "reducers/coin/coinList";
-import { updateLastRateData } from "reducers/rates";
 import { subscribeOnStreamByMain } from "lib/datafeed";
-import Swap from "pages/swap/Swap";
-import { setAppReady } from "reducers/app";
+import Swap from "pages/swap";
+import useInterval from "hooks/useInterval";
+import { toNumber } from "lib/bigInt";
+// import Loading from "components/loading";
+// import Header from "screens/Header";
+// import { setAppReady } from "reducers/app";
 
 const Main = () => {
     // const { isConnect } = useSelector((state: RootState) => state.wallet);
@@ -31,11 +32,13 @@ const Main = () => {
     const { obsolete } = useSelector((state: RootState) => state.bridge);
     const { isReady } = useSelector((state: RootState) => state.app);
     // const { balancePynths } = useSelector((state: RootState) => state.pynthBlances);
-    const { coinList } = useSelector((state: RootState) => state.coinList);
+    const { coinList, symbolMap } = useSelector((state: RootState) => state.coinList);
     const { destination } = useSelector((state: RootState) => state.selectedCoin);
     const dispatch = useDispatch();
     const [{ contracts }] = useContracts();
-    const [stopUpdate, setStopUpdate] = useState(false);
+    const location = useLocation();
+    const { initInterval, stopInterval } = useInterval();
+    // const history = useHistory();
 
     const getInboundings = async () => {
         if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !contracts) {
@@ -55,18 +58,18 @@ const Main = () => {
                     : TESTNET
                 : MAINNET;
             Object.keys(contractName).forEach(async (key) => {
-                if (contracts[contractName[key]] === undefined) {
+                if (contracts || contracts[contractName[key]] === undefined) {
                     // console.log('contracts[contractName[key]] === undefined', contracts[contractName[key]]);
                     return;
                 }
                 const ids = await contracts[contractName[key]].applicableInboundIds(address);
 
                 let datas = [];
-                let totalAmount = 0n;
+                let totalAmount = 0;
                 for (let id of ids) {
                     let inbounding = await contracts[contractName[key]].inboundings(id);
                     // console.log(inbounding);
-                    const amount = BigInt(inbounding.amount);
+                    const amount = toNumber(inbounding.amount);
                     totalAmount = totalAmount + amount;
                     datas.push({
                         amount,
@@ -79,11 +82,13 @@ const Main = () => {
 
                 promiseData.forEach((data) => {
                     if (returnValue[data.srcChainId]) {
-                        returnValue[data.srcChainId] = returnValue[data.srcChainId] + data.amount;
+                        returnValue[data.srcChainId] = returnValue[data.srcChainId] + toNumber(data.amount);
                     } else {
-                        returnValue[data.srcChainId] = data.amount;
+                        returnValue[data.srcChainId] = toNumber(data.amount);
                     }
                 });
+
+                console.log("returnValue", returnValue);
 
                 dispatch(updateBridgeStatus({ coin: key, total: totalAmount, pendings: returnValue }));
             });
@@ -97,33 +102,38 @@ const Main = () => {
 
         try {
             const keys = data?.id?.split(".")[1].split("/");
+            // const keys = data?.id;
 
-            const idxFind = coinList.findIndex((e) => e.key === keys[0]);
-            if (idxFind === -1 || keys[1] !== "USD"/*  || !coinList[idxFind]?.timestamp */) {
-                // console.log("updatePrice", idxFind, keys, coinList[idxFind]);
+            // console.log("updatePrice", symbolMap);
+            const idx = symbolMap[`p${keys[0]}`];
+            if (!idx || keys[1] !== "USD") {
+
+                // console.log("updatePrice idx not found idx:", idx);
                 return;
             }
 
             // console.log("updatePrice", data);
-            const bnPrice = toBigInt(data.p);
+            const coin = coinList[idx];
+            const price = Number(data.p);
             const newCoin = {
-                ...coinList[idxFind],
-                price: bnPrice,
+                ...coin,
+                price,
                 timestamp: data.t,
             };
+            // console.log("updatePrice", newCoin);
             dispatch(updateCoin(newCoin));
 
-            if (isConnect && destination.symbol === coinList[idxFind].symbol) {
+            /* if (destination.symbol === coin.symbol) {
                 const lastRateData = {
                     timestamp: data.t,
-                    rate: bnPrice,
-                    symbols: data?.id?.split(".")[1],
-                    index: idxFind,
+                    rate: price,
+                    symbol: coin.symbol,
+                    index: idx,
                 };
 
                 // console.log("lastRateData", lastRateData);
                 dispatch(updateLastRateData(lastRateData));
-            }
+            } */
         } catch (err) {
             console.error(err);
         }
@@ -145,9 +155,9 @@ const Main = () => {
             // let rates = await getLastRates({ currencyName: govCoin[networkId] });
             let balancePynths = (await getBalances({ networkId, address })) as Array<PynthBalance>;
 
-            balancePynths.sort((a, b) => toNumber(b.amount - a.amount));
+            balancePynths.sort((a, b) => b.amount - a.amount);
 
-            // console.log("balancePynths", balancePynths);
+            console.log("setPynthBalances", balancePynths);
 
             dispatch(initPynthBalance({ balancePynths }));
         } catch (e) {
@@ -162,7 +172,7 @@ const Main = () => {
     }, [networkId, address, isReady]);
 
     useEffect(() => {
-        console.log("setPynthBalances", isReady);
+        // console.log("setPynthBalances", isReady);
         /* if (balancePynths?.length === 0) { */
             setPynthBalances();
         /* }  */
@@ -170,80 +180,67 @@ const Main = () => {
     }, [setPynthBalances]);
 
     useEffect(() => {
-        console.log('useEffect obsolete', obsolete);
+        // console.log('useEffect obsolete', obsolete);
         getInboundings();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [obsolete]);
 
     useEffect(() => {
-        console.log("coinList", coinList, isConnect);
-        !stopUpdate 
-            ? coinList.length && subscribeOnStreamByMain(updatePrice)
-            : subscribeOnStreamByMain(null);
-        
+        console.log("Main useEffect coinList", location.pathname);
+        ["/assets" , "/exchange"].includes(location.pathname) && coinList.length
+        ? subscribeOnStreamByMain(updatePrice)
+        : subscribeOnStreamByMain(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [coinList.length, destination?.symbol, isConnect, stopUpdate]);
+    }, [coinList.length, destination?.symbol, isConnect, location]);
 
     useEffect(() => {
-        console.log("isConnect", isConnect, networkId);
+        return () => {
+            console.log("Main useEffect return");
+            subscribeOnStreamByMain(null);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        // console.log("isConnect", isConnect, networkId);
         if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
             return;
         }
 
-        const timeout = setTimeout(() => {
+        setTimeout(() => {
             getInboundings();
         }, 1000);
 
-        const setIntervals = setInterval(() => {
-            getInboundings();
-        }, 1000 * 60);
-
-        if (!isConnect) {
-            clearTimeout(timeout);
-            clearInterval(setIntervals);
-        }
-
-        return () => {
-            clearTimeout(timeout);
-            clearInterval(setIntervals);
-        }
+        initInterval(() => getInboundings(), 1000 * 60);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, networkId]);
 
     return (
-        <div className="flex flex-col text-sm w-screen h-fit lg:h-screen dark:text-inherent dark:bg-inherit font-Montserrat font-normal">
-            <Loading></Loading>
-            <div className="flex flex-col items-center w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen space-y-1 ">
-                <Router>
-                    <Header></Header>
-                    <Switch>
-                        <Route path="/assets">
-                            <Assets />
-                        </Route>
-                        <Route path="/exchange">
-                            <ExchangeTV />
-                        </Route>
-                        <Route path="/swap">
-                            <Swap setStopUpdate={setStopUpdate}/>
-                        </Route>
-                        <Route exact path="/bridge">
-                            <Redirect to="/bridge/submit"></Redirect>
-                        </Route>
-                        <Route exact path="/bridge/submit">
-                            <Bridge />
-                        </Route>
-                        <Route exact path="/portfolio">
-                            <Portfolio />
-                        </Route>
+        <Switch>
+            <Route path="/assets">
+                <Assets />
+            </Route>
+            <Route path="/exchange">
+                <ExchangeTV />
+            </Route>
+            <Route path="/swap">
+                <Swap/>
+            </Route>
+            <Route exact path="/bridge">
+                <Redirect to="/bridge/submit"></Redirect>
+            </Route>
+            <Route exact path="/bridge/submit">
+                <Bridge />
+            </Route>
+            <Route exact path="/portfolio">
+                <Portfolio />
+            </Route>
 
-                        <Route path="/">
-                            <Redirect to="/exchange"></Redirect>
-                        </Route>
-                    </Switch>
-                </Router>
-            </div>
-        </div>
+            <Route path="/">
+                <Redirect to="/exchange"></Redirect>
+            </Route>
+        </Switch>
     );
 };
 export default Main;

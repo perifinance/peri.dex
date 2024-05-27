@@ -1,2 +1,2 @@
-export { web3Onboard } from "./web3Onboard";
-export { getInitOptions } from "./onboard";
+export * from "./web3Onboard";
+export * from "./web3OnboardProvider";

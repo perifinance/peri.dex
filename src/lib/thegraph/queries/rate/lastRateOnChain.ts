@@ -59,7 +59,7 @@ export const lastRateOnChain = async (networkId, currencyName = undefined) => {
 
 	const pynth = pynths[networkId].find((p) => p.symbol === currencyName);
 	// console.log("lastRate", networkId, currencyName, pynthAddress, contracts.provider);
-	if (pynth.priceFeedContract && contracts.provider) {
+	if (pynth.priceFeedContract && contracts?.provider) {
 		try {
 			const contract = new ethers.Contract(
 				pynth.priceFeedContract,

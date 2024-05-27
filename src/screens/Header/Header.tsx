@@ -4,25 +4,28 @@ import { Link, useLocation } from "react-router-dom";
 import { RootState } from "reducers";
 import { useSelector, useDispatch } from "react-redux";
 import { clearWallet, clearBalances, updateIsConnect } from "reducers/wallet";
-import { web3Onboard } from "lib/onboard";
+import { useConnectWallet } from "lib/onboard";
 import { changeNetwork, SUPPORTED_NETWORKS, isExchageNetwork, MAINNET, TESTNET } from "lib/network";
 import "./Header.css";
 import { networkInfo } from "configure/networkInfo";
 import { resetBridgeStatus } from "reducers/bridge/bridge";
-import { useConnectWallet } from "@web3-onboard/react";
+import useOnClickOutsideRef from "hooks/useOnClickOutsideRef";
+import { set } from "lodash";
 // import { get } from "http";
 // const networkColor = {
 //     80001: "#53cbc9",
 // };
 
 const Header = () => {
-    const location = useLocation();
-    const dispatch = useDispatch();
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [isMenuList, setIsMenuList] = useState(false);
     const [isNetworkList, setIsNetworkList] = useState(false);
     const [networks, setNetworks] = useState({});
-    // const [{ wallet }, connect, disconnect] = useConnectWallet();
+    const [{ wallet }, connect, disconnectWallet] = useConnectWallet();
+    const location = useLocation();
+    const dispatch = useDispatch();
+    const menuRef = useOnClickOutsideRef(setIsMenuList, isMenuList, "menu_caller");
+    const netRef = useOnClickOutsideRef(setIsNetworkList, isNetworkList, "net_caller");
 
     const getNetworkName = (networkId) => {
         return networkInfo[networkId] === undefined ? "Unsupported Network" : networkInfo[networkId].chainName;
@@ -30,25 +33,10 @@ const Header = () => {
 
     const onConnect = async () => {
         try {
-            // await connect();
-            await web3Onboard.connect(undefined);
+            await connect();
+            // await web3Onboard.connect(undefined);
         } catch (e) {}
     };
-
-    const netRef = useRef<HTMLDivElement>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
-    const closeModalHandler = useCallback(
-        (e) => {
-            if (isNetworkList && e.target.id !== "net_caller" && !netRef.current?.contains(e.target)) {
-                setIsNetworkList(false);
-            }
-
-            if (isMenuList && e.target.id !== "menu_caller" && !menuRef.current?.contains(e.target)) {
-                setIsMenuList(false);
-            }
-        },
-        [isMenuList, isNetworkList]
-    );
 
     useEffect(() => {
         setIsMenuList(false);
@@ -62,22 +50,14 @@ const Header = () => {
     }, [dispatch, networkId]);
 
     const onDisConnect = () => {
-        // disconnect(wallet);
-        web3Onboard.disconnect();
-        localStorage.removeItem("selectedWallet");
-        dispatch(clearWallet());
-        dispatch(clearBalances());
-        dispatch(updateIsConnect(false));
-        dispatch(resetBridgeStatus(networkId));
+        disconnectWallet(wallet);
+
+        // localStorage.removeItem("selectedWallet");
+        // dispatch(clearWallet());
+        // dispatch(clearBalances());
+        // dispatch(updateIsConnect(false));
+        // dispatch(resetBridgeStatus(networkId));
     };
-
-    useEffect(() => {
-        window.addEventListener("click", closeModalHandler);
-
-        return () => {
-            window.removeEventListener("click", closeModalHandler);
-        };
-    }, [closeModalHandler]);
 
     return (
         <header className="flex flex-row justify-between items-center h-[6%] sm:h-[8%] -mt-1 lg:mt-0 p-2">
@@ -184,8 +164,7 @@ const Header = () => {
                                             className="w-full hover:bg-blue-950 cursor-pointer bg-blue-850 px-3 "
                                             key={key}
                                             onClick={() => {
-                                                // Todo: change network
-                                                // changeNetwork(key, wallet);
+                                                changeNetwork(key, wallet);
                                                 setIsNetworkList(false);
                                                 dispatch(resetBridgeStatus(networkId));
                                             }}

@@ -8,27 +8,26 @@ import { useContracts } from "lib";
 import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
-import { getNetworkPrice } from "lib/price";
 // import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { SUPPORTED_NETWORKS, isExchageNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
-import { setLoading } from "reducers/loading";
 import { natives, networkInfo } from "configure/networkInfo";
 import { getSafeSymbol } from "lib/coinList";
 // import { updateLastRateData } from "reducers/rates";
 import { useMediaQuery } from "react-responsive";
 import "css/Order.css";
 import RangeInput from "./RangeInput";
-// import { updatePrice } from "reducers/coin/coinList";
 import { toWei } from "web3-utils";
 import { toBytes32, toBigInt, toBigNumber, fromBigNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
+// import useSelectedCoin from "hooks/useSelectedCoin";
+import TickerBar from "./TickerBar";
 // import { resetChartData } from "reducers/chart/chart";
 
 type OrderProps = {
     openCoinList: Function;
     balance: any;
-    coinListType?: any;
+    // coinListType?: any;
     setBalance: Function;
     isCoinList?: boolean;
     closeCoinList?: Function;
@@ -41,50 +40,46 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     const { isReady } = useSelector((state: RootState) => state.app);
     const { networkId, address, isConnect } = useSelector((state: RootState) => state.wallet);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
-    const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
-    const { coinList } = useSelector((state: RootState) => state.coinList);
+    const { source, destination } = selectedCoins;
+    const { coinList, symbolMap } = useSelector((state: RootState) => state.coinList);
     const isOrderMin = useMediaQuery({ query: `(min-height: 880px)` });
     const isLaptop = useMediaQuery({ query: `(min-height: 768px)` });
     const [{ contracts }] = useContracts();
 
-    const [sourceRate, setSourceRate] = useState(0n);
+    // const [sourceRate, setSourceRate] = useState(0n);
     const [per, setPer] = useState(0n);
 
     const [feeRate, setFeeRate] = useState(0n);
     const [networkFeePrice, setNetworkFeePrice] = useState(0n);
     const [gasPrice, setGasPrice] = useState("0");
     const [gasLimit, setGasLimit] = useState(0n);
-    // const [gasLimit, setGasLimit] = useState(0n);
     const [price, setPrice] = useState(0n);
-    // const [networkRate, setNetworkRate] = useState(0n);
     const [feePrice, setFeePrice] = useState(0n);
 
     const [payAmount, setPayAmount] = useState("");
-    // const [payAmountToUSD, setPayAmountToUSD] = useState(0n);
     const [receiveAmount, setReceiveAmount] = useState("");
-    // const [balance, setBalance] = useState(0n);
     const [isPending, setIsPending] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState("");
-    // const [isBuy, setIsBuy] = useState(true);
     const [isPayCoin, setIsPayCoin] = useState(false);
     const [inputAmt, setInputAmt] = useState<string | number>("");
     const [nativeIndex, setNativeIndex] = useState(-1);
+    const [idxTarget, setIdxTarget] = useState(1);
 
     // Todo: Implement the following functions when neeeded
     /* const getRate = useCallback(async () => {
         try {
-            if (!isExchageNetwork(networkId) || !selectedCoins.destination.symbol) {
+            if (!isExchageNetwork(networkId) || !destination.symbol) {
                 return;
             }
 
-            const rates = await getLastRates([selectedCoins.source.symbol, selectedCoins.destination.symbol]);
+            const rates = await getLastRates([source.symbol, destination.symbol]);
             if (rates === undefined) return;
 
             const tmp = { src: { price: 10n ** 18n, timestamp: 0 }, dest: { price: 10n ** 18n, timestamp: 0 } };
             const twoCoin = {};
             rates.forEach((item) => {
-                if (`p${item.currencyKey}` === selectedCoins.source.symbol) {
+                if (`p${item.currencyKey}` === source.symbol) {
                     tmp.src.price = item.price;
                     tmp.src.timestamp = item.timestamp;
                 } else {
@@ -97,7 +92,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             const lastRateData = {
                 timestamp: timeStamp,
                 rate: (tmp.dest.price * 10n ** 18n) / tmp.src.price,
-                symbols: `${selectedCoins.source.symbol}/${selectedCoins.destination.symbol}`,
+                symbols: `${source.symbol}/${destination.symbol}`,
             };
 
             dispatch(updateLastRateData(lastRateData));
@@ -110,15 +105,15 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     }, [selectedCoins]); */
 
     const getFeeRate = useCallback(async () => {
-        if (!selectedCoins.source?.symbol || !selectedCoins.destination?.symbol) return;
+        if (!source?.symbol || !destination?.symbol) return;
         try {
-            const feeRate = await getFeeRateForExchange(selectedCoins.source.symbol, selectedCoins.destination.symbol);
+            const feeRate = await getFeeRateForExchange(source.symbol, destination.symbol);
             console.debug("getFeeRate", feeRate);
             setFeeRate(feeRate);
         } catch (e) {
-            console.log(e);
+            console.warn(e);
         }
-    }, [selectedCoins.destination?.symbol, selectedCoins.source?.symbol]);
+    }, [destination?.symbol, source?.symbol]);
 
     const getSourceBalance = async () => {
         if (!isConnect) {
@@ -129,8 +124,8 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         console.debug("getSourceBalance", isBuy);
 
         await Promise.all([
-            getBalance(address, selectedCoins.source.symbol?? "pUSD", 18),
-            getBalance(address, selectedCoins.destination.symbol ?? "pBTC", 18),
+            getBalance(address, source.symbol ?? "pUSD", 18),
+            getBalance(address, destination.symbol ?? "pBTC", 18),
         ]).then((res) => setBalance(res));
     };
 
@@ -150,29 +145,30 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                 setValidationMessage("Enter amount to exchange the symbol");
             } else if (isNaN(Number(value))) {
                 setValidationMessage("Please enter numbers only!");
-            } else if (balance.length && (toBigInt(value) > balance[isBuy?0:1])) {
+            } else if (balance.length && toBigInt(value) > balance[isBuy ? 0 : 1]) {
                 setValidationMessage("Insufficient balance");
-            } else if (selectedCoins.source.symbol === selectedCoins.destination.symbol) {
+            } else if (source.symbol === destination.symbol) {
                 setValidationMessage("Cannot exchange same currencies");
             } else {
                 setIsValidation(true);
             }
         } catch (e) {
-            console.log(e);
+            console.warn(e);
             setIsValidation(true);
             // setValidationMessage("");
         }
     };
 
-    const changePayAmount = useCallback((amount: number | string, isPay: boolean) => {
+    const changePayAmount = useCallback(
+        (amount: number | string, isPay: boolean) => {
             try {
                 amount = amount === "." ? "0." : amount;
                 const receiveAmtNoFee =
                     isPay === isBuy
-                        ? (toBigInt(amount) * 10n ** 18n) / lastRateData.rate
-                        : (toBigInt(amount) * lastRateData.rate) / 10n ** 18n;
+                        ? (toBigInt(amount) * 10n ** 18n) / toBigInt(coinList[idxTarget].price)
+                        : (toBigInt(amount) * toBigInt(coinList[idxTarget].price)) / 10n ** 18n;
 
-                // console.log("changePayAmount", amount, receiveAmtNoFee, lastRateData.rate);
+                // console.log("changePayAmount", amount, receiveAmtNoFee, coinList[idxTarget]);
                 const feePrice = (receiveAmtNoFee * feeRate) / 10n ** 18n;
 
                 const calcAmt = receiveAmtNoFee + feePrice * (isPay ? -1n : 1n);
@@ -192,24 +188,21 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [feeRate, lastRateData.rate]
+        [feeRate, coinList[idxTarget]]
     );
 
     const getNetworkFeePrice = useCallback(async () => {
-        console.log("getNetworkFeePrice", nativeIndex);
-        if (nativeIndex === -1 || !coinList[nativeIndex] ) return;
-
-        console.log("getNetworkFeePrice", nativeIndex, coinList[nativeIndex]);
+        if (nativeIndex === -1 || gasPrice === "0") return;
 
         try {
-            const nativePrice = coinList[nativeIndex].price;
+            const nativePrice = toBigInt(coinList[nativeIndex].price);
             const gLimit = gasLimit === 0n ? await getGasLimit() : gasLimit;
             const feePrice = (gLimit * BigInt(toWei(gasPrice, "gwei")) * nativePrice) / 10n ** 18n;
             // console.debug("feePrice", feePrice, gLimit, gasPrice, nativePrice);
             setNetworkFeePrice(feePrice);
         } catch (e) {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [feePrice, nativeIndex]);
+    }, [feePrice, nativeIndex, gasPrice]);
 
     const getPrice = useCallback(() => {
         if (payAmount === "0") {
@@ -218,7 +211,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             return;
         }
         try {
-            const price = (toBigInt(payAmount) * sourceRate) / 10n ** 18n;
+            const price = toBigInt(Number(payAmount) * coinList[idxTarget].price);
             console.debug("getPrice", price, "feeRate", feeRate);
             setPrice(price);
             setFeePrice((price * feeRate) / 10n ** 18n);
@@ -226,7 +219,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             setPrice(0n);
             setFeePrice(0n);
         }
-    }, [payAmount, sourceRate, feeRate]);
+    }, [payAmount, feeRate]);
 
     const getGasLimit = async () => {
         let gasLimit = 1400000n;
@@ -234,11 +227,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         console.debug("gasLimit", gasLimit, selectedCoins, payAmount, contracts);
 
         const coins = [
-            selectedCoins?.source?.symbol ? selectedCoins.source.symbol : "pUSD",
-            selectedCoins?.destination?.symbol ? selectedCoins.destination.symbol : "pBTC",
+            selectedCoins?.source?.symbol ? source.symbol : "pUSD",
+            selectedCoins?.destination?.symbol ? destination.symbol : "pBTC",
         ].map(toBytes32);
 
-        console.debug("getGasEstimate", coins[isBuy ? 0 : 1], coins[isBuy ? 1 : 0], payAmount );
+        console.debug("getGasEstimate", coins[isBuy ? 0 : 1], coins[isBuy ? 1 : 0], payAmount);
         try {
             gasLimit = BigInt(
                 await contracts.signers.PeriFinance.estimateGas.exchange(
@@ -248,7 +241,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                 )
             );
         } catch (e) {
-            console.log(e);
+            console.warn(e);
             // NotificationManager.warning("No pUSD is available to exchange in your wallet.");
         }
 
@@ -283,8 +276,8 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             gasLimit: gasLimit === 0n ? await getGasLimit() : gasLimit,
         };
 
-        const srcCoin = isBuy ? selectedCoins.source : selectedCoins.destination;
-        const destCoin = isBuy ? selectedCoins.destination : selectedCoins.source;
+        const srcCoin = isBuy ? source : destination;
+        const destCoin = isBuy ? destination : source;
 
         console.debug("order", srcCoin, destCoin, payAmount, transactionSettings);
 
@@ -300,7 +293,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             dispatch(
                 updateTransaction({
                     hash: transaction.hash,
-                    message: `${isBuy ? "Buying" : "Selling"} ${selectedCoins.destination.symbol}...`,
+                    message: `${isBuy ? "Buying" : "Selling"} ${destination.symbol}...`,
                     type: "Exchange",
                     action: () => {
                         getSourceBalance();
@@ -317,7 +310,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                 })
             );
         } catch (e) {
-            console.log(e);
+            console.warn(e);
             setIsPending(false);
             NotificationManager.warning(extractMessage(e));
         }
@@ -336,11 +329,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
 
     const setNetworkFee = async () => {
         try {
-            const [fee, gasLimit] = await Promise.all([getNetworkFee(networkId), getGasLimit()]);
-            console.debug("setNetworkFee", fee, "gasLimit", gasLimit);
+            const [fee, gLimit] = await Promise.all([getNetworkFee(networkId), gasLimit ? gasLimit : getGasLimit()]);
+            console.debug("setNetworkFee", fee, "gasLimit", gLimit);
 
             setGasPrice(fee);
-            setGasLimit(gasLimit);
+            setGasLimit(gLimit);
             // setNetworkRate(rate);
         } catch (e) {}
     };
@@ -355,15 +348,14 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         const perBalance = convertPer > 0n ? (selBalance * 10n) / convertPer : 0n;
         changePayAmount(fromBigNumber(perBalance), true);
     };
-/* 
-    useEffect(() => {
-        
-        const source = coinList.find((coin) => coin.symbol === selectedCoins.source.symbol);
 
-        source && setSourceRate(source.price);
+    // useEffect(() => {
+    //     const idx = symbolMap[source.symbol];
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [coinList]); */
+    //     idx && setSourceRate(coinList[idx].price);
+
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [symbolMap[source.symbol]]);
 
     useEffect(() => {
         // dispatch(setLoading({ name: "balance", value: true }));
@@ -373,11 +365,10 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             setNetworkFee();
         }
         if (coinList.length > 0) {
-            const index = coinList.findIndex(
-                (coin) => coin.key === natives[networkId]
-            );
-            console.debug("index", index)
-            setNativeIndex(index);
+            console.log("symbolMap", symbolMap, natives[networkId])
+            const index = symbolMap[`p${natives[networkId]}`];
+            console.debug("index", index);
+            index && setNativeIndex(index);
         }
 
         // dispatch(setLoading({ name: "balance", value: false }));
@@ -414,19 +405,27 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             if (isExchageNetwork(networkId)) {
                 getSourceBalance();
             } else {
-                setBalance([0n,0n]);
+                setBalance([0n, 0n]);
             } /* else { */
             // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
             setPayAmount("");
             // setPayAmountToUSD(0n);
             setReceiveAmount("");
-            
+
             setPer(0n);
             /* } */
             validationCheck("0");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, isConnect, address, isBuy, selectedCoins]);
+
+    useEffect(() => {
+        if (symbolMap.length) {
+            const idx = symbolMap[destination.symbol];
+            setIdxTarget(idx);
+        }
+
+    }, [symbolMap, destination]);
 
     return (
         <div className={`w-full h-full`}>
@@ -435,43 +434,43 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                     isLaptop ? "lg:h-[9%]" : "lg:h-[12%]"
                 }`}
             >
-                 <div
+                <div
                     className="flex space-x-1 cursor-pointer w-full h-full justify-between items-center"
                     id="list-caller"
                     onClick={() => (isCoinList ? closeCoinList() : openCoinList("destination"))}
                 >
                     <div className="flex flex-col w-[38%] justify-center pt-3" id="list-caller">
                         <div className={`text-2xl font-medium tracking-wide text-center w-full ${
-                            coinList[lastRateData.index]?.upDown 
-                                ? coinList[lastRateData.index]?.upDown > 0 
+                            coinList[idxTarget]?.upDown 
+                                ? coinList[idxTarget]?.upDown > 0 
                                     ? "text-blue-500" 
                                     : "text-red-400" 
                                 : "text-gray-300"
                             }`}
                             id="list-caller"
                         >
-                            {formatCurrency(coinList[lastRateData.index]?.price, 8)}
+                            {formatCurrency(coinList[idxTarget]?.price, 8)}
                         </div>
                         <div className={`flex flex-row text-[10px] ss:text-xs justify-between ${
-                                coinList[lastRateData.index]?.change !== 0n 
-                                    ? coinList[lastRateData.index]?.change > 0n 
+                                coinList[idxTarget]?.change !== 0n 
+                                    ? coinList[idxTarget]?.change > 0n 
                                         ? "text-blue-500" 
                                         : "text-red-400" 
                                     : "text-gray-300"
                             } font-[500]`} id="list-caller"
                         >
                             <div className="" id="list-caller">
-                                {`${coinList[lastRateData.index]?.change > 0n ? "+" : ""}${
-                                    coinList[lastRateData.index]?.preClose > 0n ? 
-                                        formatCurrency(coinList[lastRateData.index]?.price - coinList[lastRateData.index]?.preClose, 8)
+                                {`${coinList[idxTarget]?.change > 0n ? "+" : ""}${
+                                    coinList[idxTarget]?.preClose > 0n ? 
+                                        formatCurrency(coinList[idxTarget]?.price - coinList[idxTarget]?.preClose, 8)
                                         : "0"
                                 }`}
                             </div>
                             <div className={``} 
                                 id="list-caller"
                             >
-                                {`${coinList[lastRateData.index] ? (coinList[lastRateData.index]?.change > 0n && "+") : ""}${
-                                    formatCurrency(coinList[lastRateData.index]?.change, 2)}%`}
+                                {`${coinList[idxTarget] ? (coinList[idxTarget]?.change > 0n && "+") : ""}${
+                                    formatCurrency(coinList[idxTarget]?.change, 2)}%`}
                             </div>
                         </div>
                     </div>
@@ -481,7 +480,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 {`24h high`}
                             </div>
                             <div className={`text-[10px] ss:text-xs font-medium tracking-wide text-start w-full`}>
-                                {`${formatCurrency(coinList[lastRateData.index]?.high, 8)}`}
+                                {`${formatCurrency(coinList[idxTarget]?.high, 8)}`}
                             </div>
                         </div>
                         <div className="w-full flex flex-col justify-end" >
@@ -489,7 +488,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 {`24h low`}
                             </div>
                             <div className={`text-[10px] ss:text-xs font-medium tracking-wide text-start w-full`}>
-                                {`${formatCurrency(coinList[lastRateData.index]?.low, 8)}`}
+                                {`${formatCurrency(coinList[idxTarget]?.low, 8)}`}
                             </div>
                         </div>
                     </div>
@@ -537,105 +536,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                             isBuy ? "from-cyan-450/10" : "from-red-400/10"
                         } to-blue-950`}
                     >
-                        <div className="flex space-x-1 cursor-pointer w-full h-full justify-between items-center" id="list-caller">
-                            <div 
-                                className="flex flex-col w-[50%] justify-center" 
-                                id="list-caller"
-                                onClick={() => (isCoinList ? closeCoinList() : openCoinList("destination"))}
-                            >
-                                <div className="flex space-x-1 mb-2 items-end cursor-pointer justify-center"
-                                    id="list-caller"
-                                >
-                                    <div className="relative w-8 h-5"
-                                        id="list-caller"
-                                    >
-                                        <img
-                                            id="list-caller"
-                                            alt="dest_symgol"
-                                            className="w-4 h-4 md:w-5 md:h-5 absolute bottom-0 left-0 z-[2]"
-                                            src={`/images/currencies/${selectedCoins.destination?.symbol ? getSafeSymbol(selectedCoins.destination.symbol, false): "pBTC"}.svg`}
-                                        ></img>
-                                        <img
-                                            alt="source_symgol"
-                                            className="w-4 h-4 md:w-5 md:h-5 absolute bottom-0 left-3 z-[1]"
-                                            src={`/images/currencies/${selectedCoins.source?.symbol ? getSafeSymbol(selectedCoins.source.symbol) : "pUSD"}.svg`}
-                                        ></img>
-                                    </div>
-                                    <div className="text-[12px] font-medium tracking-tighter mr-1 text-center" id="list-caller">
-                                        {getSafeSymbol(selectedCoins.destination.symbol, false)} /{" "}
-                                        {getSafeSymbol(selectedCoins.source.symbol)}
-                                    </div>
-                                    <div className="transform-gpu m-auto" id="list-caller">
-                                        <img className="w-3 h-3 align-middle rotate-90" src={"/images/icon/exchange.png"} alt="netswap" />
-                                    </div>
-                                </div>
-                                <div
-                                    className={`text-2xl font-bold tracking-wide text-center w-full ${
-                                        coinList[lastRateData.index]?.upDown
-                                            ? coinList[lastRateData.index]?.upDown > 0
-                                                ? "text-blue-500"
-                                                : "text-red-400"
-                                            : "text-gray-300"
-                                    }`}
-                                    id="list-caller"
-                                >
-                                    {formatCurrency(coinList[lastRateData.index]?.price, 8)}
-                                </div>
-                                <div
-                                    className={`flex flex-row text-[10px] ss:text-xs justify-center gap-8 ${
-                                        coinList[lastRateData.index]?.change !== 0n
-                                            ? coinList[lastRateData.index]?.change > 0n
-                                                ? "text-blue-500"
-                                                : "text-red-400"
-                                            : "text-gray-300"
-                                    } font-[500]`}
-                                    id="list-caller"
-                                >
-                                    <div className="" id="list-caller">
-                                        {`${coinList[lastRateData.index]?.change > 0n ? "+" : ""}${
-                                            coinList[lastRateData.index]?.preClose > 0n
-                                                ? formatCurrency(
-                                                    coinList[lastRateData.index]?.price - coinList[lastRateData.index]?.preClose, 8
-                                                )
-                                                : "0"
-                                        }`}
-                                    </div>
-                                    <div className={``} id="list-caller">
-                                        {`${
-                                            (coinList[lastRateData.index] && coinList[lastRateData.index].change > 0n)
-                                                ? "+"
-                                                : ""
-                                        }${formatCurrency(coinList[lastRateData.index]?.change, 2)}%`}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex flex-col w-[25%] min-w-fit items-center space-y-2 lg:space-y-4">
-                                <div className="w-full flex flex-col justify-start">
-                                    <div
-                                        className={`h-4 text-[6px] ss:text-[8px] text-gray-450 font-medium tracking-tight text-start w-full`}
-                                    >
-                                        {`24h high`}
-                                    </div>
-                                    <div
-                                        className={`text-[10px] ss:text-xs font-medium tracking-wide text-start w-full`}
-                                    >
-                                        {`${formatCurrency(coinList[lastRateData.index]?.high, 8)}`}
-                                    </div>
-                                </div>
-                                <div className="w-full flex flex-col justify-end">
-                                    <div
-                                        className={`h-4 text-[6px] ss:text-[8px] text-gray-450 font-medium tracking-tight text-start w-full`}
-                                    >
-                                        {`24h low`}
-                                    </div>
-                                    <div
-                                        className={`text-[10px] ss:text-xs font-medium tracking-wide text-start w-full`}
-                                    >
-                                        {`${formatCurrency(coinList[lastRateData.index]?.low, 8)}`}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <TickerBar openCoinList={openCoinList} isCoinList={isCoinList} closeCoinList={closeCoinList} idxTarget={idxTarget} />
 
                         {/* <div className="flex pt-3 justify-between w-full rounded-md bg-blue-950 text-gray-450 font-medium text-base p-2">
                             <div>Price</div>
@@ -649,10 +550,10 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 <span className="font-medium">{`${formatCurrency(balance, 4)} ${
                                     isBuy
                                         ? selectedCoins?.source?.symbol
-                                            ? getSafeSymbol(selectedCoins.source.symbol)
+                                            ? getSafeSymbol(source.symbol)
                                             : "pUSD"
                                         : selectedCoins?.destination?.symbol
-                                        ? getSafeSymbol(selectedCoins.destination.symbol, false)
+                                        ? getSafeSymbol(destination.symbol, false)
                                         : "pBTC"
                                 }`}</span>
                             </div>
@@ -665,11 +566,15 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 onClick={() => getSourceBalance()}
                             />
                         </div> */}
-                        <div className={`flex rounded-lg relative bg-blue-950 border-[1px] ${ 
+                        <div
+                            className={`flex rounded-lg relative bg-blue-950 border-[1px] ${
                                 isBuy ? "border-cyan-950" : "border-red-950"
-                            } text-base py-1 px-2 space-x-2 justify-around h-20`}>
+                            } text-base py-1 px-2 space-x-2 justify-around h-20`}
+                        >
                             <div className="flex flex-col font-medium justify-start items-center w-[68%] pl-1">
-                                <span className="flex font-medium w-full text-[10px] text-left text-gray-450/50">{`${isBuy ? "Buy":"Sell"} Amount`}</span>
+                                <span className="flex font-medium w-full text-[10px] text-left text-gray-450/50">{`${
+                                    isBuy ? "Buy" : "Sell"
+                                } Amount`}</span>
                                 <input
                                     id="tartget-symbol"
                                     className=" bg-blue-950  outline-none text-gray-300 font-medium text-left w-full"
@@ -677,7 +582,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                     placeholder="0"
                                     value={isBuy ? receiveAmount : payAmount}
                                     onChange={(e) => {
-                                        const value = ["", "00"].includes(e.target.value) ? "0" : e.target.value;
+                                        const value = !["", "00"].includes(e.target.value) 
+                                            ? e.target.value.length === 2 && e.target.value[0] === "0" && e.target.value[1] !== "."  
+                                                ? e.target.value[1]
+                                                : e.target.value
+                                            : "0";
                                         changePayAmount(value, !isBuy);
                                         setPer(0n);
                                     }}
@@ -694,13 +603,13 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                         alt="dest-symbol"
                                         className="w-[18px] h-[18px]"
                                         src={`/images/currencies/${getSafeSymbol(
-                                            selectedCoins.destination.symbol,
+                                            destination.symbol,
                                             false
                                         )}.svg`}
                                     ></img>
                                     <div className=" flex items-center flex-nowrap arrow-turn">
                                         <span className="m-1 text-sm tracking-tighter">
-                                            {getSafeSymbol(selectedCoins.destination.symbol, false)}
+                                            {getSafeSymbol(destination.symbol, false)}
                                         </span>
                                         {/* <img
                                             alt="arrow"
@@ -712,17 +621,41 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                     </div>
                                 </div>
                                 <div className="flex flex-nowrap text-[10px] text-gray-450/60 absolute right-4 bottom-1">
-                                    <span className="mr-2">Balance:</span>
-                                    <span className="font-medium">{`${balance.length > 0 ? formatCurrency(balance[1], 4) : ""}`}
+                                    <span className="flex items-center mr-1">
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 16 16"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                d="M0.666748 4C0.666748 2.89543 1.56218 2 2.66675 2H13.3334C14.438 2 15.3334 2.89543 15.3334 4C15.3334 4.36819 15.0349 4.66667 14.6667 4.66667H12.0001C10.1591 4.66667 8.66675 6.15905 8.66675 8C8.66675 9.84095 10.1591 11.3333 12.0001 11.3333H14.6667C15.0349 11.3333 15.3334 11.6318 15.3334 12C15.3334 13.1046 14.438 14 13.3334 14H2.66675C1.56218 14 0.666748 13.1046 0.666748 12V4Z"
+                                                fill="#777E90"
+                                            ></path>
+                                            <path
+                                                fillRule="evenodd"
+                                                clipRule="evenodd"
+                                                d="M12 6H14.6667C15.0349 6 15.3333 6.29848 15.3333 6.66667V9.33333C15.3333 9.70152 15.0349 10 14.6667 10H12C10.8954 10 10 9.10457 10 8C10 6.89543 10.8954 6 12 6ZM12 8.66667C12.3682 8.66667 12.6667 8.36819 12.6667 8C12.6667 7.63181 12.3682 7.33333 12 7.33333C11.6318 7.33333 11.3333 7.63181 11.3333 8C11.3333 8.36819 11.6318 8.66667 12 8.66667Z"
+                                                fill="#777E90"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    <span className="font-medium">
+                                        {`${balance.length > 0 ? formatCurrency(balance[1], 4) : ""}`}
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <div className={`flex rounded-lg relative bg-blue-950 border-[1px] ${ 
+                        <div
+                            className={`flex rounded-lg relative bg-blue-950 border-[1px] ${
                                 isBuy ? "border-cyan-950" : "border-red-950"
-                            } text-base py-1 px-2 space-x-2 justify-around h-20`}>
+                            } text-base py-1 px-2 space-x-2 justify-around h-20`}
+                        >
                             <div className="flex flex-col font-medium justify-start items-center w-[68%] pl-1">
-                                <span className="flex font-medium w-full text-[10px] text-left text-gray-450/50">{`${isBuy ? "Pay":"Receive"} Amount`}</span>
+                                <span className="flex font-medium w-full text-[10px] text-left text-gray-450/50">{`${
+                                    isBuy ? "Pay" : "Receive"
+                                } Amount`}</span>
                                 <input
                                     id="base-symbol"
                                     className="bg-blue-950 outline-none text-gray-300 font-medium text-left w-full"
@@ -730,7 +663,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                     value={isBuy ? payAmount : receiveAmount}
                                     placeholder="0"
                                     onChange={(e) => {
-                                        const value = ["", "00"].includes(e.target.value) ? "0" : e.target.value;
+                                        const value = !["", "00"].includes(e.target.value) 
+                                            ? e.target.value.length === 2 && e.target.value[0] === "0" && e.target.value[1] !== "."  
+                                                ? e.target.value[1]
+                                                : e.target.value
+                                            : "0";
                                         changePayAmount(value, isBuy);
                                         setPer(0n);
                                     }}
@@ -748,17 +685,37 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                         id="list-caller"
                                         className="w-[18px] h-[18px]"
                                         alt="source-symbol"
-                                        src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
+                                        src={`/images/currencies/${getSafeSymbol(source.symbol)}.svg`}
                                     ></img>
                                     <div id="list-caller" className=" flex items-center flex-nowrap arrow-turn">
                                         <span id="list-caller" className="m-1 text-sm tracking-tighter">
-                                            {getSafeSymbol(selectedCoins.source.symbol)}
+                                            {getSafeSymbol(source.symbol)}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="flex flex-nowrap text-[10px] text-gray-450/60 absolute right-4 bottom-1">
-                                    <span className="mr-2">Balance:</span>
-                                    <span className="font-medium">{`${balance.length > 0 ? formatCurrency(balance[0], 4) : ""}`}
+                                    <span className="flex items-center mr-1">
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 16 16"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                d="M0.666748 4C0.666748 2.89543 1.56218 2 2.66675 2H13.3334C14.438 2 15.3334 2.89543 15.3334 4C15.3334 4.36819 15.0349 4.66667 14.6667 4.66667H12.0001C10.1591 4.66667 8.66675 6.15905 8.66675 8C8.66675 9.84095 10.1591 11.3333 12.0001 11.3333H14.6667C15.0349 11.3333 15.3334 11.6318 15.3334 12C15.3334 13.1046 14.438 14 13.3334 14H2.66675C1.56218 14 0.666748 13.1046 0.666748 12V4Z"
+                                                fill="#777E90"
+                                            ></path>
+                                            <path
+                                                fillRule="evenodd"
+                                                clipRule="evenodd"
+                                                d="M12 6H14.6667C15.0349 6 15.3333 6.29848 15.3333 6.66667V9.33333C15.3333 9.70152 15.0349 10 14.6667 10H12C10.8954 10 10 9.10457 10 8C10 6.89543 10.8954 6 12 6ZM12 8.66667C12.3682 8.66667 12.6667 8.36819 12.6667 8C12.6667 7.63181 12.3682 7.33333 12 7.33333C11.6318 7.33333 11.3333 7.63181 11.3333 8C11.3333 8.36819 11.6318 8.66667 12 8.66667Z"
+                                                fill="#777E90"
+                                            ></path>
+                                        </svg>
+                                    </span>
+                                    <span className="font-medium">
+                                        {`${balance.length > 0 ? formatCurrency(balance[0], 4) : ""}`}
                                     </span>
                                 </div>
                             </div>
@@ -779,11 +736,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 id="list-caller"
                                 className="w-[18px] h-[18px]"
                                 alt="source-symbol"
-                                src={`/images/currencies/${getSafeSymbol(selectedCoins.source.symbol)}.svg`}
+                                src={`/images/currencies/${getSafeSymbol(source.symbol)}.svg`}
                             ></img>
                             <div id="list-caller" className=" flex items-center flex-nowrap arrow-turn">
                                 <span id="list-caller" className="m-1 text-sm tracking-tighter">
-                                    {getSafeSymbol(selectedCoins.source.symbol)}
+                                    {getSafeSymbol(source.symbol)}
                                 </span>
                             </div>
                         </div>
@@ -808,7 +765,11 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                 </div>
                 <div className="flex flex-col justify-between pb-4">
                     <div className="flex flex-col-reverse lg:flex-col">
-                        <div className={`flex gap-3 justify-between flex-row lg:flex-col text-[11px] lg:text-sm ${isLaptop && "text-xs "}`}>
+                        <div
+                            className={`flex gap-3 justify-between flex-row lg:flex-col text-[11px] lg:text-sm ${
+                                isLaptop && "text-xs "
+                            }`}
+                        >
                             <div className="hidden lg:flex justify-between w-[40%] lg:w-full">
                                 <div>Cost</div>
                                 <div className="font-medium">${formatCurrency(price - feePrice, 18)}</div>
@@ -868,7 +829,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 )}
                             </div>
                             <span className="basis-1/3 text-lg text-nowrap">{`${isBuy ? "Buy" : "Sell"} ${
-                                selectedCoins.destination.symbol ? selectedCoins.destination.symbol : "pBTC"
+                                destination.symbol ? destination.symbol : "pBTC"
                             }`}</span>
                         </button>
                     </div>

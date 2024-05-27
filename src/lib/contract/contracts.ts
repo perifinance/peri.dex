@@ -127,9 +127,9 @@ export const contracts: Contracts = {
     chainId: 0,
     signer: undefined,
     signers: {},
-    provider: null,
+    provider: undefined,
     async init(networkId) {
-        console.log("init", networkId);
+        // console.log("init", networkId);
         try {
             if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
                 return null;
@@ -153,7 +153,7 @@ export const contracts: Contracts = {
                 deploymentPath: null,
             });
 
-            console.log("init", this.addressList);
+            // console.log("init", this.addressList);
 
             await Promise.all(Object.keys(this.addressList).map((name) => {
                 if (naming[name]) {
@@ -234,10 +234,10 @@ export const contracts: Contracts = {
         // console.log("contract connect", this.signers);
     },
     clear() {
-        this.signer = null;
+        this.chainId = 0;
+        this.signer = undefined;
         this.signers = {};
-        this.wallet = null;
-        this.provider = null;
+        this.provider = undefined;
     },
 };
 

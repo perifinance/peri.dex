@@ -1,30 +1,29 @@
-import { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { BrowserRouter as Router } from "react-router-dom";
+import { providers } from "ethers";
 import { NotificationContainer, NotificationManager } from "react-notifications";
-// import { getLastRates, getBalances } from 'lib/thegraph/api'
 import { RootState } from "reducers";
-
+import Loading from "components/loading";
 import { updateAddress, updateNetwork, updateIsConnect, clearWallet } from "reducers/wallet";
 import { resetTransaction } from "reducers/transaction";
-import { initCoinList } from "reducers/coin/coinList";
+import { Coin, initCoinList } from "reducers/coin/coinList";
 import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { setAppReady } from "reducers/app";
 import { useContracts } from "lib/contract";
 import { getCoinList } from "lib/coinList";
-
-import Main from "./screens/Main";
-import "css/App.css";
 import { getRateTickers } from "lib/thegraph/api/getRateTickers";
 import { pynthsList } from "configure/coins/pynthsList";
-import { end, start } from "lib/peformance";
 import { extractMessage } from "lib/error";
+import { useWallets, useConnectWallet } from "lib/onboard";
 import { getBridgeCost } from "lib/bridge/getBridgeCost";
 import { setCost } from "reducers/bridge/bridge";
-import { init, useWallets, useConnectWallet } from "@web3-onboard/react";
-import { getInitOptions, web3Onboard } from "lib/onboard";
-import { providers } from "ethers";
 
-// init(getInitOptions('dark', false));
+import Header from "screens/Header";
+import Main from "./screens/Main";
+import 'react-notifications/lib/notifications.css';
+import "css/App.css";
+
 const App = () => {
     const { networkId } = useSelector((state: RootState) => state.wallet);
     const transaction = useSelector((state: RootState) => state.transaction);
@@ -33,8 +32,8 @@ const App = () => {
     const { isReady } = useSelector((state: RootState) => state.app);
     const [rateTickers, setRateTickers] = useState({});
 
-    // const [{ wallet }, connect] = useConnectWallet();
-    // const connectedWallets = useWallets();
+    const [{ wallet }, connect, disconnectWallet] = useConnectWallet();
+    const connectedWallets = useWallets();
     const [{ contracts, IsContractsReady }, initContracts, connectContracts, clearContracts] = useContracts();
 
     const dispatch = useDispatch();
@@ -53,7 +52,7 @@ const App = () => {
         // contracts.init(networkId);
 
         // dispatch(updateNetwork({ networkId: networkId }));
-        try {
+        /* try {
             web3Onboard.init(
                 {
                     wallet: async (wallet) => {
@@ -105,24 +104,21 @@ const App = () => {
             console.log(e);
             localStorage.clear();
             // window.location.reload()
-        }
+        } */
         const selectedWallet = localStorage.getItem("selectedWallet");
 
         if (selectedWallet) {
             try {
-                const options = selectedWallet ? { autoSelect: { label: selectedWallet, disableModals: true } } : undefined;
-                // await connect(options);
-                await web3Onboard.connect(options);
+                const options = selectedWallet
+                    ? { autoSelect: { label: selectedWallet, disableModals: true } }
+                    : undefined;
+                await connect(options);
+                // await web3Onboard.connect(selectedWallet);
             } catch (e) {
                 console.log(e);
             }
         }
 
-        // dispatch(setAppReady());
-    };
-
-    const setIsAppReady = () => {
-        dispatch(setAppReady());
     };
 
     const getState = useCallback(async () => {
@@ -145,7 +141,7 @@ const App = () => {
             });
         } catch (error) {
             NotificationManager.remove(NotificationManager.listNotify[0]);
-            NotificationManager.warning(extractMessage(error),`${transaction.type} failed`);
+            NotificationManager.warning(extractMessage(error), `${transaction.type} failed`);
             if (transaction.error) {
                 transaction.error();
             }
@@ -153,19 +149,18 @@ const App = () => {
         }
     }, [transaction, dispatch]);
 
-
     useEffect(() => {
         console.log("IsContractsReady", IsContractsReady);
-        IsContractsReady && dispatch(setAppReady());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        IsContractsReady && dispatch(setAppReady(true));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [IsContractsReady]);
-/* 
-    useEffect(() => {
 
+    useEffect(() => {
+        console.log("wallet", wallet);
         if (wallet) {
             localStorage.setItem("selectedWallet", wallet.label);
             // dispatch(setAppReady());
-            console.log("wallet.accounts[0].address", wallet.accounts[0].address);
+            // console.log("wallet.accounts[0].address", wallet.accounts[0].address);
             dispatch(updateAddress({ address: wallet.accounts[0].address }));
 
             const wProvider = new providers.Web3Provider(wallet.provider, "any");
@@ -173,20 +168,18 @@ const App = () => {
                 console.log("networkId", res.chainId);
                 // if (networkId === res.chainId) return;
                 dispatch(updateNetwork({ networkId: res.chainId }));
-                initContracts(res.chainId).then(
-                    () => connectContracts(wallet.provider, wallet.accounts[0].address)
-                );
+                initContracts(res.chainId).then(() => connectContracts(wallet.provider, wallet.accounts[0].address));
             });
-            
         } else {
             dispatch(clearWallet());
-            dispatch(updateAddress({ address: null }));
             clearContracts();
+            dispatch(setAppReady(false));
             console.log("wallet clear");
             // dispatch(updateIsConnect(false));
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [wallet]);
+
 
     useEffect(() => {
         console.log("connectedWallets", connectedWallets);
@@ -194,15 +187,16 @@ const App = () => {
             const connectedWalletsLabelArray = connectedWallets.map(({ label }) => label);
             localStorage.setItem("connectedWallets", JSON.stringify(connectedWalletsLabelArray));
             dispatch(updateIsConnect(true));
-
         } else {
-            dispatch(updateIsConnect(false));
+            dispatch(clearWallet());
+            clearContracts();
+            console.log("connectedWallets clear");
             // clearContracts();
         }
-    
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [connectedWallets]);
- */
+
     useEffect(() => {
         if (transaction.hash) {
             getState();
@@ -215,31 +209,40 @@ const App = () => {
 
         if (themeState === "dark") {
             document.getElementsByTagName("html")[0].classList.add("dark");
+
         }
 
         getRateTickers().then((rateTickers) => setRateTickers(rateTickers));
-        const coinList = getCoinList(networkId);
+        /* const cList = getCoinList(networkId);
 
-        // console.log("getCoinList", coinList);
-        const newPynthsList:any = [...pynthsList];
-        Promise.all(newPynthsList.map((coin) => {
-            if (!coinList) {
-                return {...coin, isActive: true};
-            }
-            try {
-                const idxFind = coinList.findIndex(e => e.symbol === coin.symbol);
-                if (idxFind !== -1) {
-                    return {...coin, isActive: true, favorite: coinList[idxFind].favorite};
+        // console.log("getCoinList", cList);
+        const newPynthsList: any = [...pynthsList];
+        Promise.all(
+            newPynthsList.map((e) => {
+                if (!cList) {
+                    return { ...extractMessage, isActive: true };
                 }
-            } catch (e) {
-                console.log(e);
-            }
-            return {...coin, isActive: false}
-        })).then((newCoinList) => {
+                try {
+                    const coin = cList.find(coin => e.symbol === coin.symbol);
+                    if (!coin) {
+                        return { ...e, isActive: true, favorite: coin.favorite };
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
+                return { ...e, isActive: false };
+            })
+        ).then((newCoinList) => {
             dispatch(initCoinList(newCoinList as any));
             // console.log("initCoinList", newCoinList);
-        });
-        
+        }); */
+        dispatch(setSelectedCoin({ source: pynthsList[0], destination: pynthsList[1] }));
+
+        return () => {
+            disconnectWallet(wallet);
+            clearContracts();
+            dispatch(clearWallet());
+        };
         // eslint-disable-next-line
     }, []);
 
@@ -247,66 +250,59 @@ const App = () => {
         // start("initializeCoinList");
         // const newPynthsList:any = [...pynthsList];
 
-        const newCoinList:any = await Promise.all(coinList.map((coin) => {
-            // const isActive = netCoinList.findIndex(e => e.symbol === coin.symbol) !== -1;
-            const { price, change, high, low, timestamp, preClose } = rateTickers[coin.symbol] 
-                ? rateTickers[coin.symbol] 
-                : { price: 0n, change: 0n, high: 0n, low: 0n, timestamp: 0n, preClose: 0n};
-            return {...coin, price, high, low, change, timestamp, preClose}
+        const newCoinList = await Promise.all(coinList.map((e, ) => {
+            // console.log("e", e);
+            const coin = rateTickers[e.symbol];
+            if (coin) {
+                return {
+                    ...e, price:coin.price, high:coin.price, low:coin.low, change:coin.change, timestamp:coin.timestamp, preClose:coin.preClose 
+                } as Coin;
+            } else {
+                return {...e, price: 0, change: 0, high: 0, low: 0, timestamp: 0, preClose: 0 } as Coin;
+            }
         }));
-        // console.log("newCoinList", newCoinList);
+        console.log("newCoinList", newCoinList);
 
         // end();
         dispatch(initCoinList(newCoinList));
     };
 
     useEffect(() => {
-        console.log("rateTickers : ", Object.keys(rateTickers).length);
+        // console.log("rateTickers : ", Object.keys(rateTickers).length);
         if (Object.keys(rateTickers).length === 0) return;
         try {
-            /* const coinList = getCoinList(networkId);
-            if (!coinList) {
-                return;
-            } */
-
             initializeCoinList();
-
         } catch (e) {
             console.log(e);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rateTickers]);
 
     useEffect(() => {
-        if (pynthsList.length !== coinList.length ) return;
+        // if (pynthsList.length !== coinList.length) return;
+        console.log("networkId : ", networkId);
 
-        start("setCoinList");
-        const netCoinList = getCoinList(networkId);
+        // start("setCoinList");
+        const netCoinList: any = getCoinList(networkId);
         if (!netCoinList) {
             return;
         }
 
-        dispatch(setSelectedCoin({ source: coinList[0], destination: coinList[1] }));
+        dispatch(initCoinList(netCoinList));
+        // end();
 
-        const newCoinList:any = coinList.map((coin, idx) => {
-            const idxFind = netCoinList.findIndex(e => e.symbol === coin.symbol);
-
-            const isActive = idxFind !== -1;
-            const favorite = idxFind !== -1 ? netCoinList[idxFind].favorite : false;
-
-            return {...coinList[idx], favorite, isActive};
-        });
-
-        dispatch(initCoinList(newCoinList));
-        end();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [networkId, isReady]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [networkId]);
 
     return (
-        <div>
-            {/* <Loading></Loading> */}
-            <Main></Main>
+        <div className="flex flex-col text-sm w-screen h-fit lg:h-screen dark:text-inherent dark:bg-inherit font-Montserrat font-normal">
+            <Loading></Loading>
+            <div className="flex flex-col items-center w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen space-y-1 ">
+                <Router>
+                    <Header />
+                    <Main/>
+                </Router>
+            </div>[]
             <NotificationContainer />
         </div>
     );

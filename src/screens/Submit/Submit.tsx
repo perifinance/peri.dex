@@ -18,7 +18,8 @@ import BridgeStatus from "./BridgeStatus";
 import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
 import { fromBigNumber, toBigNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
-import { useConnectWallet } from "@web3-onboard/react";
+import { useConnectWallet } from "lib/onboard";
+import useOnClickOutsideRef from "hooks/useOnClickOutsideRef";
 // import "css/BridgeRangeInput.css";
 
 const zeroSignature =
@@ -35,8 +36,6 @@ const Submit = () => {
     const { cost, step, pendingCoins } = useSelector((state: RootState) => state.bridge);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const [{ contracts }] = useContracts();
-    // const { lastRateData } = useSelector((state: RootState) => state.exchangeRates);
-    // const { isReady } = useSelector((state: RootState) => state.app);
     const [payAmount, setPayAmount] = useState("0");
     const [per, setPer] = useState(0n);
     const [networks, setNetworks] = useState([]);
@@ -67,6 +66,9 @@ const Submit = () => {
     const [validationMessage, setValidationMessage] = useState("");
     const [{ wallet }] = useConnectWallet();
     const dispatch = useDispatch();
+    const fromRef = useOnClickOutsideRef(setIsFromNetworkList, isFromNetworkList, "from_caller");
+    const toRef = useOnClickOutsideRef(setIsToNetworkList, isToNetworkList, "to_caller");
+    const availableRef = useOnClickOutsideRef(setIsCoinList, isCoinList, "coin_caller");
 
     const validationCheck = () => {
         // console.log("validationCheck", Number(step));
@@ -544,37 +546,6 @@ const Submit = () => {
         setGasPrice("0");
         setNetworkFeePrice(0n);
     }, [selectedCoin, networkId, address]);
-
-    // *** DropBox list handlers
-    // ****************************************************************************************************
-    const fromRef = useRef<HTMLDivElement>(null);
-    const toRef = useRef<HTMLDivElement>(null);
-    const availableRef = useRef<HTMLDivElement>(null);
-
-    const closeModalHandler = useCallback(
-        (e) => {
-            if (isFromNetworkList && e.target.id !== "from_caller" && !fromRef.current.contains(e.target)) {
-                setIsFromNetworkList(false);
-            }
-
-            if (isToNetworkList && e.target.id !== "to_caller" && !toRef.current.contains(e.target)) {
-                setIsToNetworkList(false);
-            }
-
-            if (isCoinList && e.target.id !== "coin_caller" && !availableRef.current.contains(e.target)) {
-                setIsCoinList(false);
-            }
-        },
-        [isCoinList, isFromNetworkList, isToNetworkList]
-    );
-
-    useEffect(() => {
-        window.addEventListener("click", closeModalHandler);
-
-        return () => {
-            window.removeEventListener("click", closeModalHandler);
-        };
-    }, [closeModalHandler]);
 
     return (
         <div className="flex flex-col p-2 lg:w-full lg:h-full lg:justify-around">

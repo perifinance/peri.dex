@@ -62,7 +62,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
             const lastPrice = Number((lastRateData.rate * 10n ** 10n) / 10n ** 18n) / 10 ** 10;
 
             // console.log("lastPrice", lastPrice, Number(lastRateData.timestamp), chartTime, TimeSerise[chartTime]);
-            const lastTimestamp = Number(lastRateData.timestamp)
+            const lastTimestamp = Number(lastRateData.timestamp);
             const lastChartTime = lastTimestamp - (lastTimestamp % TimeSerise[chartTime]);
             // console.log("lastPrice", chartTime, chartLastData.time, lastChartTime);
             if (chartLastData.time < lastChartTime) {
@@ -77,7 +77,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
                 };
 
                 // console.log("addChartData addChartData", chartLastData);
-                dispatch(addChartData({ symbols: lastRateData.symbols, chartLastData }));
+                dispatch(addChartData({ symbols: lastRateData.symbol, chartLastData }));
             } else if (chartLastData.time === lastChartTime) {
                 if (Number(chartLastData.high) < Number(lastPrice)) {
                     chartLastData.high = lastPrice;
@@ -87,7 +87,7 @@ const BarCandleChart = ({ source, destinate, chartTime }) => {
                 chartLastData.close = lastPrice;
 
                 // console.log("dispatch updateChart", chartLastData);
-                dispatch(updateChart({ symbols: lastRateData.symbols, chartLastData }));
+                dispatch(updateChart({ symbols: lastRateData.symbol, chartLastData }));
             }
 
             return;

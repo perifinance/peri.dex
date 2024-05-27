@@ -1,50 +1,44 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector/* , useDispatch, shallowEqual */ } from "react-redux";
 import { RootState } from "reducers";
 import pynthsCategories from "configure/coins/pynthsCategories";
-import { updateFavorite } from "reducers/coin/coinList";
-import { formatCurrency } from "lib";
+// import { updateFavorite } from "reducers/coin/coinList";
+// import { formatNumber } from "lib";
+// import { ColoredPrice } from "components/ColoredPrice";
 import "css/CoinList.css";
+// import useSelectedCoin from "hooks/useSelectedCoin";
+import CoinLine from "./CoinLine";
 // import { use } from "i18next";
 // import { resetChartData } from "reducers/chart/chart";
 
 interface ICoinList {
     isHide?: boolean;
     isCoinList?: boolean;
-    coinListType: any;
-    setSelectedCoin: Function;
+    // coinListType: any;
+    // setSelectedCoin: Function;
     closeCoinList?: Function;
     isSideBar?: boolean;
     isBuy?: boolean;
 }
 
-const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoinList, isBuy, isSideBar = true }: ICoinList) => {
+const CoinList = ({ isHide, isCoinList, /* coinListType, setSelectedCoin, */ closeCoinList, isBuy, isSideBar = true }: ICoinList) => {
     const { coinList } = useSelector((state: RootState) => state.coinList);
-    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    // const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [isFavoriteFilter, setIsFavoriteFilter] = useState(null);
-    const [filterCoinList, setFilterCoinList] = useState([]);
+    // const [filterCoinList, setFilterCoinList] = useState([]);
+    const [filterMap, setFilterMap] = useState({});
     const [searchValue, setSearchValue] = useState("");
-
-    const dispatch = useDispatch();
-
-    const setFavorite = (coin) => {
-        let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-        if (coin.favorite) {
-            favorites = favorites.filter((e) => e !== coin.id);
-        } else {
-            favorites.push(coin.id);
-        }
-        localStorage.setItem("favorites", JSON.stringify(favorites));
-        dispatch(updateFavorite({ ...coin, favorite: !coin.favorite }));
-    };
+    // const [{ selectedType }, setSelectedCoin] = useSelectedCoin();
 
     useEffect(() => {
+        console.log("coinList", coinList);
         if (!coinList?.length) {
             return;
         }
 
-        let filterResult = coinList?.slice();
+        let filterResult = coinList.slice();
+        // console.log("filterResult", filterResult);
 
         if (filterResult && selectedCategory === "Favorites") {
             filterResult = filterResult.filter((e) => e.favorite === true);
@@ -52,11 +46,12 @@ const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoin
             filterResult = filterResult.filter((e) => e.categories.includes(selectedCategory));
         }
 
+        // console.log("filterResult", filterResult);
         if (filterResult !== undefined && !(searchValue === "" && searchValue === null)) {
             filterResult = filterResult.filter(
                 (e) =>
-                    e.symbol.toLocaleLowerCase().includes(searchValue.toLowerCase()) ||
-                    e.name.toLocaleLowerCase().includes(searchValue.toLowerCase())
+                    e.symbol.toLowerCase().includes(searchValue.toLowerCase()) ||
+                    e.name.toLowerCase().includes(searchValue.toLowerCase())
             );
             // console.log("filterResult", filterResult);
         }
@@ -66,11 +61,19 @@ const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoin
             // console.log("sorted", filterResult);
         }
 
-        setFilterCoinList(filterResult);
-    }, [selectedCategory, isFavoriteFilter, searchValue, coinList]);
+
+        const mapFilteredIdcs = {};
+        filterResult.forEach((e,idx) => {
+            mapFilteredIdcs[e.symbol] = e.id;
+        });
+
+        setFilterMap(mapFilteredIdcs);
+        // setFilterCoinList(filterResult);
+    }, [selectedCategory, isFavoriteFilter, searchValue, coinList.length]);
 
 
     // useEffect(() => {
+    //     console.log("setSelectedCategory");
     //     if (coinList.length > 0) {
     //         setSelectedCategory(pynthsCategories[0]);
     //         // setFilterCoinList(coinList.slice());
@@ -215,89 +218,7 @@ const CoinList = ({ isHide, isCoinList, coinListType, setSelectedCoin, closeCoin
                         ></img> */}
                     </div>
                     <div className={`w-full text-xs scrollbarOn max-h-640 lg:h-[94%] pr-3 flex flex-col gap-1`}>
-                        {filterCoinList?.length > 0 &&
-                            filterCoinList.map((coin, index) => {
-                                if (coin.symbol === "pUSD") return null;
-                                return (
-                                    coin && (
-                                        <div
-                                            key={index}
-                                            className={`flex flex-row justify-between px-1 py-1 items-center ${
-                                                selectedCoins[coinListType]?.id === coin?.id
-                                                    ? " border-[1px] border-cyan-850/25 bg-skyblue-950 text-gray-300"
-                                                    : coin.isActive
-                                                    ? "hover:bg-blue-950 cursor-pointer text-gray-300"
-                                                    : " text-gray-600"
-                                            } rounded-[4px]`}
-                                            onClick={() => {
-                                                if (coin.isActive && selectedCoins[coinListType]?.id !== coin?.id) {
-                                                    // dispatch(resetChartData());
-                                                    setSelectedCoin(coin.symbol);
-                                                }
-                                            }}
-                                        >
-                                            
-                                            {/* <div className="w-[15px] h-[15px] my-auto">
-                                                <img
-                                                    className={`w-[15px] h-[15px] ${
-                                                        coin?.isActive ? "opacity-100" : "opacity-50"
-                                                    }`}
-                                                    src={`images/currencies/${coin?.symbol}.svg`}
-                                                    alt={`ccy-${coin?.symbol}`}
-                                                />
-                                            </div> */}
-                                            <div className="w-14 text-xs px-1">{coin?.symbol}</div>
-                                            <div
-                                                className={`w-11 text-end text-[10px] font-medium ${
-                                                    coin?.isActive
-                                                        ? coin?.upDown
-                                                            ? coin?.upDown > 0
-                                                                ? "text-blue-500"
-                                                                : "text-red-400"
-                                                            : "text-gray-300"
-                                                        : "text-gray-600"
-                                                }`}
-                                            >
-                                                {formatCurrency(coin?.price, 8)}
-                                            </div>
-                                            <div
-                                                className={`w-11 text-end text-[10px] font-medium text-nowrap ${
-                                                    coin?.isActive
-                                                        ? coin?.change !== 0n
-                                                            ? coin?.change > 0n
-                                                                ? "text-blue-500"
-                                                                : "text-red-400"
-                                                            : "text-gray-300"
-                                                        : "text-gray-600"
-                                                }`}
-                                            >
-                                                {coin?.change !== 0n ? (coin?.change > 0n ? "▲" : "▼") : ""}
-                                                {coin?.change < 0n
-                                                    ? formatCurrency(coin?.change, 2).substring(1)
-                                                    : formatCurrency(coin?.change, 2)}
-                                                %
-                                            </div>
-                                            <div
-                                                className="w-[10px] h-[10px] flex justify-center items-center"
-                                                onClick={(e) => {
-                                                    if (!coin.isActive) return;
-                                                    setFavorite(coin);
-                                                    e.stopPropagation();
-                                                    e.nativeEvent.stopImmediatePropagation();
-                                                }}
-                                            >
-                                                <img
-                                                    className={`w-[10px] h-[10px] ${
-                                                        coin.isActive ? "opacity-100" : "opacity-30"
-                                                    }`}
-                                                    src={`images/icon/bookmark_${coin?.favorite ? "on" : "off"}.svg`}
-                                                    alt="favorite"
-                                                ></img>
-                                            </div>
-                                        </div>
-                                    )
-                                );
-                            })}
+                        {Object.keys(filterMap).map((key:string,index:number) => key !== 'pUSD' && <CoinLine key={index} index={filterMap[key]} />)}
                     </div>
                 </div>
             </div>

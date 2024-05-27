@@ -5,7 +5,7 @@ import { setLoading } from "reducers/loading";
 import BarCandleChart from "screens/Chart/CandleStick";
 import axios from "axios";
 import { getSafeSymbol } from "lib/coinList";
-import { formatCurrency } from "lib";
+import { formatCurrency, formatNumber } from "lib";
 import { useMediaQuery } from "react-responsive";
 // import { getLastRates } from "lib/thegraph/api";
 import "css/Chart.css";
@@ -177,7 +177,7 @@ const Chart = () => {
                                         </span>
                                     </div>
                                     <span className="text-[10px] md:text-xs text-skyblue-500">
-                                        {formatCurrency(lastRateData.rate, 8)}
+                                        {formatNumber(lastRateData.rate, 8)}
                                     </span>
                                     <span className="text-[10px] md:text-xs text-skyblue-500 hidden lg:block">
                                         {getSafeSymbol(selectedCoins.source.symbol)}

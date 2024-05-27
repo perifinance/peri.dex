@@ -1,17 +1,18 @@
 import pynths from 'configure/coins/pynths';
+import { pynthsList } from 'configure/coins/pynthsList';
+import _ from 'lodash';
 
-export const getCoinList = (networkId) => {
+export const getCoinList = (networkId): Array<any> => {
     if (!pynths[networkId]) return null;
     let coinList = [...pynths[networkId]];
 
     const favorite = JSON.parse(localStorage.getItem('favorites') || '[]');
 
-    favorite.forEach(e => {
-        if (coinList[e]) coinList[e].favorite = true;
+    return pynthsList.map(e => {
+        const isActive = coinList.find(coin => coin.symbol === e.symbol) !== undefined;
+        const idx = favorite.findIndex((id) => id === e.id);
+        return {...e, price:0, high:0, low:0, preClose:0, upDown:0, change:0, isActive , favorite: idx !== -1 };
     });
-
-    // console.log(coinList);
-    return coinList;
 }
 
 export const getSafeSymbol = (symbol: string, isSource:boolean = true) => {

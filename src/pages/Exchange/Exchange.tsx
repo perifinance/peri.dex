@@ -12,13 +12,15 @@ import { setLoading } from "reducers/loading";
 // import { changeNetwork } from "lib/network";
 import { networkInfo } from "configure/networkInfo";
 import { isExchageNetwork } from "lib/network";
-import { getRateTickers } from "lib/thegraph/api/getRateTickers";
-import { updatePrice } from "reducers/coin/coinList";
+import { getRatePreCloses, getRateTickers } from "lib/thegraph/api/getRateTickers";
+import { updatePreClose } from "reducers/coin/coinList";
+import { toNumber } from "lib/bigInt";
 
 const Exchange = () => {
     const dispatch = useDispatch();
     const { networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    const { coinList } = useSelector((state: RootState) => state.coinList);
     const [isCoinList, setIsCoinList] = useState(false);
     const [coinListType, setCoinListType] = useState(null);
     const [balance, setBalance] = useState(0n);
@@ -71,10 +73,17 @@ const Exchange = () => {
     };
 
     const init = async () => {
-        const rateTickers = await getRateTickers();
-        // console.log("rateTickers", rateTickers);
-
-        dispatch(updatePrice(rateTickers));
+        coinList.forEach((e) => {
+            const coin = { ...e };
+            getRatePreCloses(coin.symbol).then((data) => {
+                // console.debug("updatePreClose dispatch", data);
+                if (data.timestamp > 0) {
+                    // coin.preClose = data.preClose;
+                    // coin.timestamp = data.timestamp;
+                    dispatch(updatePreClose({preClose: data.preClose, symbol: coin.symbol}));
+                }
+            });
+        });
     };
 
     useEffect(() => {
@@ -119,7 +128,7 @@ const Exchange = () => {
             <div className={`w-full lg:w-[25%] lg:h-full h-fit relative`}>
                 <Order
                     isCoinList={isCoinList}
-                    coinListType={coinListType}
+                    // coinListType={coinListType}
                     closeCoinList={closeCoinList}
                     openCoinList={openCoinList}
                     balance={balance}
@@ -128,8 +137,8 @@ const Exchange = () => {
                 <CoinList
                     isHide={isHide}
                     isCoinList={isCoinList}
-                    coinListType={coinListType}
-                    setSelectedCoin={setSelectedCoin}
+                    // coinListType={coinListType}
+                    // setSelectedCoin={setSelectedCoin}
                     closeCoinList={closeCoinList}
                 />
             </div>

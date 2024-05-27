@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type NetworkFeeState = {
-    gasPrice: bigint;
+    gasPrice: number;
 };
 
 const initialState: NetworkFeeState = {
-    gasPrice: 0n,
+    gasPrice: 0,
 };
 
 export const NetworkFeeSlice = createSlice({

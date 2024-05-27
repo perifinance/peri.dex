@@ -1,25 +1,24 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { VictoryPie } from "victory";
 import { useContracts } from "lib/contract";
-import { formatCurrency } from "lib";
+import { /* formatCurrency, */ formatNumber } from "lib";
 import { isExchageNetwork } from "lib/network";
 
 // import { setLoading } from "reducers/loading";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "reducers";
-import { toNumber } from "lib/bigInt";
+// import { toBigInt, toNumber } from "lib/bigInt";
 type PortfolioProps = {
     standAlone?: boolean;
 };
 const Portfolio = ({ standAlone = true }: PortfolioProps) => {
-    const dispatch = useDispatch();
 
     const { isReady } = useSelector((state: RootState) => state.app);
-    const { coinList } = useSelector((state: RootState) => state.coinList);
+    const { coinList, symbolMap } = useSelector((state: RootState) => state.coinList);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
     const { balancePynths } = useSelector((state: RootState) => state.pynthBlances);
 
-    const [totalAssets, setTotalAssets] = useState(0n);
+    const [totalAssets, setTotalAssets] = useState(0);
     const [chartDatas, setChartDatas] = useState([]);
     const [balances, setBalances] = useState([]);
     const [chartColors, setChartColors] = useState([]);
@@ -37,11 +36,12 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
         let colors = [];
 
         try {
-            let totalAssets = 0n;
+            let totalAssets = 0;
             const balances = balancePynths.map((c) => {
-                const price = coinList.find((e) => e.symbol === c.currencyName)?.price ?? 0n;
-                const amount = c.amount as bigint;
-                const balanceToUSD = c.currencyName === "pUSD" ? amount : (amount * price) / 10n ** 18n;
+                const idx = symbolMap[c.currencyName];
+                const price = idx ? coinList[idx].price : 0;
+                const amount = c.amount;
+                const balanceToUSD = c.currencyName === "pUSD" ? amount : (amount * price);
                 totalAssets += balanceToUSD;
                 return { ...c, balanceToUSD };
             });
@@ -52,7 +52,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                 e.currencyName === "pUSD"
                     ? colors.push("#1e91f8")
                     : colors.push(getAddressColor(contracts[`ProxyERC20${e.currencyName}`].address));
-                const value = totalAssets ? formatCurrency((e.balanceToUSD * 100n * 10n ** 18n) / totalAssets, 2) : 0;
+                const value = totalAssets ? formatNumber((e.balanceToUSD * 100) / totalAssets, 2) : 0;
 
                 return {
                     x: `${value}%`,
@@ -61,10 +61,10 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
             });
 
             pieChart.sort((a, b) => b.y - a.y);
-            balances.sort((a, b) => toNumber(b.balanceToUSD) - toNumber(a.balanceToUSD));
+            balances.sort((a, b) => b.balanceToUSD - a.balanceToUSD);
 
             setBalances(balances);
-            setChartDatas(totalAssets > 0n ? pieChart : [{ x: "100%", y: 1 }]);
+            setChartDatas(totalAssets > 0 ? pieChart : [{ x: "100%", y: 1 }]);
             setChartColors(colors);
             // dispatch(setLoading({ name: "balance", value: false }));
         } catch (e) {
@@ -76,7 +76,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
     }, [balancePynths, coinList[1]]);
 
     useEffect(() => {
-        if (isReady && coinList && address && isConnect) {
+        if (isReady && coinList.length && address && isConnect) {
             if (isExchageNetwork(networkId)) {
                 init();
             } else {
@@ -85,7 +85,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                 // 	"ERROR"
                 // );
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
-                setTotalAssets(0n);
+                setTotalAssets(0);
                 setBalances([]);
                 setChartDatas([]);
                 setChartColors([]);
@@ -94,7 +94,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
         }
 
         if (!isConnect) {
-            setTotalAssets(0n);
+            setTotalAssets(0);
             setBalances([]);
             setChartDatas([]);
             setChartColors([]);
@@ -129,7 +129,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                         ></VictoryPie>
                         <div className="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] flex flex-col leading-3 ss:leading-4 sm:leading-5 md:leading-7 lg:leading-3">
                             <span className="inline-block text-center align-middle font-bold text-[8px] xs:text-[10px] ss:text-[11px] sm:text-lg lg:text-[11px] xl:text-xs">
-                                ${formatCurrency(totalAssets, 4)}
+                                ${formatNumber(totalAssets, 4)}
                             </span>
                             <span className="inline-block text-center align-middle font-light text-[8px] xstext-[9px] ss:text-[10px] sm:text-sm lg:text-[10px]">
                                 Balance
@@ -186,7 +186,7 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                                     <div className="flex flex-col leading-none">
                                         <div className="text-[8px] text-gray-300 text-right">Holding Quantity</div>
                                         <div className="text-right  mt-1">
-                                            <span>{formatCurrency(amount, 6)}</span>
+                                            <span>{formatNumber(amount, 6)}</span>
                                         </div>
                                         <div className="text-[8px] text-gray-300 text-right pt-2">
                                             Evaluation Amount
@@ -194,11 +194,8 @@ const Portfolio = ({ standAlone = true }: PortfolioProps) => {
                                         <div className="text-right  mt-1">
                                             <span className="ml-1">$</span>
                                             <span>
-                                                {formatCurrency(
-                                                    ((coinList.find((e) => e.symbol === currencyName)?.price ?? 0n) *
-                                                        amount) /
-                                                        10n ** 18n,
-                                                    4
+                                                {formatNumber(
+                                                    ((coinList[symbolMap[currencyName]]?.price ?? 0) * amount), 4
                                                 )}
                                             </span>
                                         </div>

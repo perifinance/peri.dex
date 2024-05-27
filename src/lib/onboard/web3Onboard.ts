@@ -16,7 +16,7 @@ import mewWallet from "@web3-onboard/mew-wallet";
 import fortmatic from "@web3-onboard/fortmatic";
 import safeModule from "@web3-onboard/gnosis";
 import { OnboardAPI } from "@web3-onboard/core";
-import { WalletState } from "@web3-onboard/core/dist/types";
+import { ConnectOptions, DisconnectOptions, WalletState } from "@web3-onboard/core/dist/types";
 import { Chain } from "@web3-onboard/common/dist/types";
 import ledgerModule from "@web3-onboard/ledger";
 import metamaskSDK from "@web3-onboard/metamask";
@@ -25,14 +25,15 @@ import { NotificationManager } from "react-notifications";
 
 import { networkInfo } from "configure/networkInfo";
 
-import { MAINNET, TESTNET, UNPOPULARNET } from "lib/network/supportedNetWorks";
+import { MAINNET, TESTNET } from "lib/network/supportedNetWorks";
+import React, { useEffect, useRef, useState, createContext, useContext } from "react";
 
 type Web3Onboard = {
     onboard: OnboardAPI;
     unsubscribe: any;
     selectedAddress: string;
     selectedNetwork: string;
-    init: (subscriptions: any, colorMode: string, autoConnect: boolean) => void;
+    init: (subscriptions?: any, colorMode?: string, autoConnect?: boolean) => void;
     connect: (walletLabel: any|void) => Promise<void>;
     disconnect: () => void;
     address: (provider:any, address: any) => void;
@@ -44,16 +45,16 @@ type Web3Onboard = {
 
 export const web3Onboard: Web3Onboard = {
     onboard: null,
-    unsubscribe: null,
+    unsubscribe: undefined,
     address: undefined,
     network: undefined,
     wallet: undefined,
     selectedAddress: undefined,
     selectedNetwork: undefined,
-    init(subscriptions, colorMode = "light", autoConnect = false) {
-        this.address = subscriptions.address;
-        this.network = subscriptions.network;
-        this.wallet = subscriptions.wallet;
+    init(subscriptions = undefined, colorMode = "light", autoConnect = false) {
+        this.address = subscriptions?.address;
+        this.network = subscriptions?.network;
+        this.wallet = subscriptions?.wallet;
 
         // console.log(process.env.REACT_APP_RPC_ONBOARD_ID);
 
@@ -185,7 +186,7 @@ export const web3Onboard: Web3Onboard = {
 
         const appMetadata = {
             name: "PERI Finance DEX",
-            icon: "/favicon.ico",
+            icon: "/favicon.png",
             description: "PERI Finance DEX",
             explore: "https://dex.peri.finance",
             recommendedInjectedWallets: [
@@ -290,6 +291,136 @@ export const web3Onboard: Web3Onboard = {
     },
 };
 
+
+export const initOnboard = (colorMode = "dark", autoConnect = false) => {
+    web3Onboard.init(undefined, colorMode, autoConnect);
+    return web3Onboard.onboard;
+};
+
+export const OnboardContext = createContext<OnboardAPI>(null);
+
+export const CleanupOnboard = () => {
+    useEffect(() => {
+        return () => {
+        // Your cleanup code here
+        web3Onboard.onboard?.state.get().wallets.forEach(
+            (wallet: any) => web3Onboard.onboard.disconnectWallet({label: wallet.label})
+        );
+        web3Onboard.onboard = null;
+        // OnboardContext.Provider = null;
+        };
+    }, []);
+
+    return null;
+};
+
+// Custom hook to use onboard
+export function useOnboard() {
+    console.log("useOnboard", OnboardContext);
+    const onboard = useContext(OnboardContext);
+
+    if (!onboard) {
+        throw new Error('useOnboard must be used within an OnboardProvider');
+    }
+
+    return onboard;
+}
+
+
+export declare type useConnectWalletT = () => [{
+    wallet: WalletState | null;
+    connecting: boolean;
+}, (options?: ConnectOptions) => Promise<WalletState[]>, (wallet: DisconnectOptions) => Promise<WalletState[]>];
+
+export const useConnectWallet: useConnectWalletT = () => {
+    const [wallets, setWallets] = useState<WalletState[]>([]);
+    const [wallet, setWallet] = useState<WalletState | null>(null);
+    const [connecting, setConnecting] = useState(false);
+    const ref = useRef(null);
+
+    const connect = async (options?: ConnectOptions) => {
+        setConnecting(true);
+        const wallets = await web3Onboard.onboard.connectWallet(options);
+        setConnecting(false);
+
+        console.log("wallets connect", wallets);
+
+        const obWallets = web3Onboard.onboard?.state?.select("wallets");
+        const { unsubscribe } = obWallets.subscribe((wallets: WalletState[]) => {
+            setWallets(wallets);
+        });
+
+        ref.current = unsubscribe;
+
+        return wallets;
+    };
+
+    const disconnectWallet = async (walet: DisconnectOptions) => {
+        try {
+            const opt:DisconnectOptions = { label: walet.label };
+            ref.current && ref.current();
+            const wallets = await web3Onboard.onboard.disconnectWallet(opt);
+            setWallets(wallets);
+            return wallets;
+        }
+        catch (e) {
+            console.log("error:", e);
+        }
+        return wallets;
+    };
+
+    useEffect(() => {
+        console.log("wallets useConnectWallet", wallets);
+        if (wallets.length) {
+            wallets[0] !== wallet && setWallet(wallets[0])
+
+        } else {
+            setWallet(null);
+            ref.current && ref.current();
+        }
+    }, [wallets]);
+
+    useEffect(() => {
+        const obWallets = web3Onboard.onboard?.state?.select("wallets");
+        if (obWallets) {
+            const { unsubscribe } = obWallets.subscribe((wallets: WalletState[]) => {
+                setWallets(wallets);
+            });
+
+            ref.current = unsubscribe;
+
+            setWallets(web3Onboard.onboard.state.get().wallets);
+        }
+
+        return () => {
+            setWallet(null);
+            setWallets([]);
+            ref.current && ref.current();
+        };
+    }, []);
+
+    return [{ wallet, connecting }, connect, disconnectWallet];
+};
+
+
+export const useWallets = () => {
+    const [{wallet}] = useConnectWallet();
+    const [wallets, setWallets] = useState<WalletState[]>([]);
+
+    useEffect(() => {
+        console.log("wallets onboard?.state wallets", web3Onboard.onboard?.state?.get().wallets);
+
+        if (wallet) {
+            setWallets(web3Onboard.onboard.state?.get().wallets)
+        }
+    }, [wallet]);
+
+    useEffect(() => {
+        return (() => setWallets(null));
+    }, []);
+
+    return wallets;
+}
 // export const subscribeToWallet = (onWalletUpdated: (wallets: WalletState[]) => void) => {
 //     const wallets = web3Onboard.onboard.state.select("wallets");
 //     const { unsubscribe } = wallets.subscribe(onWalletUpdated);

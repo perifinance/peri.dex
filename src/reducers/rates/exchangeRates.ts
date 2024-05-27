@@ -2,28 +2,28 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type LastRateData = {
     timestamp: number;
-    rate: bigint;
-    symbols: string;
+    rate: number;
+    symbol: string;
     index: number;
 };
 
 export type ExchangeRatesState = {
     isReady?: boolean;
-    PERI?: bigint;
-    USDC?: bigint;
-    DAI?: bigint;
+    PERI?: number;
+    USDC?: number;
+    DAI?: number;
     lastRateData: LastRateData;
 };
 
 const initialState: ExchangeRatesState = {
     isReady: false,
-    PERI: 0n,
-    USDC: 0n,
-    DAI: 0n,
+    PERI: 0,
+    USDC: 0,
+    DAI: 0,
     lastRateData: {
         timestamp: 0,
-        rate: 0n,
-        symbols: "",
+        rate: 0,
+        symbol: "",
         index: 0,
     },
 };

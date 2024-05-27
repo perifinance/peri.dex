@@ -1,19 +1,16 @@
 // import { Link, useLocation } from "react-router-dom";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import KyberswapWidget from "screens/Swap/Kyberswap";
 
-const Swap = ({setStopUpdate}) => {
-    useEffect(() => {
-        setStopUpdate(true);
-        return () => {
-            setStopUpdate(false);
-        }
-    }, [setStopUpdate]);
+const Swap = () => {
 
+    useLayoutEffect(() => {
+        console.log("Swap");
+    }, []);
     return (
-        <div className="flex justify-self-center items-center lg:space-x-4 lg:h-[82%]">
-            <div className="flex flex-col w-full lg:h-full rounded-lg">
+        <div className="flex items-center justify-center lg:space-x-4 h-[86vh] lg:h-[82%]">
+            <div className="flex w-fit h-fit rounded-[10px] border-[1px] border-[#0d3754]">
                 {/* <div className="flex justify-center font-medium w-full text-lg">
                     <div className="w-full pt-3 lg:pt-8 lg:w-[94%] px-9 font-semibold text-center lg:text-left">
                         Swap

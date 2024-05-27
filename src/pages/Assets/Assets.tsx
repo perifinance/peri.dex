@@ -69,36 +69,6 @@ const Assets = () => {
         }
     }, [isConnect]);
 
-/* 
-    const receiveRef = useRef<HTMLDivElement>(null);
-    const destRef = useRef<HTMLDivElement>(null);
-    const actionRef = useRef<HTMLDivElement>(null);
-
-    const closeModalHandler = useCallback(
-        (e) => {
-            if (isDestCoinList && !destRef.current.contains(e.target)) {
-                setIsDestCoinList(false);
-            }
-
-            if (isSrcCoinList && !receiveRef.current.contains(e.target)) {
-                setIsSrcCoinList(false);
-            }
-
-            if (isActionList && !actionRef.current.contains(e.target)) {
-                setIsActionList(false);
-            }
-        },
-        [isActionList, isDestCoinList, isSrcCoinList]
-    );
- */
-/*     useEffect(() => {
-        window.addEventListener("click", closeModalHandler);
-
-        return () => {
-            window.removeEventListener("click", closeModalHandler);
-        };
-    }, [closeModalHandler]); */
-
     return (
         <div className="flex items-center lg:pt-5 mt-0 md:flex-row w-full lg:w-[95%] h-full lg:h-[85%] sm:justify-between lg:space-x-3">
             <div className="flex flex-col w-full h-full lg:w-[70%] m-2">

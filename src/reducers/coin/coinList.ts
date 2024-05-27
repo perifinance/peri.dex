@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-type Coin = {
+export type Coin = {
     id?: number;
     favorite?: boolean;
     name?: string;
@@ -8,103 +8,94 @@ type Coin = {
     categories?: Array<string>;
     decimal?: number;
     key?: string;
-    price?: bigint;
-    change?: bigint;
+    price?: number;
+    change?: number;
     timestamp?: number;
     isActive?: boolean;
     upDown?: number;
-    high?: bigint;
-    low?: bigint;
-    preClose?: bigint;
+    high?: number;
+    low?: number;
+    preClose?: number;
 };
+
 export type CoinList = {
     coinList: Array<Coin>;
+    symbolMap: any;
 };
 
 const initialState: CoinList = {
-    coinList: [],
-};
+    coinList: Array<Coin>(),
+    symbolMap: {
+        pUSD: 0,
+        pBTC: 1,
+    }
+}; 
 
 export const coinListSlice = createSlice({
     name: "coinList",
     initialState,
     reducers: {
-        initCoinList: (state, actions: PayloadAction<CoinList>) => {
-            return { ...state, coinList: [].concat(actions.payload) };
+        initCoinList: (state, action: PayloadAction<Coin[]>) => {
+            const coinList = Array<Coin>();
+            const symbolMap = {};
+            action.payload.forEach((coin, idx )=> {
+                symbolMap[coin.symbol] = idx;
+                coinList.push(coin);
+            });
+            // console.log(symbolMap);
+            return {coinList, symbolMap};
         },
-
-        updateCoin: (state, actions: PayloadAction<Coin>) => {
-            const idx = state.coinList.findIndex((coin) => coin.id === actions.payload.id);
+        updateCoin: (state, action: PayloadAction<Coin>) => {
+            const idx = state.symbolMap[action.payload.symbol];
             if (idx === -1) {
-                return;
+                return ;
             }
-            const existCoin = state.coinList[idx];
-            // console.log(existCoin.timestamp, actions.payload.timestamp);
-            if (existCoin.timestamp > actions.payload.timestamp || existCoin.price === actions.payload.price) {
-                return;
+
+            const existCoin:Coin = state.coinList[idx];
+            // console.log(existCoin.timestamp, action.payload.timestamp);
+            if (existCoin.timestamp > action.payload.timestamp || existCoin.price === action.payload.price) {
+                return ;
             }
             const change = existCoin.preClose 
-                ? (actions.payload.price - existCoin.preClose) * 10n**18n / existCoin.preClose * 100n 
-                : 0n;
-            const upDown = existCoin.price === actions.payload.price
+                ? (action.payload.price - existCoin.preClose) / existCoin.preClose * 100
+                : 0;
+            const upDown = existCoin.price === action.payload.price
                 ? 0
-                : existCoin.price < actions.payload.price
+                : existCoin.price < action.payload.price
                     ? 1
                     : -1;
-            const high = actions.payload.price > existCoin.high ? actions.payload.price : existCoin.high;
-            const low = existCoin.low !== 0n && actions.payload.price < existCoin.low ? actions.payload.price : existCoin.low;
-            const newCoin = {...state.coinList[idx], timestamp:actions.payload.timestamp, price:actions.payload.price
+            const high = action.payload.price > existCoin.high ? action.payload.price : existCoin.high;
+            const low = existCoin.low !== 0 && action.payload.price < existCoin.low ? action.payload.price : existCoin.low;
+            state.coinList[idx] = {...existCoin, timestamp:action.payload.timestamp, price:action.payload.price
                 , high, low, change, upDown};
-            state.coinList[idx] = newCoin;
-            return;
+            /* state.coinList[idx].change = existCoin.preClose 
+                ? (action.payload.price - existCoin.preClose) / existCoin.preClose * 100
+                : 0;
+            state.coinList[idx].upDown = existCoin.price === action.payload.price
+                ? 0
+                : existCoin.price < action.payload.price
+                    ? 1
+                    : -1;
+            state.coinList[idx].high = action.payload.price > existCoin.high ? action.payload.price : existCoin.high;
+            state.coinList[idx].low = existCoin.low !== 0 && action.payload.price < existCoin.low ? action.payload.price : existCoin.low;
+            state.coinList[idx].timestamp = action.payload.timestamp;
+            state.coinList[idx].price = action.payload.price; */
         },
-        updateFavorite: (state, actions: PayloadAction<Coin>) => {
-            const idx = state.coinList.findIndex((coin) => coin.id === actions.payload.id);
-            if (idx === -1) {
-                return state;
+        updateFavorite: (state, action: PayloadAction<{symbol:string, favorite:boolean}>) => {
+            const idx = state.symbolMap[action.payload.symbol];
+            if (idx !== -1) {
+                state.coinList[idx].favorite = action.payload.favorite;
             }
-            state.coinList[idx].favorite = actions.payload.favorite;
-            return state;
         },
-        updatePrice: (state, actions: PayloadAction<any>) => {
-            let existList = [].concat(state.coinList);
-            const payload = actions.payload;
-            const newList = existList.map((coin) => {
-                const newCoin = {
-                    ...coin,
-                    price: payload[coin.symbol]?.price ? payload[coin.symbol].price : coin.price,
-                    change: payload[coin.symbol]?.change ? payload[coin.symbol].change : coin.change,
-                    timestamp: payload[coin.symbol]?.timestamp ? payload[coin.symbol].timestamp : coin.timestamp,
-                };
-				// console.log(newCoin, payload[coin.symbol]);
-				return newCoin;
-            });
-            actions.payload = null;
-            existList = null;
-            
-            // console.log(newList);
-            return { ...state, coinList: newList };
-        },
-        updateChange: (state, actions: PayloadAction<Coin>) => {
-            const idx = state.coinList.findIndex((coin) => coin.id === actions.payload.id);
-            if (idx === -1) {
-                return state;
+        updatePreClose: (state, action: PayloadAction<{symbol:string, preClose:number}>) => {
+            const idx = state.symbolMap[action.payload.symbol];
+            if (idx !== -1) {
+                state.coinList[idx].preClose = action.payload.preClose;
             }
-            state.coinList[idx].change = actions.payload.change;
-            return state;
-        },
-        updatePreClose: (state, actions: PayloadAction<Coin>) => {
-            const idx = state.coinList.findIndex((coin) => coin.id === actions.payload.id);
-            if (idx === -1) {
-                return state;
-            }
-            // console.log("updatePreClose", actions.payload.preClose);
-            state.coinList[idx].preClose = actions.payload.preClose;
-            return state;
         },
     },
 });
 
-export const { initCoinList, updateCoin, updatePrice, updateFavorite, updateChange, updatePreClose } = coinListSlice.actions;
+export const { updateCoin, initCoinList, updateFavorite, updatePreClose } = coinListSlice.actions;
 
 export default coinListSlice.reducer;

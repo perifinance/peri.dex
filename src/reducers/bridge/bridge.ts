@@ -8,7 +8,7 @@ export type OnSendCoin = {
 
 export type PendingCoin = {
     coin: string;
-    total: bigint;
+    total: number;
     pendings: any;
 };
 
@@ -37,7 +37,7 @@ export const bridgeState = createSlice({
                 return item.coin !== actions.payload.coin;
             });
 
-            if (actions.payload.total !== BigInt(0)) {
+            if (actions.payload.total !== 0) {
                 pendingCoins.push(actions.payload);
             }
 

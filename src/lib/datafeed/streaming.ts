@@ -1,4 +1,5 @@
 // Assuming you're working in a browser environment that supports fetch and ReadableStrea
+import { pynthsList } from "configure/coins/pynthsList";
 const streamingUrl = "https://benchmarks.pyth.network/v1/shims/tradingview/streaming";
 const channelToSubscription = new Map();
 let fnUpdatePrice = null;
@@ -23,6 +24,10 @@ function handleStreamingData(data) {
     const subscriptionItem = channelToSubscription.get(channelString);
 
     if (fnUpdatePrice) {
+       /*  const keys = id.split(".")[1].split("/");
+        // console.debug("[stream] handleStreamingData:", keys);
+        const idx = pynthsList.findIndex((e) => e.key === keys[0]);
+        (idx !== -1) && fnUpdatePrice({id:keys, p, t}); */
         fnUpdatePrice({id, p, t});
     }
 

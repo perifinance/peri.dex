@@ -1,4 +1,3 @@
-import { InitOptions } from "@web3-onboard/core";
 import type { WalletInit } from "@web3-onboard/common";
 import enkryptModule from "@web3-onboard/enkrypt";
 import injectedModule, { ProviderLabel } from "@web3-onboard/injected-wallets";
@@ -18,12 +17,12 @@ import safeModule from "@web3-onboard/gnosis";
 import { Chain } from "@web3-onboard/common/dist/types";
 import ledgerModule from "@web3-onboard/ledger";
 import metamaskSDK from "@web3-onboard/metamask";
-
+// import { init } from '@web3-onboard/react'
 import { networkInfo } from "configure/networkInfo";
 import { MAINNET, TESTNET } from "lib/network/supportedNetWorks";
+import init from "@web3-onboard/core";
 
-
-export const getInitOptions = (colorMode = "light", autoConnect = false): InitOptions  => {
+export const initOnboard = (colorMode = "light", autoConnect = false)  => {
 
 	// console.log(process.env.REACT_APP_RPC_ONBOARD_ID);
 
@@ -155,16 +154,17 @@ export const getInitOptions = (colorMode = "light", autoConnect = false): InitOp
 
 	const appMetadata = {
 		name: "PERI Finance DEX",
-		icon: "/favicon.ico",
+		icon: "favicon.ico",
 		description: "PERI Finance DEX",
 		explore: "https://dex.peri.finance",
-		recommendedInjectedWallets: [
+		/* recommendedInjectedWallets: [
 			{ name: "MetaMask", url: "https://metamask.io" },
-			// { name: "Coinbase", url: "https://wallet.coinbase.com/" },
-		],
+			{ name: "Coinbase", url: "https://wallet.coinbase.com/" },
+		], */
 	};
 
-	return {
+
+	return init({
 		theme: colorMode as "light" | "dark",
 		wallets,
 		chains,
@@ -176,5 +176,18 @@ export const getInitOptions = (colorMode = "light", autoConnect = false): InitOp
 			removeWhereIsMyWalletWarning: true,
 		},
 		accountCenter: { desktop: { enabled: true }, mobile: { enabled: false } },
-	};
+	});
 };
+
+
+
+// // Initialize onboard
+// const onboard = init(getInitOptions("dark", false));
+
+// // Create a context to provide onboard
+// const OnboardContext = createContext(onboard);
+
+// // Custom hook to use onboard
+// export function useOnboard() {
+// 	return useContext(OnboardContext);
+// }

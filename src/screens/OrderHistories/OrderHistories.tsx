@@ -15,10 +15,15 @@ type OrderHistoriesProps = {
 };
 
 const OrderHistories = ({ balance, isBuy }:OrderHistoriesProps) => {
-    const { address, isConnect, networkId } = useSelector((state: RootState) => state.wallet);
-    const transaction = useSelector((state: RootState) => state.transaction);
+    const selectWallet = (state: RootState) => state.wallet;
+    const { address, isConnect, networkId } = useSelector(selectWallet);
+
+    const selectTransaction = (state: RootState) => state.transaction;
+    const transaction = useSelector(selectTransaction);
+
     const [histories, setHistories] = useState([]);
     const isLaptop = useMediaQuery({ query: `(min-height: 768px)` });
+    
     // const [currentPage, setCurrentPage] = useState(1);
     // const [pages, setPages] = useState([]);
 
@@ -32,29 +37,32 @@ const OrderHistories = ({ balance, isBuy }:OrderHistoriesProps) => {
         return pages;
     }; */
 
-    const init = useCallback(async () => {
-        const histories = await getExchangeHistories({ address, first: isLaptop ? 5 : 4 });
-        setHistories(histories);
+    const getHistories = useCallback(async () => {
+            const histories = await getExchangeHistories({ address, first: isLaptop ? 5 : 4 });
+            setHistories(histories);
         // console.log("histories", histories);
         // setPages(getPages(histories.length));
-    }, [address, getExchangeHistories, setHistories]);
+    }, [address, networkId]);
 
     useEffect(() => {
-        if (address && !transaction.hash) {
+        // console.log("OrderHistories useEffect", balance, isConnect, transaction);
+        if (isConnect && !transaction.hash) {
             if (isExchageNetwork(networkId)) {
-                init();
+                getHistories();
             } else {
                 // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
                 setHistories([]);
             }
+        } else if (!isConnect) {
+            setHistories([]);
         }
-    }, [balance, address, transaction, networkId]);
+    }, [balance, getHistories, transaction, isConnect]);
 
-    useEffect(() => {
+/*     useEffect(() => {
         if (!isConnect) {
             setHistories([]);
         }
-    }, [isConnect]);
+    }, [isConnect]); */
 
     return (
         <div className={`items-center w-full h-full grow-0 rounded-lg pt-1 px-2 ${

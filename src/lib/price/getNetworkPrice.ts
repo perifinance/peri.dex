@@ -71,7 +71,7 @@ export const getNetworkPrice = async (networkId) => {
 			const contract = new ethers.Contract(
 				address[networkId],
 				aggregatorV3InterfaceABI,
-				contracts.provider
+				contracts?.provider
 			);
 			const lastRound = await contract.latestRoundData();
 

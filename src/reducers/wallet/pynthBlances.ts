@@ -3,13 +3,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type PynthBalance = {
     currencyName: string;
-    amount: bigint;
-    balanceToUSD: bigint;
+    amount: number;
+    balanceToUSD: number;
 };
 
 export type PynthPrice = {
 	currencyName: string;
-	value: bigint;
+	value: number;
 };
 
 type PynthBalances = {
@@ -31,22 +31,18 @@ export const PynthsBlanceSlice = createSlice({
         updatePynthBalances(state, actions: PayloadAction<PynthBalance>) {
 			const idx = state.balancePynths.findIndex((balancePynth) => balancePynth.currencyName === actions.payload.currencyName);
 			if (idx === -1) {
-				return state;
+				return ;
 			}
 
 			state.balancePynths[idx] = actions.payload;
-
-            return state;
         },
         updateUSDValue(state , actions: PayloadAction<PynthPrice>) {
 			const idx = state.balancePynths.findIndex((balancePynth) => balancePynth.currencyName === actions.payload.currencyName);
 			if (idx === -1) {
-				return state;
+				return;
 			}
 
 			state.balancePynths[idx].balanceToUSD = state.balancePynths[idx].amount * actions.payload.value;
-
-			return state;
         },
     },
 });

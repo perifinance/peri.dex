@@ -52,14 +52,14 @@ export const getDecimal = async (key) => {
             type: "function",
         },
     ];
-    const currency = pynths[contracts?.chainId || 1287]?.find((e) => e.symbol === key);
+    const currency = pynths[contracts?.chainId || 137]?.find((e) => e.symbol === key);
 
     if (currency) {
         try {
             const contract = new ethers.Contract(
                 currency.priceFeedContract,
                 aggregatorV3InterfaceABI,
-                contracts.provider
+                contracts?.provider
             );
             return BigInt(await contract.decimals());
         } catch (e) {}
