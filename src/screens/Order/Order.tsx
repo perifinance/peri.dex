@@ -11,17 +11,20 @@ import { getNetworkFee } from "lib/fee";
 // import { setSelectedCoin } from "reducers/coin/selectedCoin";
 import { SUPPORTED_NETWORKS, isExchageNetwork } from "lib/network";
 import { NotificationManager } from "react-notifications";
-import { natives, networkInfo } from "configure/networkInfo";
-import { getSafeSymbol } from "lib/coinList";
+import { networkInfo } from "configure/networkInfo";
 // import { updateLastRateData } from "reducers/rates";
 import { useMediaQuery } from "react-responsive";
 import "css/Order.css";
-import RangeInput from "./RangeInput";
 import { toWei } from "web3-utils";
-import { toBytes32, toBigInt, toBigNumber, fromBigNumber } from "lib/bigInt";
+import { toBytes32, toBigInt, toBigNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
 // import useSelectedCoin from "hooks/useSelectedCoin";
 import TickerBar from "./TickerBar";
+import useSelectedCoin from "hooks/useSelectedCoin";
+// import { TokenInput } from "components/TokenInput";
+import InputPenal from "./InputPenal";
+import SelectBar from "./SelectBar";
+import FeeInfoBar from "./FeeInfoBar";
 // import { resetChartData } from "reducers/chart/chart";
 
 type OrderProps = {
@@ -32,14 +35,14 @@ type OrderProps = {
     isCoinList?: boolean;
     closeCoinList?: Function;
     isBuy?: boolean;
-    setIsBuy?: Function;
+    setIsBuy?: (value: boolean) => void;
 };
 
 const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, isBuy, setIsBuy }: OrderProps) => {
     const dispatch = useDispatch();
     const { isReady } = useSelector((state: RootState) => state.app);
     const { networkId, address, isConnect } = useSelector((state: RootState) => state.wallet);
-    const selectedCoins = useSelector((state: RootState) => state.selectedCoin);
+    const [{ selectedCoins }] = useSelectedCoin();
     const { source, destination } = selectedCoins;
     const { coinList, symbolMap } = useSelector((state: RootState) => state.coinList);
     const isOrderMin = useMediaQuery({ query: `(min-height: 880px)` });
@@ -47,24 +50,21 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     const [{ contracts }] = useContracts();
 
     // const [sourceRate, setSourceRate] = useState(0n);
-    const [per, setPer] = useState(0n);
-
-    const [feeRate, setFeeRate] = useState(0n);
-    const [networkFeePrice, setNetworkFeePrice] = useState(0n);
-    const [gasPrice, setGasPrice] = useState("0");
-    const [gasLimit, setGasLimit] = useState(0n);
-    const [price, setPrice] = useState(0n);
-    const [feePrice, setFeePrice] = useState(0n);
-
+    // const [per, setPer] = useState(0n);
+    // const [isPayCoin, setIsPayCoin] = useState(false);
     const [payAmount, setPayAmount] = useState("");
     const [receiveAmount, setReceiveAmount] = useState("");
+
+    const [feeRate, setFeeRate] = useState(0n);
+
+    const [gasPrice, setGasPrice] = useState("0");
+    const [gasLimit, setGasLimit] = useState(0n);
+
     const [isPending, setIsPending] = useState(false);
     const [isValidation, setIsValidation] = useState(false);
     const [validationMessage, setValidationMessage] = useState("");
-    const [isPayCoin, setIsPayCoin] = useState(false);
-    const [inputAmt, setInputAmt] = useState<string | number>("");
-    const [nativeIndex, setNativeIndex] = useState(-1);
-    const [idxTarget, setIdxTarget] = useState(1);
+
+    // const [idxTarget, setIdxTarget] = useState(1);
 
     // Todo: Implement the following functions when neeeded
     /* const getRate = useCallback(async () => {
@@ -159,67 +159,70 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         }
     };
 
-    const changePayAmount = useCallback(
-        (amount: number | string, isPay: boolean) => {
-            try {
-                amount = amount === "." ? "0." : amount;
-                const receiveAmtNoFee =
-                    isPay === isBuy
-                        ? (toBigInt(amount) * 10n ** 18n) / toBigInt(coinList[idxTarget].price)
-                        : (toBigInt(amount) * toBigInt(coinList[idxTarget].price)) / 10n ** 18n;
+    // const changePayAmount = useCallback(
+    //     (amount: number | string, isPay: boolean=!isBuy) => {
+    //         try {
+    //             amount = amount === "." ? "0." : amount;
+    //             const receiveAmtNoFee =
+    //                 isPay === isBuy
+    //                     ? (toBigInt(amount) * 10n ** 18n) / toBigInt(coinList[idxTarget].price)
+    //                     : (toBigInt(amount) * toBigInt(coinList[idxTarget].price)) / 10n ** 18n;
 
-                // console.log("changePayAmount", amount, receiveAmtNoFee, coinList[idxTarget]);
-                const feePrice = (receiveAmtNoFee * feeRate) / 10n ** 18n;
+    //             // console.log("changePayAmount", amount, receiveAmtNoFee, coinList[idxTarget]);
+    //             const feePrice = (receiveAmtNoFee * feeRate) / 10n ** 18n;
 
-                const calcAmt = receiveAmtNoFee + feePrice * (isPay ? -1n : 1n);
-                const payAmount = isPay ? amount.toString() : fromBigNumber(calcAmt);
-                const receiveAmount = isPay ? fromBigNumber(calcAmt) : amount.toString();
+    //             const calcAmt = receiveAmtNoFee + feePrice * (isPay ? -1n : 1n);
+    //             const payAmount = isPay ? amount.toString() : fromBigNumber(calcAmt);
+    //             const receiveAmount = isPay ? fromBigNumber(calcAmt) : amount.toString();
 
-                validationCheck(payAmount);
+    //             validationCheck(payAmount);
 
-                // console.debug("changePayAmount", amount, payAmount, feePrice, receiveAmount);
-                setPayAmount(payAmount);
-                setReceiveAmount(receiveAmount);
-                setIsPayCoin(isPay);
-                setInputAmt(amount);
-            } catch (e) {
-                // setPayAmountToUSD(0n);
-                isBuy ? setReceiveAmount("") : setPayAmount("");
-            }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [feeRate, coinList[idxTarget]]
-    );
+    //             // console.debug("changePayAmount", amount, payAmount, feePrice, receiveAmount);
+    //             setPayAmount(payAmount);
+    //             setReceiveAmount(receiveAmount);
+    //             setIsPayCoin(isPay);
+    //             setInputAmt(amount);
+    //         } catch (e) {
+    //             // setPayAmountToUSD(0n);
+    //             isBuy ? setReceiveAmount("") : setPayAmount("");
+    //         }
+    //     },
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    //     [feeRate, coinList[idxTarget]]
+    // );
 
-    const getNetworkFeePrice = useCallback(async () => {
-        if (nativeIndex === -1 || gasPrice === "0") return;
+    // const changeAmountByPay = (value) => changePayAmount(value, true);
+    // const changeAmountByBuy = (value) => changePayAmount(value, false);
 
-        try {
-            const nativePrice = toBigInt(coinList[nativeIndex].price);
-            const gLimit = gasLimit === 0n ? await getGasLimit() : gasLimit;
-            const feePrice = (gLimit * BigInt(toWei(gasPrice, "gwei")) * nativePrice) / 10n ** 18n;
-            // console.debug("feePrice", feePrice, gLimit, gasPrice, nativePrice);
-            setNetworkFeePrice(feePrice);
-        } catch (e) {}
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [feePrice, nativeIndex, gasPrice]);
+    // const getNetworkFeePrice = useCallback(async () => {
+    //     if (nativeIndex === -1 || gasPrice === "0") return;
 
-    const getPrice = useCallback(() => {
-        if (payAmount === "0") {
-            setPrice(0n);
-            setFeePrice(0n);
-            return;
-        }
-        try {
-            const price = toBigInt(Number(payAmount) * coinList[idxTarget].price);
-            console.debug("getPrice", price, "feeRate", feeRate);
-            setPrice(price);
-            setFeePrice((price * feeRate) / 10n ** 18n);
-        } catch (e) {
-            setPrice(0n);
-            setFeePrice(0n);
-        }
-    }, [payAmount, feeRate]);
+    //     try {
+    //         const nativePrice = toBigInt(coinList[nativeIndex].price);
+    //         const gLimit = gasLimit === 0n ? await getGasLimit() : gasLimit;
+    //         const feePrice = (gLimit * BigInt(toWei(gasPrice, "gwei")) * nativePrice) / 10n ** 18n;
+    //         // console.debug("feePrice", feePrice, gLimit, gasPrice, nativePrice);
+    //         setNetworkFeePrice(feePrice);
+    //     } catch (e) {}
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [feePrice, nativeIndex, gasPrice]);
+
+    // const getPrice = useCallback(() => {
+    //     if (payAmount === "0") {
+    //         setPrice(0n);
+    //         setFeePrice(0n);
+    //         return;
+    //     }
+    //     try {
+    //         const price = toBigInt(Number(payAmount) * coinList[idxTarget].price);
+    //         console.debug("getPrice", price, "feeRate", feeRate);
+    //         setPrice(price);
+    //         setFeePrice((price * feeRate) / 10n ** 18n);
+    //     } catch (e) {
+    //         setPrice(0n);
+    //         setFeePrice(0n);
+    //     }
+    // }, [payAmount, feeRate]);
 
     const getGasLimit = async () => {
         let gasLimit = 1400000n;
@@ -299,7 +302,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                         getSourceBalance();
                         setPayAmount("");
                         validationCheck("");
-                        setPer(0n);
+                        // setPer(0n);
                         // setPayAmountToUSD(0n);
                         setReceiveAmount("");
                         setIsPending(false);
@@ -338,16 +341,16 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         } catch (e) {}
     };
 
-    const setPerAmount = (per) => {
-        console.debug("per", per);
+    // const setPerAmount = (per) => {
+    //     console.debug("per", per);
 
-        const selBalance = balance.length ? balance[isBuy ? 0 : 1] : 0n;
+    //     const selBalance = balance.length ? balance[isBuy ? 0 : 1] : 0n;
 
-        setPer(per);
-        const convertPer = per > 0n ? (100n * 10n) / per : 0n;
-        const perBalance = convertPer > 0n ? (selBalance * 10n) / convertPer : 0n;
-        changePayAmount(fromBigNumber(perBalance), true);
-    };
+    //     setPer(per);
+    //     const convertPer = per > 0n ? (100n * 10n) / per : 0n;
+    //     const perBalance = convertPer > 0n ? (selBalance * 10n) / convertPer : 0n;
+    //     changePayAmount(fromBigNumber(perBalance), true);
+    // };
 
     // useEffect(() => {
     //     const idx = symbolMap[source.symbol];
@@ -364,25 +367,16 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         if (isReady && networkId && coinList.length > 0) {
             setNetworkFee();
         }
-        if (coinList.length > 0) {
-            console.log("symbolMap", symbolMap, natives[networkId])
-            const index = symbolMap[`p${natives[networkId]}`];
-            console.debug("index", index);
-            index && setNativeIndex(index);
-        }
 
         // dispatch(setLoading({ name: "balance", value: false }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, coinList.length]);
 
-    useEffect(() => {
-        getPrice();
-    }, [getPrice]);
 
-    useEffect(() => {
-        if (Number(inputAmt) !== 0) changePayAmount(inputAmt, isPayCoin);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [changePayAmount]);
+    // useEffect(() => {
+    //     if (Number(inputAmt) !== 0) changePayAmount(inputAmt, isPayCoin);
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [changePayAmount]);
 
     useEffect(() => {
         if (isReady && SUPPORTED_NETWORKS[networkId]) {
@@ -392,13 +386,6 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, getFeeRate]);
 
-    useEffect(() => {
-        if (SUPPORTED_NETWORKS[networkId]) {
-            getNetworkFeePrice();
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getNetworkFeePrice, isReady]);
 
     useEffect(() => {
         if (isReady && isConnect && address) {
@@ -407,364 +394,59 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             } else {
                 setBalance([0n, 0n]);
             } /* else { */
-            // changeNetwork(process.env.REACT_APP_DEFAULT_NETWORK_ID);
-            setPayAmount("");
-            // setPayAmountToUSD(0n);
-            setReceiveAmount("");
-
-            setPer(0n);
-            /* } */
             validationCheck("0");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, isConnect, address, isBuy, selectedCoins]);
 
-    useEffect(() => {
-        if (symbolMap.length) {
+   /*  useEffect(() => {
+        if (destination.symbol) {
             const idx = symbolMap[destination.symbol];
+            console.log("symbolMap", symbolMap, destination.symbol, idx);
             setIdxTarget(idx);
         }
 
-    }, [symbolMap, destination]);
+    }, [destination, symbolMap]); */
 
     return (
         <div className={`w-full h-full`}>
-            {/*<div
-                className={`h-full w-full bg-blue-850 rounded-t-lg px-4 hidden lg:hidden items-center ${
-                    isLaptop ? "lg:h-[9%]" : "lg:h-[12%]"
-                }`}
-            >
-                <div
-                    className="flex space-x-1 cursor-pointer w-full h-full justify-between items-center"
-                    id="list-caller"
-                    onClick={() => (isCoinList ? closeCoinList() : openCoinList("destination"))}
-                >
-                    <div className="flex flex-col w-[38%] justify-center pt-3" id="list-caller">
-                        <div className={`text-2xl font-medium tracking-wide text-center w-full ${
-                            coinList[idxTarget]?.upDown 
-                                ? coinList[idxTarget]?.upDown > 0 
-                                    ? "text-blue-500" 
-                                    : "text-red-400" 
-                                : "text-gray-300"
-                            }`}
-                            id="list-caller"
-                        >
-                            {formatCurrency(coinList[idxTarget]?.price, 8)}
-                        </div>
-                        <div className={`flex flex-row text-[10px] ss:text-xs justify-between ${
-                                coinList[idxTarget]?.change !== 0n 
-                                    ? coinList[idxTarget]?.change > 0n 
-                                        ? "text-blue-500" 
-                                        : "text-red-400" 
-                                    : "text-gray-300"
-                            } font-[500]`} id="list-caller"
-                        >
-                            <div className="" id="list-caller">
-                                {`${coinList[idxTarget]?.change > 0n ? "+" : ""}${
-                                    coinList[idxTarget]?.preClose > 0n ? 
-                                        formatCurrency(coinList[idxTarget]?.price - coinList[idxTarget]?.preClose, 8)
-                                        : "0"
-                                }`}
-                            </div>
-                            <div className={``} 
-                                id="list-caller"
-                            >
-                                {`${coinList[idxTarget] ? (coinList[idxTarget]?.change > 0n && "+") : ""}${
-                                    formatCurrency(coinList[idxTarget]?.change, 2)}%`}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex flex-col w-[25%] min-w-fit mt-2 items-center justify-between" >
-                        <div className="w-full flex flex-col justify-start" >
-                            <div className={`text-[6px] ss:text-[8px] text-gray-450 font-medium tracking-tight text-start w-full`}>
-                                {`24h high`}
-                            </div>
-                            <div className={`text-[10px] ss:text-xs font-medium tracking-wide text-start w-full`}>
-                                {`${formatCurrency(coinList[idxTarget]?.high, 8)}`}
-                            </div>
-                        </div>
-                        <div className="w-full flex flex-col justify-end" >
-                            <div className={`text-[6px] ss:text-[8px] text-gray-450 font-medium tracking-tight text-start w-full`}>
-                                {`24h low`}
-                            </div>
-                            <div className={`text-[10px] ss:text-xs font-medium tracking-wide text-start w-full`}>
-                                {`${formatCurrency(coinList[idxTarget]?.low, 8)}`}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> */}
             <div
                 className={`w-full h-fit rounded-lg px-4 lg:h-full lg:flex lg:flex-col lg:justify-between bg-gradient-to-tl ${
                     isBuy ? "from-cyan-950 to-cyan-950" : "from-red-950 to-red-950"
                 } via-blue-900 xs:mt-2 xs:pt-1 md:mt-0 md:pt-0`}
             >
                 <div className={`flex flex-col lg:gap-3 lg:mt-3`}>
-                    <div className="flex flex-row justify-between items-center m-2 lg:my-4">
-                        <button
-                            className={`w-[48%] bg-transparent border-2 cursor-pointer p-2 hover:bg-gradient-to-l ${
-                                isBuy
-                                    ? "bg-gradient-to-t active:bg-gradient-to-tr from-cyan-450/10 to-blue-950 border-cyan-450 text-cyan-450 font-medium border-[1px]"
-                                    : "border-blue-950 hover:from-cyan-450/10 hover:to-blue-950"
-                            } hover:text-cyan-450 hover:font-medium rounded-md`}
-                            onClick={() => {
-                                setPayAmount("");
-                                setReceiveAmount("");
-                                setIsBuy(true);
-                            }}
-                        >
-                            Buy
-                        </button>
-                        <button
-                            className={`w-[48%] bg-transparent border-2 cursor-pointer p-2 hover:bg-gradient-to-l ${
-                                isBuy
-                                    ? "border-blue-950 hover:from-red-400/20 hover:to-blue-950"
-                                    : "bg-gradient-to-t active:bg-gradient-to-tr from-red-400/20 to-blue-950 border-red-400 text-red-400 font-medium border-[1px]"
-                            } hover:text-red-400 hover:font-medium rounded-md`}
-                            onClick={() => {
-                                setPayAmount("");
-                                setReceiveAmount("");
-                                setIsBuy(false);
-                            }}
-                        >
-                            Sell
-                        </button>
-                    </div>
-
-                    <div
-                        className={`flex flex-col rounded-lg lg:my-1 py-2 lg:py-3 bg-gradient-to-tl ${
-                            isBuy ? "from-cyan-450/10" : "from-red-400/10"
-                        } to-blue-950`}
-                    >
-                        <TickerBar openCoinList={openCoinList} isCoinList={isCoinList} closeCoinList={closeCoinList} idxTarget={idxTarget} />
-
-                        {/* <div className="flex pt-3 justify-between w-full rounded-md bg-blue-950 text-gray-450 font-medium text-base p-2">
-                            <div>Price</div>
-                            <div className="w-[70%] text-right ">{formatCurrency(lastRateData.rate, 8)}</div>
-                        </div> */}
-                    </div>
-                    <div className="flex flex-col w-full mt-2 lg:mt-3 space-y-1 lg:space-y-2">
-                        {/* <div className="flex items-center space-x-1 pl-1 justify-start w-full text-xs mt-2">
-                            <div className="flex flex-nowrap text-gray-400">
-                                <span className="mr-2">Available:</span>
-                                <span className="font-medium">{`${formatCurrency(balance, 4)} ${
-                                    isBuy
-                                        ? selectedCoins?.source?.symbol
-                                            ? getSafeSymbol(source.symbol)
-                                            : "pUSD"
-                                        : selectedCoins?.destination?.symbol
-                                        ? getSafeSymbol(destination.symbol, false)
-                                        : "pBTC"
-                                }`}</span>
-                            </div>
-                            <img
-                                className={`m-1 p-1 w-[16px] rounded-full bg-blue-600 cursor-pointer ${
-                                    isRefreshing && "animate-spin"
-                                }`}
-                                src={`/images/icon/refresh.svg`}
-                                alt="refresh"
-                                onClick={() => getSourceBalance()}
-                            />
-                        </div> */}
-                        <div
-                            className={`flex rounded-lg relative bg-blue-950 border-[1px] ${
-                                isBuy ? "border-cyan-950" : "border-red-950"
-                            } text-base py-1 px-2 space-x-2 justify-around h-20`}
-                        >
-                            <div className="flex flex-col font-medium justify-start items-center w-[68%] pl-1">
-                                <span className="flex font-medium w-full text-[10px] text-left text-gray-450/50">{`${
-                                    isBuy ? "Buy" : "Sell"
-                                } Amount`}</span>
-                                <input
-                                    id="tartget-symbol"
-                                    className=" bg-blue-950  outline-none text-gray-300 font-medium text-left w-full"
-                                    type="text"
-                                    placeholder="0"
-                                    value={isBuy ? receiveAmount : payAmount}
-                                    onChange={(e) => {
-                                        const value = !["", "00"].includes(e.target.value) 
-                                            ? e.target.value.length === 2 && e.target.value[0] === "0" && e.target.value[1] !== "."  
-                                                ? e.target.value[1]
-                                                : e.target.value
-                                            : "0";
-                                        changePayAmount(value, !isBuy);
-                                        setPer(0n);
-                                    }}
-                                    onFocus={(e) => {
-                                        setInputAmt("");
-                                        e.target.select();
-                                    }}
-                                    onBlur={(e) => setInputAmt(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex flex-col items-end w-[28%] justify-center space-x-2">
-                                <div className="flex font-medium cursor-pointer items-center text-gray-450">
-                                    <img
-                                        alt="dest-symbol"
-                                        className="w-[18px] h-[18px]"
-                                        src={`/images/currencies/${getSafeSymbol(
-                                            destination.symbol,
-                                            false
-                                        )}.svg`}
-                                    ></img>
-                                    <div className=" flex items-center flex-nowrap arrow-turn">
-                                        <span className="m-1 text-sm tracking-tighter">
-                                            {getSafeSymbol(destination.symbol, false)}
-                                        </span>
-                                        {/* <img
-                                            alt="arrow"
-                                            className={`w-3 h-[6px] xl:hidden ${
-                                                isCoinList && coinListType === "destination" && "rotate-[-90deg]"
-                                            }`}
-                                            src={`/images/icon/bottom_arrow.png`}
-                                        /> */}
-                                    </div>
-                                </div>
-                                <div className="flex flex-nowrap text-[10px] text-gray-450/60 absolute right-4 bottom-1">
-                                    <span className="flex items-center mr-1">
-                                        <svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 16 16"
-                                            fill="none"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path
-                                                d="M0.666748 4C0.666748 2.89543 1.56218 2 2.66675 2H13.3334C14.438 2 15.3334 2.89543 15.3334 4C15.3334 4.36819 15.0349 4.66667 14.6667 4.66667H12.0001C10.1591 4.66667 8.66675 6.15905 8.66675 8C8.66675 9.84095 10.1591 11.3333 12.0001 11.3333H14.6667C15.0349 11.3333 15.3334 11.6318 15.3334 12C15.3334 13.1046 14.438 14 13.3334 14H2.66675C1.56218 14 0.666748 13.1046 0.666748 12V4Z"
-                                                fill="#777E90"
-                                            ></path>
-                                            <path
-                                                fillRule="evenodd"
-                                                clipRule="evenodd"
-                                                d="M12 6H14.6667C15.0349 6 15.3333 6.29848 15.3333 6.66667V9.33333C15.3333 9.70152 15.0349 10 14.6667 10H12C10.8954 10 10 9.10457 10 8C10 6.89543 10.8954 6 12 6ZM12 8.66667C12.3682 8.66667 12.6667 8.36819 12.6667 8C12.6667 7.63181 12.3682 7.33333 12 7.33333C11.6318 7.33333 11.3333 7.63181 11.3333 8C11.3333 8.36819 11.6318 8.66667 12 8.66667Z"
-                                                fill="#777E90"
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                    <span className="font-medium">
-                                        {`${balance.length > 0 ? formatCurrency(balance[1], 4) : ""}`}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            className={`flex rounded-lg relative bg-blue-950 border-[1px] ${
-                                isBuy ? "border-cyan-950" : "border-red-950"
-                            } text-base py-1 px-2 space-x-2 justify-around h-20`}
-                        >
-                            <div className="flex flex-col font-medium justify-start items-center w-[68%] pl-1">
-                                <span className="flex font-medium w-full text-[10px] text-left text-gray-450/50">{`${
-                                    isBuy ? "Pay" : "Receive"
-                                } Amount`}</span>
-                                <input
-                                    id="base-symbol"
-                                    className="bg-blue-950 outline-none text-gray-300 font-medium text-left w-full"
-                                    type="text"
-                                    value={isBuy ? payAmount : receiveAmount}
-                                    placeholder="0"
-                                    onChange={(e) => {
-                                        const value = !["", "00"].includes(e.target.value) 
-                                            ? e.target.value.length === 2 && e.target.value[0] === "0" && e.target.value[1] !== "."  
-                                                ? e.target.value[1]
-                                                : e.target.value
-                                            : "0";
-                                        changePayAmount(value, isBuy);
-                                        setPer(0n);
-                                    }}
-                                    /* onFocus={(e) => {e.target.select();}} */
-                                    onFocus={(e) => {
-                                        setInputAmt("");
-                                        e.target.select();
-                                    }}
-                                    onBlur={(e) => setInputAmt(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex flex-col items-end w-[28%] justify-center space-x-2">
-                                <div className="flex font-medium cursor-pointer items-center text-gray-450">
-                                    <img
-                                        id="list-caller"
-                                        className="w-[18px] h-[18px]"
-                                        alt="source-symbol"
-                                        src={`/images/currencies/${getSafeSymbol(source.symbol)}.svg`}
-                                    ></img>
-                                    <div id="list-caller" className=" flex items-center flex-nowrap arrow-turn">
-                                        <span id="list-caller" className="m-1 text-sm tracking-tighter">
-                                            {getSafeSymbol(source.symbol)}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-nowrap text-[10px] text-gray-450/60 absolute right-4 bottom-1">
-                                    <span className="flex items-center mr-1">
-                                        <svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 16 16"
-                                            fill="none"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                            <path
-                                                d="M0.666748 4C0.666748 2.89543 1.56218 2 2.66675 2H13.3334C14.438 2 15.3334 2.89543 15.3334 4C15.3334 4.36819 15.0349 4.66667 14.6667 4.66667H12.0001C10.1591 4.66667 8.66675 6.15905 8.66675 8C8.66675 9.84095 10.1591 11.3333 12.0001 11.3333H14.6667C15.0349 11.3333 15.3334 11.6318 15.3334 12C15.3334 13.1046 14.438 14 13.3334 14H2.66675C1.56218 14 0.666748 13.1046 0.666748 12V4Z"
-                                                fill="#777E90"
-                                            ></path>
-                                            <path
-                                                fillRule="evenodd"
-                                                clipRule="evenodd"
-                                                d="M12 6H14.6667C15.0349 6 15.3333 6.29848 15.3333 6.66667V9.33333C15.3333 9.70152 15.0349 10 14.6667 10H12C10.8954 10 10 9.10457 10 8C10 6.89543 10.8954 6 12 6ZM12 8.66667C12.3682 8.66667 12.6667 8.36819 12.6667 8C12.6667 7.63181 12.3682 7.33333 12 7.33333C11.6318 7.33333 11.3333 7.63181 11.3333 8C11.3333 8.36819 11.6318 8.66667 12 8.66667Z"
-                                                fill="#777E90"
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                    <span className="font-medium">
-                                        {`${balance.length > 0 ? formatCurrency(balance[0], 4) : ""}`}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className={`${isLaptop && "lg:my-3"}`}>
-                        <RangeInput
-                            per={per}
-                            setPerAmount={setPerAmount}
-                            divide={4}
-                            bgColor={isBuy ? "bg-cyan-450" : "bg-red-400"}
-                            color={isBuy ? "text-cyan-450" : "text-red-400"}
-                        />
-                    </div>
-                    {/* <div className="flex rounded-md bg-blue-950 border-[1px] border-gray-200/5 text-base p-2 space-x-4 justify-between">
-                        <div id="list-caller" className="flex font-medium cursor-default items-center text-gray-450">
-                            <img
-                                id="list-caller"
-                                className="w-[18px] h-[18px]"
-                                alt="source-symbol"
-                                src={`/images/currencies/${getSafeSymbol(source.symbol)}.svg`}
-                            ></img>
-                            <div id="list-caller" className=" flex items-center flex-nowrap arrow-turn">
-                                <span id="list-caller" className="m-1 text-sm tracking-tighter">
-                                    {getSafeSymbol(source.symbol)}
-                                </span>
-                            </div>
-                        </div>
-                        <input
-                            id="base-symbol"
-                            className="w-2/3 bg-blue-950 outline-none text-gray-300 font-medium text-right"
-                            type="text"
-                            value={isBuy ? payAmount : receiveAmount}
-                            placeholder="0"
-                            onChange={(e) => {
-                                const value = ["", "00"].includes(e.target.value) ? "0" : e.target.value;
-                                changePayAmount(value, isBuy);
-                                setPer(0n);
-                            }}
-                            onFocus={(e) => {
-                                setInputAmt("");
-                                e.target.select();
-                            }}
-                            onBlur={(e) => setInputAmt(e.target.value)}
-                        />
-                    </div> */}
+                    <SelectBar isBuy={isBuy} setIsBuy={setIsBuy} /> 
+                    <TickerBar 
+                        isBuy={isBuy} 
+                        openCoinList={openCoinList} 
+                        isCoinList={isCoinList} 
+                        closeCoinList={closeCoinList} 
+                    />
+                    <InputPenal
+                        isBuy={isBuy}
+                        feeRate={feeRate}
+                        balance={balance}
+                        payAmount={payAmount}
+                        receiveAmount={receiveAmount}
+                        setPayAmount={setPayAmount}
+                        setReceiveAmount={setReceiveAmount}
+                        validationCheck={validationCheck}
+                    />
                 </div>
                 <div className="flex flex-col justify-between pb-4">
-                    <div className="flex flex-col-reverse lg:flex-col">
+                    <FeeInfoBar
+                        isBuy={isBuy}
+                        gasPrice={gasPrice}
+                        gasLimit={gasLimit}
+                        feeRate={feeRate}
+                        payAmount={isBuy? receiveAmount : payAmount}
+                        receiveAmount={isBuy? payAmount : receiveAmount}
+                        isPending={isPending}
+                        order={order}
+                        getGasLimit={getGasLimit}
+                    />
+                    {/* <div className="flex flex-col-reverse lg:flex-col">
                         <div
                             className={`flex gap-3 justify-between flex-row lg:flex-col text-[11px] lg:text-sm ${
                                 isLaptop && "text-xs "
@@ -832,7 +514,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
                                 destination.symbol ? destination.symbol : "pBTC"
                             }`}</span>
                         </button>
-                    </div>
+                    </div> */}
                     <div
                         className={`hidden bg-blue-950 w-full text-center break-wards rounded-lg text-xs font-medium py-3 px-2 ${
                             isLaptop ? (isOrderMin ? "h-20 lg:block" : "lg:block") : ""

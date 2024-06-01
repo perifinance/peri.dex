@@ -17,7 +17,7 @@ const useSelectedCoin:useSelectedCoinType = () => {
         const idx = symbolMap[symbol];
 
         if (idx) {
-            const coin = coinList[idx];
+            const coin = {...coinList[idx], index: idx};
             console.debug("setSelectedCoin", coin, type);
             if ([selectedType, type].includes("source")) {
                 dispatch(setSourceCoin(coin));

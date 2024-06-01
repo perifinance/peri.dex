@@ -22,6 +22,7 @@ import { subscribeOnStreamByMain } from "lib/datafeed";
 import Swap from "pages/swap";
 import useInterval from "hooks/useInterval";
 import { toNumber } from "lib/bigInt";
+// import TradingViewIframeContent from "screens/TradingView/TradingViewIframeContent";
 // import Loading from "components/loading";
 // import Header from "screens/Header";
 // import { setAppReady } from "reducers/app";
@@ -218,6 +219,9 @@ const Main = () => {
 
     return (
         <Switch>
+            {/* <Route path="/tradingview-iframe">
+                <TradingViewIframeContent/>
+            </Route> */}
             <Route path="/assets">
                 <Assets />
             </Route>

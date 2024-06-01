@@ -21,11 +21,31 @@ module.exports = {
                     "0%": { transform: "translateX(0)" },
                     "100%": { transform: "translateX(100%)" },
                 },
+                "fade-dn": {
+                    '0%': { transform: 'translateY(-100%)' },
+                    '100%': { transform: 'translateY(0)' },
+                },
+                "fade-up": {
+                    '0%': { transform: 'translateY(0)' },
+                    '100%': { transform: 'translateY(-100%)' },
+                },
+                "move-dn": {
+                    '0%': { transform: 'translateY(0)' },
+                    '100%': { transform: 'translateY(100%)' },
+                },
+                "move-up": {
+                    '0%': { transform: 'translateY(100%)' },
+                    '100%': { transform: 'translateY(0)' },
+                },
             },
             animation: {
                 "x-bounce": "x-bounce 1s infinite",
                 "r-fade-in": "r-fade-in 1s",
                 "r-fade-out": "r-fade-out 1s",
+                "move-up": 'move-up .2s',
+                "move-dn": 'move-dn .2s',
+                "fade-up": 'fade-up .2s',
+                "fade-dn": 'fade-dn .2s',
             },
             screens: {
                 xs: "320px",

@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { BrowserRouter as Router } from "react-router-dom";
+import { Route, BrowserRouter as Router } from "react-router-dom";
 import { providers } from "ethers";
 import { NotificationContainer, NotificationManager } from "react-notifications";
 import { RootState } from "reducers";
@@ -109,10 +109,7 @@ const App = () => {
 
         if (selectedWallet) {
             try {
-                const options = selectedWallet
-                    ? { autoSelect: { label: selectedWallet, disableModals: true } }
-                    : undefined;
-                await connect(options);
+                await connect({ autoSelect: { label: selectedWallet, disableModals: true } });
                 // await web3Onboard.connect(selectedWallet);
             } catch (e) {
                 console.log(e);
@@ -213,30 +210,7 @@ const App = () => {
         }
 
         getRateTickers().then((rateTickers) => setRateTickers(rateTickers));
-        /* const cList = getCoinList(networkId);
-
-        // console.log("getCoinList", cList);
-        const newPynthsList: any = [...pynthsList];
-        Promise.all(
-            newPynthsList.map((e) => {
-                if (!cList) {
-                    return { ...extractMessage, isActive: true };
-                }
-                try {
-                    const coin = cList.find(coin => e.symbol === coin.symbol);
-                    if (!coin) {
-                        return { ...e, isActive: true, favorite: coin.favorite };
-                    }
-                } catch (e) {
-                    console.log(e);
-                }
-                return { ...e, isActive: false };
-            })
-        ).then((newCoinList) => {
-            dispatch(initCoinList(newCoinList as any));
-            // console.log("initCoinList", newCoinList);
-        }); */
-        dispatch(setSelectedCoin({ source: pynthsList[0], destination: pynthsList[1] }));
+        dispatch(setSelectedCoin({ source: {...pynthsList[0], index:0}, destination: {...pynthsList[1], index:1} }));
 
         return () => {
             disconnectWallet(wallet);
@@ -255,10 +229,10 @@ const App = () => {
             const coin = rateTickers[e.symbol];
             if (coin) {
                 return {
-                    ...e, price:coin.price, high:coin.price, low:coin.low, change:coin.change, timestamp:coin.timestamp, preClose:coin.preClose 
+                    ...e, price:coin.price, high:coin.price, low:coin.low, timestamp:coin.timestamp, preClose:coin.preClose 
                 } as Coin;
             } else {
-                return {...e, price: 0, change: 0, high: 0, low: 0, timestamp: 0, preClose: 0 } as Coin;
+                return {...e, price: 0, high: 0, low: 0, timestamp: 0, preClose: 0 } as Coin;
             }
         }));
         console.log("newCoinList", newCoinList);
@@ -283,7 +257,7 @@ const App = () => {
         console.log("networkId : ", networkId);
 
         // start("setCoinList");
-        const netCoinList: any = getCoinList(networkId);
+        const netCoinList: any = getCoinList(networkId, coinList);
         if (!netCoinList) {
             return;
         }
@@ -299,10 +273,12 @@ const App = () => {
             <Loading></Loading>
             <div className="flex flex-col items-center w-full h-full lg:mx-auto p-3 lg:p-5 min-h-screen space-y-1 ">
                 <Router>
+                    <div className={`items-center w-full ${window.location.href.includes("iframe")? "hidden": "flex"}`}>
                     <Header />
+                    </div>
                     <Main/>
                 </Router>
-            </div>[]
+            </div>
             <NotificationContainer />
         </div>
     );

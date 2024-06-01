@@ -27,7 +27,7 @@ export const getRatePreCloses = async (symbol:string) => {
 		if (datas.length > 0) {
 			const timestamp = Number(datas[0].timestamp) / 10**8;
 			const firstOpen = toNumber(BigInt(datas[0].price) * 10n**10n);
-			return {timestamp, preClose: firstOpen}; 
+			return {timestamp, preClose: firstOpen} as RatePreCloseType;; 
 		} else if (symbol === "pUSD") {
 			return { timestamp: 0, preClose: 1 } as RatePreCloseType;
 		}

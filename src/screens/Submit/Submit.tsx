@@ -446,8 +446,8 @@ const Submit = () => {
         try {
             // console.log("networks", networks);
             const [pUSDBalances, PERIbalances] = await Promise.all([
-                getBalanceNetwork(selectedFromNetwork, address, "ProxyERC20pUSD"),
-                getBalanceNetwork(selectedFromNetwork, address, "ProxyERC20"),
+                getBalanceNetwork(selectedFromNetwork, address, "pUSD", contracts),
+                getBalanceNetwork(selectedFromNetwork, address, "PeriFinance", contracts),
             ]);
 
             const idx = networks.findIndex((e) => e.id === selectedFromNetwork.id);

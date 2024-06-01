@@ -36,7 +36,7 @@ const initialState: BalanceState = {
 };
 
 export const ExchangeRatesSlice = createSlice({
-    name: "exchangeRates",
+    name: "balances",
     initialState,
     reducers: {
         initCurrency(state, actions) {

@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { RootState } from "reducers";
 import { useSelector, useDispatch } from "react-redux";
-import { clearWallet, clearBalances, updateIsConnect } from "reducers/wallet";
+// import { clearWallet, clearBalances, updateIsConnect } from "reducers/wallet";
 import { useConnectWallet } from "lib/onboard";
 import { changeNetwork, SUPPORTED_NETWORKS, isExchageNetwork, MAINNET, TESTNET } from "lib/network";
 import "./Header.css";

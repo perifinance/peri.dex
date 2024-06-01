@@ -63,7 +63,7 @@ const ExchangeTV = () => {
         setTimeout(() => setIsHide(true), 900);
     };
 
-    const init = () => {
+    const init = async () => {
         coinList.forEach((e) => {
             const coin = { ...e };
             getRatePreCloses(coin.symbol).then((data) => {

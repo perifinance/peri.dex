@@ -32,7 +32,6 @@ const CoinList = ({ isHide, isCoinList, /* coinListType, setSelectedCoin, */ clo
     // const [{ selectedType }, setSelectedCoin] = useSelectedCoin();
 
     useEffect(() => {
-        console.log("coinList", coinList);
         if (!coinList?.length) {
             return;
         }

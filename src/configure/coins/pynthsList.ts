@@ -361,7 +361,7 @@ export const pynthsList = [
 		categories: ["forex"],
 		decimal: 18,
 	},
-	{
+/* 	{
 		id: 40,
 		favorite: false,
 		name: "Canadian Dollar",
@@ -369,9 +369,9 @@ export const pynthsList = [
 		key: "CAD",
 		categories: ["forex"],
 		decimal: 18,
-	},
+	}, */
 	{
-		id: 41,
+		id: 40,
 		favorite: false,
 		name: "New Zealand Dollar",
 		symbol: "pNZD",
@@ -379,7 +379,7 @@ export const pynthsList = [
 		categories: ["forex"],
 		decimal: 18,
 	},
-	{
+/* 	{
 		id: 42,
 		favorite: false,
 		name: "DeFi Pulse Index",
@@ -387,9 +387,9 @@ export const pynthsList = [
 		key: "DPI",
 		categories: ["index"],
 		decimal: 18,
-	},
+	}, */
 	{
-		id: 43,
+		id: 41,
 		favorite: false,
 		name: "Near Protocol",
 		symbol: "pNEAR",
@@ -398,7 +398,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 44,
+		id: 42,
 		favorite: false,
 		name: "Shiba Inu",
 		symbol: "pSHIB",
@@ -407,7 +407,7 @@ export const pynthsList = [
 		decimal: 18,
 	},
 	{
-		id: 45,
+		id: 43,
 		favorite: false,
 		name: "Paxos Gold",
 		symbol: "pPAXG",

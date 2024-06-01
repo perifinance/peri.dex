@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 // import { clear } from 'console'
 
 const naming = {
-    // SystemSettings: "SystemSettings",
+    SystemSettings: "SystemSettings",
     ExchangeRates: "ExchangeRates",
     Exchanger: {
         1: "ExchangerWithVirtualPynth",
@@ -236,8 +236,24 @@ export const contracts: Contracts = {
     clear() {
         this.chainId = 0;
         this.signer = undefined;
-        this.signers = {};
+        this.signers = {
+            Exchanger: null,
+            ExchangeRates: null,
+            BridgeState: null,
+            PeriFinance: null,
+            SystemSettings: null,
+            pUSD: null,
+        
+        };
         this.provider = undefined;
+        this.BridgeStatepUSD = null;
+        this.BridgeState = null;
+        this.ExchangeRates = null;
+        this.Exchanger = null;
+        this.PeriFinance = null;
+        this.pUSD = null;
+        this.SystemSettings = null;
+        this.addressList = null;
     },
 };
 

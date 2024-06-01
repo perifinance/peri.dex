@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // TradingViewWidget.jsx
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "reducers";
 import {
@@ -15,12 +16,8 @@ import {
 } from "charting_library";
 import datafeed from "lib/datafeed/datafeed";
 import { setChartInterval } from "lib/datafeed";
-// import { toBigInt } from "lib/bigInt";
-// import { updateCoin } from "reducers/coin/coinList";
-// import { updateLastRateData } from "reducers/rates";
 import { useMediaQuery } from "react-responsive";
 import useSelectedCoin from "hooks/useSelectedCoin";
-// import { setSelectedCoin } from "reducers/coin/selectedCoin";
 
 const getLanguageFromURL = (): LanguageCode | null => {
     const regex = new RegExp("[\\?&]lang=([^&#]*)");
@@ -40,24 +37,49 @@ export default function TradingViewWidget({isBuy}) {
 
     const [{ selectedCoins }, setSelectedCoin] = useSelectedCoin();
     const { destination } = selectedCoins;
-    // const isNarrowMobile = useMediaQuery({ query: `(max-width: 320px)` });
+
+    const isRunningInMetamask = /MetaMask/i.test(navigator.userAgent) || /imToken/i.test(navigator.userAgent) || /Kakao/i.test(navigator.userAgent);
+    const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+
+    const [symbol, setSymbol] = useState("BTCUSD");
+    const [hasError, setHasError] = useState(false);
+    const [iframeSrc, setIframeSrc] = useState("");
+    // const iframeRef = useRef<HTMLIFrameElement>(null);
+
+    const enabled_features = ["show_symbol_logos"] as ChartingLibraryFeatureset[];
+    const disabled_features = [
+        "create_volume_indicator_by_default",
+        "header_quick_search",
+        "header_compare",
+        "timeframes_toolbar",
+        "header_symbol_search",
+        "symbol_info"
+    ] as ChartingLibraryFeatureset[];
+    isMobile && enabled_features.push("hide_left_toolbar_by_default");
+
+    const overridesOptions = {
+        "symbolWatermarkProperties.color": "#131832",
+        "scalesProperties.lineColor": "#131832",
+        "scalesProperties.textColor": "#838ca1",
+        "mainSeriesProperties.candleStyle.upColor": "#13dfff",
+        "mainSeriesProperties.candleStyle.downColor": "#ff4976",
+        "mainSeriesProperties.candleStyle.drawWick": true,
+        "mainSeriesProperties.candleStyle.drawBorder": true,
+        "mainSeriesProperties.candleStyle.borderColor": "#838ca1",
+        "mainSeriesProperties.candleStyle.borderUpColor": "#13dfff",
+        "mainSeriesProperties.candleStyle.borderDownColor": "#ff4976",
+        "mainSeriesProperties.candleStyle.wickUpColor": "#838ca1",
+        "mainSeriesProperties.candleStyle.wickDownColor": "#838ca1",
+        "mainSeriesProperties.candleStyle.barColorsOnPrevClose": false,
+    };
+    isMobile 
+        ? (overridesOptions["mainSeriesProperties.minTick"] = "100, 1, true")
+        : (overridesOptions["mainSeriesProperties.minTick"] = "10000, 1, true");
 
     const createWidget = () => {
-        const enabled_features = ["show_symbol_logos"] as ChartingLibraryFeatureset[]
-        const disabled_features = [
-            "create_volume_indicator_by_default",
-            "header_quick_search",
-            "header_compare",
-            "timeframes_toolbar",
-            "header_symbol_search",
-            "symbol_info"
-        ] as ChartingLibraryFeatureset[];
-
-        isMobile && enabled_features.push("hide_left_toolbar_by_default");
-
         const widgetOptions: ChartingLibraryWidgetOptions = {
             container: "tv_chart_container",
-            symbol: `${destination.symbol ? destination.symbol.substring(1) : "BTC"}USD`,
+            symbol,
             interval: "15" as ResolutionString,
             library_path: "charting_library/",
             locale: getLanguageFromURL() || "en",
@@ -79,24 +101,6 @@ export default function TradingViewWidget({isBuy}) {
 
         const tvWidget = new widget(widgetOptions);
         tvWidget.onChartReady(() => {
-            const overridesOptions = {
-                "symbolWatermarkProperties.color": "#131832",
-                "scalesProperties.lineColor": "#131832",
-                "scalesProperties.textColor": "#838ca1",
-                "mainSeriesProperties.candleStyle.upColor": "#13dfff",
-                "mainSeriesProperties.candleStyle.downColor": "#ff4976",
-                "mainSeriesProperties.candleStyle.drawWick": true,
-                "mainSeriesProperties.candleStyle.drawBorder": true,
-                "mainSeriesProperties.candleStyle.borderColor": "#838ca1",
-                "mainSeriesProperties.candleStyle.borderUpColor": "#13dfff",
-                "mainSeriesProperties.candleStyle.borderDownColor": "#ff4976",
-                "mainSeriesProperties.candleStyle.wickUpColor": "#838ca1",
-                "mainSeriesProperties.candleStyle.wickDownColor": "#838ca1",
-                "mainSeriesProperties.candleStyle.barColorsOnPrevClose": false,
-            };
-            isMobile 
-                ? (overridesOptions["mainSeriesProperties.minTick"] = "100, 1, true")
-                : (overridesOptions["mainSeriesProperties.minTick"] = "10000, 1, true");
             
             tvWidget.applyOverrides(overridesOptions);
             const chart = tvWidget.chart();
@@ -105,71 +109,37 @@ export default function TradingViewWidget({isBuy}) {
             tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval) =>{
                 setChartInterval(interval);
             });
-            /*chart.getSeries().setChartStyleProperties(1, {
-                upColor: "#13dfff",
-                downColor: "#ff4976",
-                borderDownColor: "#ff4976",
-                borderUpColor: "#13dfff",
-                wickDownColor: "#838ca1",
-                wickUpColor: "#838ca1",
-            }); */
             setChart(chart);
-            // tvWidget.headerReady().then(() => {
-            // 	const button = tvWidget.createButton();
-            // 	button.setAttribute('title', 'Click to show a notification popup');
-            // 	button.classList.add('apply-common-tooltip');
-            // 	button.addEventListener('click', () => tvWidget.showNoticeDialog({
-            // 			title: 'Notification',
-            // 			body: 'TradingView Charting Library API works correctly',
-            // 			callback: () => {
-            // 				console.log('Noticed!');
-            // 			},
-            // 		}));
-            // 	button.innerHTML = 'Check API';
-            // });
-            // tvWidget.hideAllDrawingTools();
-
-            /* const priceScale = tvWidget.activeChart().getPanes()[0].getMainSourcePriceScale();
-            priceScale.setAutoScale(true) */
         });
 
         setTvWidget(tvWidget);
     };
 
-    /* const updatePrice = (data) => {
-        if (coinList.length === 0) return;
-
-        try {
-            const keys = data?.id?.split(".")[1].split("/");
-
-            const idxFind = coinList.findIndex((e) => e.key === keys[0]);
-            if (idxFind === -1 || keys[1] !== "USD") {
-                // console.log("updatePrice", idxFind, keys, coinList[idxFind]);
-                return;
-            }
-
-            const bnPrice = toBigInt(data.p);
-            const newCoin = {
-                ...coinList[idxFind],
-                price: bnPrice,
-                // change: data.change,
-                timestamp: data.t,
-            };
-            dispatch(updateCoin(newCoin));
-
-            if (isConnect && destination.symbol === coinList[idxFind].symbol) {
-                const lastRateData = {
-                    timestamp: data.t,
-                    rate: bnPrice,
-                    symbols: data?.id?.split(".")[1],
-                };
-                // console.log("lastRateData", lastRateData);
-                dispatch(updateLastRateData(lastRateData));
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }; */
+    useEffect(() => {
+        const params = new URLSearchParams({
+            symbol,
+            interval: "15",
+            library_path: "charting_library/",
+            locale: "en",
+            theme: "dark",
+            backgroundColor: "#021135",
+            // hide_top_toolbar: "true",
+            // hide_side_toolbar: "false",
+            allow_symbol_change: "false",
+            studies: "BB@tv-basicstudies",
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            // enabled_features: JSON.stringify(enabled_features),
+            disabled_features: JSON.stringify(disabled_features),
+            overrides: JSON.stringify({
+                ...overridesOptions, 
+                "paneProperties.backgroundType": "gradient",
+                "paneProperties.backgroundGradientEndColor": "#042044",
+                "paneProperties.backgroundGradientStartColor": "#01092c"
+            })
+        });
+        
+        setIframeSrc(`https://www.tradingview.com/widgetembed/?${params.toString()}`);
+    }, [symbol]);
 
     useEffect(() => {
         // coinList.length && setUpdatePriceCallBack(updatePrice);
@@ -186,6 +156,9 @@ export default function TradingViewWidget({isBuy}) {
             chart.onSymbolChanged().subscribe(null, () => {
                 feeder.destination = destination;
             });
+        } else if (isRunningInMetamask) {
+            const symbol = `PYTH:${destination.symbol ? destination.symbol.substring(1) : "PYTH:BTC"}USD`;
+            setSymbol(symbol);
         }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,21 +185,65 @@ export default function TradingViewWidget({isBuy}) {
     }, [networkId, feeder, destination]);
 
     useEffect(() => {
-        createWidget();
-        datafeed.destination = destination;
+        if (!isScriptLoaded) return;
+
+        try {
+            createWidget();
+        } catch (err) {
+            setHasError(true);
+        }
         setFeeder(datafeed);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isScriptLoaded]);
+
+
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "charting_library/charting_library.js"; // replace with the correct path
+        script.onload = () => setIsScriptLoaded(true);
+        document.body.appendChild(script);
+
+        datafeed.destination = destination;
+
+
         return () => {
+            document.body.removeChild(script);
+            
             tvWidget?.remove();
             setTvWidget(null);
             setFeeder(null);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        };
     }, []);
+
+
+    if (isRunningInMetamask) {
+        return (
+            <div className="tradingview-widget-container w-full h-full rounded-lg">
+                <iframe
+                    title="TradingView Widget"
+                    src={iframeSrc}
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    allowFullScreen
+                />
+            </div>
+        )
+    }
+
+    if (hasError) {
+        return (
+            <div className="tradingview-widget-container w-full h-full rounded-lg my-auto mx-auto">
+                <p >Failed to load TradingView widget. Please try again later.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="tradingview-widget-container w-full h-full rounded-lg">
             <div className="w-full h-full rounded-lg" id="tv_chart_container" />
         </div>
     );
+    
 }

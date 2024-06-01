@@ -449,7 +449,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 45,
+            id: 43,
             favorite: false,
             name: "Paxos Gold",
             symbol: "pPAXG",
@@ -566,7 +566,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 43,
+            id: 41,
             favorite: false,
             name: "Near Protocol",
             symbol: "pNEAR",
@@ -575,7 +575,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 44,
+            id: 42,
             favorite: false,
             name: "Shiba Inu",
             symbol: "pSHIB",
@@ -939,7 +939,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 45,
+            id: 43,
             favorite: false,
             name: "Paxos Gold",
             symbol: "pPAXG",
@@ -1065,7 +1065,7 @@ let pynths = {
             decimal: 18,
         },
         {
-            id: 41,
+            id: 40,
             favorite: false,
             name: "New Zealand Dollar",
             symbol: "pNZD",

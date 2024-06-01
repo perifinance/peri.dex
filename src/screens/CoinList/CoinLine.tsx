@@ -4,6 +4,7 @@ import { RootState } from 'reducers';
 import { ColoredPrice } from 'components/ColoredPrice';
 import useSelectedCoin from 'hooks/useSelectedCoin';
 import { updateFavorite } from 'reducers/coin/coinList';
+import { ColoredLabel, SignType } from 'components/ColoredLabel';
 
 interface CoinLineProps {
 	index: number;
@@ -78,14 +79,20 @@ const CoinLine: React.FC<CoinLineProps> = ({index}) => {
 			>
 				{formatNumber(coinList[index]?.price, 8)}
 			</div> */}
-			<ColoredPrice 
-				coin={coinList[index]} 
+			<ColoredLabel 
+				value={coinList[index].price}
+				isActive={coinList[index].isActive}
+				tailWinStyle='w-11 text-end font-medium text-[10px]'
 				precision={8}
 			/>
-			<ColoredPrice 
-				coin={coinList[index]}
-				showUpDown={true}
-				tag={"%"}
+			<ColoredLabel 
+				value={coinList[index].price}
+				prevValue={coinList[index].preClose} 
+				isActive={coinList[index].isActive}
+				showUpDn={SignType.Imoti}
+				showPercent={true}
+				useGivenPrev={true}
+				tailWinStyle='w-11 text-end font-medium text-[10px]'
 			/>
 			{/* <div
 				className={`w-11 text-end text-[10px] font-medium text-nowrap ${

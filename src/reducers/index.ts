@@ -1,6 +1,6 @@
 import { combineReducers } from "@reduxjs/toolkit";
 
-import balances from "./wallet/balances";
+// import balances from "./wallet/balances";
 import pynthBlances from "./wallet/pynthBlances";
 
 import theme from "./theme/theme";
@@ -24,7 +24,7 @@ const reducers = combineReducers({
 	app,
 	theme,
 	wallet,
-	balances,
+	// balances,
 	pynthBlances,
 	exchangeRates,
 	// networkFee,

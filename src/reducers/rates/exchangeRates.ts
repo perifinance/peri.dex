@@ -8,18 +8,18 @@ export type LastRateData = {
 };
 
 export type ExchangeRatesState = {
-    isReady?: boolean;
+/*     isReady?: boolean;
     PERI?: number;
     USDC?: number;
-    DAI?: number;
+    DAI?: number; */
     lastRateData: LastRateData;
 };
 
 const initialState: ExchangeRatesState = {
-    isReady: false,
+/*     isReady: false,
     PERI: 0,
     USDC: 0,
-    DAI: 0,
+    DAI: 0, */
     lastRateData: {
         timestamp: 0,
         rate: 0,
@@ -32,7 +32,7 @@ export const ExchangeRatesSlice = createSlice({
     name: "exchangeRates",
     initialState,
     reducers: {
-        updateExchangeRates(state, actions: PayloadAction<ExchangeRatesState>) {
+        /* updateExchangeRates(state, actions: PayloadAction<ExchangeRatesState>) {
             return {
                 ...state,
                 isReady: true,
@@ -40,7 +40,7 @@ export const ExchangeRatesSlice = createSlice({
                 USDC: actions.payload.USDC,
                 DAI: actions.payload.DAI,
             };
-        },
+        }, */
         updateLastRateData(state, actions: PayloadAction<LastRateData>) {
             // console.log("updateLastRateData", actions.payload);
             return { ...state, lastRateData: actions.payload };
@@ -48,6 +48,6 @@ export const ExchangeRatesSlice = createSlice({
     },
 });
 
-export const { updateExchangeRates, updateLastRateData } = ExchangeRatesSlice.actions;
+export const { /* updateExchangeRates,  */updateLastRateData } = ExchangeRatesSlice.actions;
 
 export default ExchangeRatesSlice.reducer;

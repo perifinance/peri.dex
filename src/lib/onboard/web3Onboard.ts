@@ -186,7 +186,7 @@ export const web3Onboard: Web3Onboard = {
 
         const appMetadata = {
             name: "PERI Finance DEX",
-            icon: "/favicon.png",
+            icon: "/favicon.ico",
             description: "PERI Finance DEX",
             explore: "https://dex.peri.finance",
             recommendedInjectedWallets: [

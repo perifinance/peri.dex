@@ -30,6 +30,7 @@ export const loadingSlice = createSlice({
         },
 
         setDestinationCoin: (state, actions: PayloadAction<Coin>) => {
+            console.log("setDestinationCoin", actions.payload);
             return { ...state, destination: actions.payload };
         },
         setSelectedCoin: (state, actions: PayloadAction<selectedCoin>) => {

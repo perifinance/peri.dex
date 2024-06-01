@@ -1,21 +1,11 @@
-import perifinance from "@perifinance/peri-finance";
-import { ethers, providers } from "ethers";
 import { extractMessage } from "lib/error";
 import { SUPPORTED_NETWORKS } from "lib/network";
-import { RPC_URLS } from "lib/rpcUrl";
 
-export const getBridgeCost = async (networkId:number|string ):Promise<any> => {
+export const getBridgeCost = async (networkId:number|string, contracts ):Promise<any> => {
 	const network = SUPPORTED_NETWORKS[networkId]?.toLowerCase();
-	if (!network) return null;
+	if (!network && !contracts?.SystemSettings) return null;
 	try {
-		const sources = perifinance.getSource({ network })[
-			"SystemSettings"
-		];
-		const provider = new providers.JsonRpcProvider(RPC_URLS[networkId], networkId);
-        const address = perifinance.getTarget({ network })[
-            "SystemSettings"
-        ].address;
-        const contract = new ethers.Contract(address, sources.abi, provider);
+        const contract = contracts.SystemSettings;
 		const [submitCost, claimCost] = await Promise.all([
 			contract?.bridgeTransferGasCost(),
 			contract?.bridgeClaimGasCost()

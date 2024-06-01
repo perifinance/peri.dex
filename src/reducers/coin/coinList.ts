@@ -9,10 +9,10 @@ export type Coin = {
     decimal?: number;
     key?: string;
     price?: number;
-    change?: number;
+    // change?: number;
     timestamp?: number;
     isActive?: boolean;
-    upDown?: number;
+    // upDown?: number;
     high?: number;
     low?: number;
     preClose?: number;
@@ -56,18 +56,18 @@ export const coinListSlice = createSlice({
             if (existCoin.timestamp > action.payload.timestamp || existCoin.price === action.payload.price) {
                 return ;
             }
-            const change = existCoin.preClose 
+            /* const change = existCoin.preClose 
                 ? (action.payload.price - existCoin.preClose) / existCoin.preClose * 100
                 : 0;
             const upDown = existCoin.price === action.payload.price
                 ? 0
                 : existCoin.price < action.payload.price
                     ? 1
-                    : -1;
+                    : -1; */
             const high = action.payload.price > existCoin.high ? action.payload.price : existCoin.high;
             const low = existCoin.low !== 0 && action.payload.price < existCoin.low ? action.payload.price : existCoin.low;
             state.coinList[idx] = {...existCoin, timestamp:action.payload.timestamp, price:action.payload.price
-                , high, low, change, upDown};
+                , high, low};
             /* state.coinList[idx].change = existCoin.preClose 
                 ? (action.payload.price - existCoin.preClose) / existCoin.preClose * 100
                 : 0;
