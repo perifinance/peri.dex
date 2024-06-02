@@ -6,7 +6,7 @@ import { ExchangeTV } from "pages/Exchange";
 // import Futures from "pages/Futures";
 import Bridge from "pages/Bridge";
 // import { setLoading } from "reducers/loading/loading";
-import { useContracts } from "lib";
+import { formatNumber, useContracts } from "lib";
 import { useDispatch, useSelector } from "react-redux";
 // import { useAppSelector } from "store";
 import { RootState } from "reducers";
@@ -20,8 +20,9 @@ import { setLoading } from "reducers/loading";
 import { updateCoin } from "reducers/coin/coinList";
 import { subscribeOnStreamByMain } from "lib/datafeed";
 import Swap from "pages/swap";
-import useInterval from "hooks/useInterval";
 import { toNumber } from "lib/bigInt";
+import { useTargetCoin, useInterval } from "hooks";
+import { format } from "path";
 // import TradingViewIframeContent from "screens/TradingView/TradingViewIframeContent";
 // import Loading from "components/loading";
 // import Header from "screens/Header";
@@ -39,6 +40,7 @@ const Main = () => {
     const [{ contracts }] = useContracts();
     const location = useLocation();
     const { initInterval, stopInterval } = useInterval();
+    const { targetCoin } = useTargetCoin();
     // const history = useHistory();
 
     const getInboundings = async () => {
@@ -195,14 +197,6 @@ const Main = () => {
     }, [coinList.length, destination?.symbol, isConnect, location]);
 
     useEffect(() => {
-        return () => {
-            console.log("Main useEffect return");
-            subscribeOnStreamByMain(null);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
         // console.log("isConnect", isConnect, networkId);
         if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
             return;
@@ -216,6 +210,23 @@ const Main = () => {
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnect, networkId]);
+
+    useEffect(() => {
+        if (!targetCoin) return;
+        // console.log("Main useEffect for title");
+        const price = formatNumber(targetCoin.price, 8);
+        document.title = `$${price} | ${targetCoin.symbol} | PERI Finance Dex`;
+
+    }, [targetCoin]);
+
+    useEffect(() => {
+        return () => {
+            // console.log("Main useEffect return");
+            subscribeOnStreamByMain(null);
+            stopInterval();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <Switch>

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { toWei } from "web3-utils";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "reducers";

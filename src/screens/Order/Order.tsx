@@ -5,7 +5,7 @@ import { RootState } from "reducers";
 import { getBalance } from "lib/balance";
 import { getFeeRateForExchange } from "lib/rates";
 import { useContracts } from "lib";
-import { formatCurrency } from "lib";
+// import { formatCurrency } from "lib";
 import { updateTransaction } from "reducers/transaction";
 import { getNetworkFee } from "lib/fee";
 // import { setSelectedCoin } from "reducers/coin/selectedCoin";
@@ -44,7 +44,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
     const { networkId, address, isConnect } = useSelector((state: RootState) => state.wallet);
     const [{ selectedCoins }] = useSelectedCoin();
     const { source, destination } = selectedCoins;
-    const { coinList, symbolMap } = useSelector((state: RootState) => state.coinList);
+    const { listSize } = useSelector((state: RootState) => state.coinList);
     const isOrderMin = useMediaQuery({ query: `(min-height: 880px)` });
     const isLaptop = useMediaQuery({ query: `(min-height: 768px)` });
     const [{ contracts }] = useContracts();
@@ -362,15 +362,15 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
 
     useEffect(() => {
         // dispatch(setLoading({ name: "balance", value: true }));
-        console.debug("Order useEffect", isReady, networkId, coinList.length);
+        console.debug("Order useEffect", isReady, networkId, listSize);
 
-        if (isReady && networkId && coinList.length > 0) {
+        if (isReady && networkId && listSize > 0) {
             setNetworkFee();
         }
 
         // dispatch(setLoading({ name: "balance", value: false }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady, networkId, coinList.length]);
+    }, [isReady, networkId, listSize]);
 
 
     // useEffect(() => {

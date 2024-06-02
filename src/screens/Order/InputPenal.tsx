@@ -6,7 +6,8 @@ import { RangeInput } from 'components/RangeInput';
 import useSelectedCoin from 'hooks/useSelectedCoin';
 import { RootState } from 'reducers';
 import { useSelector } from 'react-redux';
-import { set } from 'date-fns';
+// import { set } from 'date-fns';
+import { useTargetCoin } from 'hooks';
 
 type InputPenalProps = {
 	isBuy: boolean;
@@ -22,14 +23,15 @@ type InputPenalProps = {
 const InputPenal: React.FC<InputPenalProps> = ({isBuy, balance, feeRate, payAmount, receiveAmount, setPayAmount, setReceiveAmount, validationCheck}) => {
 	const { isReady } = useSelector((state: RootState) => state.app);
     const { networkId, address, isConnect } = useSelector((state: RootState) => state.wallet);
-	const { coinList } = useSelector((state: RootState) => state.coinList);
+	// const { coinList } = useSelector((state: RootState) => state.coinList);
     const [{ selectedCoins }] = useSelectedCoin();
     const { source, destination } = selectedCoins;
 	// const [{ payAmount, receiveAmount }, setPayAmount, setReceiveAmount] = useOrderAmount();
 	const [per, setPer] = useState(0n);
     const [isPayCoin, setIsPayCoin] = useState(false);
     const [inputAmt, setInputAmt] = useState<string | number>("");
-	const [idxTarget, setIdxTarget] = useState(destination.index);
+    const { targetCoin } = useTargetCoin();
+	// const [idxTarget, setIdxTarget] = useState(destination.index);
     // const [payAmount, setPayAmount] = useState("");
     // const [receiveAmount, setReceiveAmount] = useState("");
 	const isLaptop = useMediaQuery({ query: `(min-height: 768px)` });
@@ -40,10 +42,10 @@ const InputPenal: React.FC<InputPenalProps> = ({isBuy, balance, feeRate, payAmou
                 amount = amount === "." ? "0." : amount;
                 const receiveAmtNoFee =
                     isPay === isBuy
-                        ? (toBigInt(amount) * 10n ** 18n) / toBigInt(coinList[idxTarget].price)
-                        : (toBigInt(amount) * toBigInt(coinList[idxTarget].price)) / 10n ** 18n;
+                        ? (toBigInt(amount) * 10n ** 18n) / toBigInt(targetCoin.price)
+                        : (toBigInt(amount) * toBigInt(targetCoin.price)) / 10n ** 18n;
 
-                // console.log("changePayAmount", amount, receiveAmtNoFee, coinList[idxTarget]);
+                // console.log("changePayAmount", amount, receiveAmtNoFee, targetCoin);
                 const feePrice = (receiveAmtNoFee * feeRate) / 10n ** 18n;
 
                 const calcAmt = receiveAmtNoFee + feePrice * (isPay ? -1n : 1n);
@@ -63,7 +65,7 @@ const InputPenal: React.FC<InputPenalProps> = ({isBuy, balance, feeRate, payAmou
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [feeRate, coinList[idxTarget]]
+        [feeRate, targetCoin]
     );
 
     const changeAmountByPay = (value) => changePayAmount(value, true);
@@ -95,9 +97,9 @@ const InputPenal: React.FC<InputPenalProps> = ({isBuy, balance, feeRate, payAmou
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, networkId, address, isBuy]);
 
-	useEffect(() => {
-		setIdxTarget(destination.index);
-	}, [destination.index]);
+	// useEffect(() => {
+	// 	// setIdxTarget(destination.index);
+	// }, [destination.index]);
 
 	return (
 		<div className="flex flex-col w-full mt-2 lg:mt-3 space-y-1 lg:space-y-2">

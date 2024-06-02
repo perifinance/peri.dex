@@ -29,7 +29,7 @@ const FeeInfoBar:React.FC<FeeInfoBarProps> = ({isBuy, gasPrice, gasLimit, feeRat
 	// const [{ payAmount, receiveAmount }] = useOrderAmount();
 	const [networkFeePrice, setNetworkFeePrice] = useState(0);
     // const [price, setPrice] = useState(0n);
-    const [feePrice, setFeePrice] = useState(0);
+    const [fee, setFee] = useState(0);
 	const [nativeIndex, setNativeIndex] = useState(-1);
     const isLaptop = useMediaQuery({ query: `(min-height: 768px)` });
 
@@ -41,32 +41,32 @@ const FeeInfoBar:React.FC<FeeInfoBarProps> = ({isBuy, gasPrice, gasLimit, feeRat
             const nativePrice = toBigInt(coinList[nativeIndex].price);
             const gLimit = gasLimit === 0n ? await getGasLimit() : gasLimit;
             const netFeePrice = (gLimit * BigInt(toWei(gasPrice, "gwei")) * nativePrice) / 10n ** 18n;
-            // console.debug("feePrice", feePrice, gLimit, gasPrice, nativePrice);
+            // console.debug("fee", fee, gLimit, gasPrice, nativePrice);
             setNetworkFeePrice(toNumber(netFeePrice));
         } catch (e) {}
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [feePrice, nativeIndex, gasPrice]);
+    }, [fee, nativeIndex, gasPrice]);
 
-    const getPrice = useCallback(() => {
+    const getFee = useCallback(() => {
         if (payAmount === "0") {
             // setPrice(0n);
-            setFeePrice(0);
+            setFee(0);
             return;
         }
         try {
             const price = Number(payAmount) * coinList[destination.index].price;
-            // console.debug("getPrice", price, "feeRate", feeRate);
+            // console.debug("getFee", price, "feeRate", feeRate);
             // setPrice(price);
-            setFeePrice((price * toNumber(feeRate)));
+            setFee((price * toNumber(feeRate)));
         } catch (e) {
             // setPrice(0n);
-            setFeePrice(0);
+            setFee(0);
         }
     }, [payAmount, feeRate]);
 
 	useEffect(() => {
         if (coinList.length > 0) {
-            console.log("symbolMap", symbolMap, natives[networkId])
+            // console.log("symbolMap", symbolMap, natives[networkId])
             const index = symbolMap[`p${natives[networkId]}`];
             index && setNativeIndex(index);
         }
@@ -74,8 +74,8 @@ const FeeInfoBar:React.FC<FeeInfoBarProps> = ({isBuy, gasPrice, gasLimit, feeRat
     }, [isReady, networkId, coinList.length]);
 
 	useEffect(() => {
-        getPrice();
-    }, [getPrice]);
+        getFee();
+    }, [getFee]);
 
     useEffect(() => {
         if (SUPPORTED_NETWORKS[networkId]) {
@@ -96,14 +96,14 @@ const FeeInfoBar:React.FC<FeeInfoBarProps> = ({isBuy, gasPrice, gasLimit, feeRat
 					<div>Cost</div>
 					<div className="font-medium">${payAmount > "0" 
 						? formatNumber(
-							Number(receiveAmount)/* Number(payAmount) * coinList[idxTarget].price - feePrice * (isBuy?-1:1) */, 18
+							Number(receiveAmount)/* Number(payAmount) * coinList[idxTarget].price - fee * (isBuy?-1:1) */, 18
 						)
 						: 0}</div>
 				</div>
 				<div className="flex justify-between w-[40%] lg:w-full">
 					<div>Fee</div>
 					<div className="flex flex-nowrap items-center">
-						<span className="font-medium">${formatNumber(feePrice, 6)}</span>
+						<span className="font-medium">${formatNumber(fee, 6)}</span>
 						<span className="font-light text-[10px] tracking-tighter text-nowrap">
 							({fromBigNumber(feeRate * 100n)}%)
 						</span>

@@ -19,11 +19,13 @@ export type Coin = {
 };
 
 export type CoinList = {
+    listSize: number;
     coinList: Array<Coin>;
     symbolMap: any;
 };
 
 const initialState: CoinList = {
+    listSize: 0,
     coinList: Array<Coin>(),
     symbolMap: {
         pUSD: 0,
@@ -43,7 +45,7 @@ export const coinListSlice = createSlice({
                 coinList.push(coin);
             });
             // console.log(symbolMap);
-            return {coinList, symbolMap};
+            return {listSize:coinList.length, coinList, symbolMap};
         },
         updateCoin: (state, action: PayloadAction<Coin>) => {
             const idx = state.symbolMap[action.payload.symbol];

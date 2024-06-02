@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 // TradingViewWidget.jsx
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "reducers";
 import {

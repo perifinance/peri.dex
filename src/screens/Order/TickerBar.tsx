@@ -29,7 +29,7 @@ const TickerBar: React.FC<TickerBarProps> = ({isBuy, openCoinList, isCoinList, c
 				className="flex space-x-1 cursor-pointer w-full h-full justify-between items-center"
 			>
 				<div
-					className="flex flex-col w-[50%] justify-center"
+					className="flex flex-col w-[55%] lg:w-[60%] xl:w-[50%] justify-center"
 					id="list-caller"
 					onClick={() => (isCoinList ? closeCoinList() : openCoinList("destination"))}
 				>
@@ -37,7 +37,7 @@ const TickerBar: React.FC<TickerBarProps> = ({isBuy, openCoinList, isCoinList, c
 						className="flex space-x-1 mb-2 items-end cursor-pointer justify-center"
 						id="list-caller"
 					>
-						<div className="relative w-8 h-5" id="list-caller">
+						<div className="flex relative w-8 h-5 lg:hidden xl:flex" id="list-caller">
 							<img
 								id="list-caller"
 								alt="dest_symgol"
@@ -96,7 +96,7 @@ const TickerBar: React.FC<TickerBarProps> = ({isBuy, openCoinList, isCoinList, c
 					<AnimatedText 
 						id='list-caller'
 						value={coinList[destination.index]?.price}
-						tailWinStyle='text-2xl font-bold w-[78%] mt-[2px]' 
+						tailWinStyle='text-2xl font-bold mt-[2px]' 
 					/>
 					<div
 						className={`flex flex-row w-full text-[10px] ss:text-xs justify-center gap-8 md:gap-6 font-[500]`}
@@ -141,7 +141,7 @@ const TickerBar: React.FC<TickerBarProps> = ({isBuy, openCoinList, isCoinList, c
 						</div> */}
 					</div>
 				</div>
-				<div className="flex flex-col w-[25%] min-w-fit items-center space-y-2 lg:space-y-4">
+				<div className="flex flex-col w-[25%] lg:w-[32%] xl:w-[25%] min-w-fit items-center space-y-2 lg:space-y-4">
 					<div className="w-full flex flex-col justify-start">
 						<div
 							className={`h-4 text-[6px] ss:text-[8px] text-gray-450 font-medium tracking-tight text-start w-full`}
