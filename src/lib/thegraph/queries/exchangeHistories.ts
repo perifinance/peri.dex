@@ -6,7 +6,7 @@ import {
 } from "lib/format";
 export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 	const variables = {
-		address,
+		address: address.toLowerCase(),
 		skip: page * first,
 		first,
 	};
@@ -16,6 +16,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 			id: data.id,
 			src: utils.parseBytes32String(data.src),
 			amount: BigInt(data.amount),
+			chainId: data.chainId,
 			dest: utils.parseBytes32String(data.dest),
 			txid: data.txid,
 			reclaim: BigInt(data.reclaim),
@@ -41,7 +42,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 				exchangeHistory(
 					skip: ${variables.skip},
 					first: ${variables.first},
-					account: "${variables.address}",
+					account: ${JSON.stringify(variables.address)}
 				) {
 					id
 					account
@@ -60,6 +61,7 @@ export const exchangeHistories = ({ address, page = 0, first = 100 }) => {
 					state
 					appendedTxid
 					settledTxid
+					chainId
 				}
 			}
 		`,

@@ -1,0 +1,12 @@
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+	background: #242a4b;
+}
+.arrow-turn:active {
+	img {
+		transform: rotate(-90deg);
+		transition-duration: 500ms;
+	}
+}

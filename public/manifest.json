@@ -1,9 +1,9 @@
 {
-  "short_name": "PERI Finance STAKING",
-  "name": "PERI Finance STAKING",
+  "short_name": "PERI Finance DEX",
+  "name": "PERI Finance DEX",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "/images/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     }

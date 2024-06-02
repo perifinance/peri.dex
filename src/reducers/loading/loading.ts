@@ -1,30 +1,28 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export type Loading = {
-	loadings: object;
+    loadings: Object;
 };
 
 const initialState: Loading = {
-	loadings: {
-		balance: false,
-		apy: false,
-		burnAble: false,
-		gasEstimate: false,
-		closeCurrentFeePeriod: false,
-		rewardData: false,
-		vestingData: false,
-		amountsToFitClaimable: false,
-	},
+    loadings: {
+        balance: false,
+        chart: false,
+        // order: false,
+    },
 };
 
 export const loadingSlice = createSlice({
-	name: "loading",
-	initialState,
-	reducers: {
-		setLoading: (state, actions) => {
-			state.loadings[actions.payload.name] = actions.payload.value;
-		},
-	},
+    name: "loading",
+    initialState,
+    reducers: {
+        setLoading: (state, actions) => {
+            let loadings = { ...state.loadings };
+            loadings[actions.payload.name] = actions.payload.value;
+
+            return { ...state, loadings };
+        },
+    },
 });
 
 export const { setLoading } = loadingSlice.actions;

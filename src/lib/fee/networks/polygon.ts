@@ -1,8 +1,8 @@
-export const polygon = async () => {
+export const polygon = async (networkId) => {
 	try {
-		const getNetworkInfo = await fetch(`https://gasstation-mainnet.matic.network`).then((response) => response.json());
-		// console.log("polygon gas price", getNetworkInfo.standard);
-		return BigInt(Math.floor(getNetworkInfo.standard));
+		const getNetworkInfo = await fetch(`https://gasstation.polygon.technology/v2`).then((response) => response.json());
+		// console.log("polygon gas price", getNetworkInfo.standard.maxFee);
+		return BigInt(Math.floor(getNetworkInfo.standard.maxFee));
 	} catch (e) {
 		console.error(e);
 		return BigInt(25);

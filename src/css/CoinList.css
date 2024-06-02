@@ -1,0 +1,18 @@
+.scrollbarOn {
+	overflow: auto;
+}
+
+.scrollbarOn::-webkit-scrollbar {
+	width: 5px;
+}
+.scrollbarOn::-webkit-scrollbar-track {
+	background-color: none;
+}
+.scrollbarOn::-webkit-scrollbar-thumb {
+	border-radius: 3px;
+	background-color: rgb(32, 31, 54);
+}
+.scrollbarOn::-webkit-scrollbar-button {
+	width: 5px;
+	height: 8px;
+}

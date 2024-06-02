@@ -1,8 +1,10 @@
-import { chartRate } from "../queries";
-import { get } from "../service";
 import { format } from "date-fns";
-import { utils } from "ethers";
+
 import { formatCurrency } from "lib";
+import { fromBigNumber } from "lib/bigInt";
+
+import { chartRates } from "../queries";
+import { get } from "../service";
 
 type ChartRateParameter = {
 	currencyNames: {
@@ -52,19 +54,19 @@ export const getChartRates = async ({
 	let sourceData =
 		currencyNames.source === "pUSD"
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
-			: await get(chartRate({ currencyName: currencyNames.source, page, first, searchDate }));
+			: await get(chartRates({ currencyName: currencyNames.source, page, first, searchDate }));
 
 	if (currencyNames.source !== "pUSD" && sourceData.length <= 1) {
-		sourceData = await get(chartRate({ currencyName: currencyNames.source, page: 0, first: 2 }));
+		sourceData = await get(chartRates({ currencyName: currencyNames.source, page: 0, first: 2 }));
 	}
 
 	let destinationData =
 		currencyNames.destination === "pUSD"
 			? [{ ...pUSDPrice, itemstamp: searchDate }, pUSDPrice]
-			: await get(chartRate({ currencyName: currencyNames.destination, page, first, searchDate }));
+			: await get(chartRates({ currencyName: currencyNames.destination, page, first, searchDate }));
 
 	if (currencyNames.destination !== "pUSD" && destinationData.length <= 1) {
-		destinationData = await get(chartRate({ currencyName: currencyNames.destination, page: 0, first: 2 }));
+		destinationData = await get(chartRates({ currencyName: currencyNames.destination, page: 0, first: 2 }));
 	}
 
 	let dayFlag;
@@ -101,9 +103,9 @@ export const getChartRates = async ({
 
 	return values.map((e) => {
 		return {
-			price: utils.formatEther(e.price),
-			low: utils.formatEther(e.low),
-			high: utils.formatEther(e.high),
+			price: fromBigNumber(e.price),
+			low: fromBigNumber(e.low),
+			high: fromBigNumber(e.high),
 			formatPrice: formatCurrency(e.price, 8),
 			formatLow: formatCurrency(e.low, 8),
 			formatHigh: formatCurrency(e.high, 8),

@@ -1,1 +1,1 @@
-export { contracts } from './contracts'
+export { contracts, useContracts } from './contracts'
