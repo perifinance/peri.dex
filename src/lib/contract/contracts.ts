@@ -6,6 +6,8 @@ import { SUPPORTED_NETWORKS } from "../network";
 import { RPC_URLS } from "../rpcUrl";
 import ERC20 from "../contract/abi/ERC20.json";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "reducers";
 
 // import { clear } from 'console'
 
@@ -257,21 +259,20 @@ export const contracts: Contracts = {
     },
 };
 
-let isContractsReady = false;
-
 export declare type useContractsT = () => [{
     contracts: Contracts;
-    IsContractsReady: boolean;
+    isContractsReady: boolean;
     web3Provider?: any;
 }, (networkId:number) => Promise<void>, (provider:any, address: string) => Promise<void>, () => void];
 
 export const useContracts : useContractsT = () => {
-    const [contract, setContracts] = useState({ contracts: contracts, IsContractsReady: isContractsReady });
+    const { isReady } = useSelector((state: RootState) => state.app);
+    const [contract, setContracts] = useState({ contracts: contracts, isContractsReady: false });
     const [web3Provider, setWeb3Provider] = useState<any>(contracts.provider);
 
     const initContracts = async (networkId:number) => {
         contracts.init(networkId).then((res) => {
-            setContracts({ contracts: res, IsContractsReady: false });
+            setContracts({ contracts: res, isContractsReady: false });
         });
     };
 
@@ -281,20 +282,30 @@ export const useContracts : useContractsT = () => {
         console.log("res", res, contracts.signers);
         if (res) {
             setWeb3Provider(contracts.provider);
-            setContracts({ contracts: contracts, IsContractsReady: true });
+            setContracts({ contracts: contracts, isContractsReady: true });
         } else {
-            setContracts({ contracts: null, IsContractsReady: false });
+            setContracts({ contracts: null, isContractsReady: false });
         }
     };
 
     const clearContracts = () => {
         contracts.clear();
-        setContracts({ contracts: null, IsContractsReady: false });
+        setContracts({ contracts: null, isContractsReady: false });
     };
 
     useEffect(() => {
-        isContractsReady = contract.IsContractsReady
-    }, [contract]);
+        console.log("isReady", isReady, "contract.isContractsReady", contract.isContractsReady);
+        if (isReady && !contract.isContractsReady) {
+            setContracts({ contracts: contract.contracts, isContractsReady: isReady });
+        }
+    }, [contract, isReady]);
+
+    useEffect(() => {
+        if (contracts.provider) {
+            setContracts({ contracts: contracts, isContractsReady: true });
+            setWeb3Provider(contracts.provider);
+        }
+    }, []);
 
     return [{...contract, web3Provider}, initContracts, connctContract, clearContracts];
 };

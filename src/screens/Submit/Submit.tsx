@@ -16,7 +16,7 @@ import pynths from "configure/coins/bridge";
 import { setLoading } from "reducers/loading";
 import BridgeStatus from "./BridgeStatus";
 import { resetBridgeStatus, setOnSendCoin, setObsolete, updateStep } from "reducers/bridge/bridge";
-import { fromBigNumber, toBigNumber } from "lib/bigInt";
+import { fromBigNumber, toBigNumber, toNumber } from "lib/bigInt";
 import { extractMessage } from "lib/error";
 import { useConnectWallet } from "lib/onboard";
 import useOnClickOutsideRef from "hooks/useOnClickOutsideRef";
@@ -35,7 +35,7 @@ const btnBridgeMsg = {
 const Submit = () => {
     const { cost, step, pendingCoins } = useSelector((state: RootState) => state.bridge);
     const { address, networkId, isConnect } = useSelector((state: RootState) => state.wallet);
-    const [{ contracts }] = useContracts();
+    const [{ contracts, isContractsReady }] = useContracts();
     const [payAmount, setPayAmount] = useState("0");
     const [per, setPer] = useState(0n);
     const [networks, setNetworks] = useState([]);
@@ -127,19 +127,19 @@ const Submit = () => {
     };
 
     const checkBalance = async (contract) => {
-        if (contract === undefined) return 'Please refresh and try it again.';
+        if (contract === undefined) return "Please refresh and try it again.";
 
         try {
             const transferable = contract.transferablePeriFinance
                 ? await contract.transferablePeriFinance(address)
                 : await contract.balanceOf(address);
 
-            console.log("checkBalance", transferable, payAmount);
-            
+            // console.log("checkBalance", transferable, payAmount);
+
             if (transferable.toBigInt() < toBigNumber(payAmount)) {
                 if (selectedFromNetwork) {
                     const selecNetwork = networks.find((e) => selectedFromNetwork.id === e.id);
-                    if (selecNetwork) selecNetwork.balance[selectedCoin?.name]= BigInt(transferable);
+                    if (selecNetwork) selecNetwork.balance[selectedCoin?.name] = BigInt(transferable);
                 }
                 return "Insufficient balance. Please check your balance and try again.";
             }
@@ -148,7 +148,7 @@ const Submit = () => {
         } catch (err) {
             return extractMessage(err);
         }
-    }
+    };
 
     const setPerAmount = (per) => {
         setPer(per);
@@ -175,7 +175,11 @@ const Submit = () => {
     };
 
     const getGasLimit = async () => {
-        return step === 0 ? 610000n : 300000n;
+        return step === 1
+            ? networkId === 1284 
+                ? 600000n
+                : 300000n
+            : 610000n;
         /* let gasLimit = 600000n;
 
         console.log("cost", cost, "step", step);
@@ -212,7 +216,7 @@ const Submit = () => {
 
             gasLimit = BigInt(tmpGasLimit);
         } catch (e) {
-            console.log(e);
+            console.debug(e);
         }
         return (gasLimit * 12n) / 10n; */
     };
@@ -261,8 +265,8 @@ const Submit = () => {
         }
 
         const transferable = await checkBalance(contract);
-        console.log("transferable", transferable);
-        if (typeof transferable == 'string') {
+        // console.log("transferable", transferable);
+        if (typeof transferable == "string") {
             NotificationManager.warning(transferable);
             return;
         }
@@ -286,6 +290,7 @@ const Submit = () => {
             }
 
             const transferCost = cost[step.toString()];
+            // console.log("transferCost", transferCost);
 
             if (transferCost === null || transferCost === undefined) {
                 NotificationManager.warning("Please refresh it and try it again.");
@@ -368,6 +373,7 @@ const Submit = () => {
 
         try {
             const claimCost = cost[step.toString()];
+            // console.log("step", step, "claimCost", toNumber(claimCost));
             if (claimCost === null || claimCost === undefined) {
                 NotificationManager.warning("Please refresh it and try it again.");
                 setIsProcessing(false);
@@ -380,7 +386,7 @@ const Submit = () => {
                 value: claimCost,
             };
 
-            console.log(selectedCoin.contract, networkId, transactionSettings);
+            // console.log(selectedCoin.contract, networkId, transactionSettings);
 
             let transaction;
             transaction = await contracts?.signers[selectedCoin.contract].claimAllBridgedAmounts(transactionSettings);
@@ -444,7 +450,7 @@ const Submit = () => {
 
     const initBalances = useCallback(async () => {
         try {
-            // console.log("networks", networks);
+            // console.log("initBalances", address, selectedFromNetwork, isContractsReady);
             const [pUSDBalances, PERIbalances] = await Promise.all([
                 getBalanceNetwork(selectedFromNetwork, address, "pUSD", contracts),
                 getBalanceNetwork(selectedFromNetwork, address, "PeriFinance", contracts),
@@ -457,12 +463,12 @@ const Submit = () => {
                 PERI: BigInt(PERIbalances),
             };
 
-            console.log(networksAddBalances);
+            // console.log(networksAddBalances);
             setNetworks(networksAddBalances);
         } catch (error) {
             console.log(error);
         }
-    }, [selectedFromNetwork, address /* setNetworks, getBalanceNetwork */]);
+    }, [selectedFromNetwork, address, isContractsReady /* setNetworks, getBalanceNetwork */]);
 
     // When source chain changed
     /*     useEffect(() => {
@@ -538,7 +544,7 @@ const Submit = () => {
 
     useEffect(() => {
         // console.log("cost", Object.values(cost).map(BigInt));
-        (cost && Object.keys(cost)?.length) && getGasPrice();
+        cost && Object.keys(cost)?.length && getGasPrice();
     }, [getGasPrice]);
 
     useEffect(() => {
@@ -866,27 +872,27 @@ const Submit = () => {
                     >
                         <div className={`basis-1/3 justify-end pr-2 ${isProcessing ? "flex" : "hidden"}`}>
                             {/* {isProcessing && ( */}
-                                <svg
-                                    className="animate-spin h-5 w-5 text-blue-500"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                           {/*  )} */}
+                            <svg
+                                className="animate-spin h-5 w-5 text-blue-500"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                ></circle>
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            {/*  )} */}
                         </div>
                         <span className="basis-1/3 text-lg">{btnBridgeMsg[step as number]}</span>
                     </button>

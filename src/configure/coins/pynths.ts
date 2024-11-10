@@ -66,8 +66,7 @@ let pynths = {
             id: 25,
             favorite: false,
             symbol: "pGLMR",
-            key: "GLMR"
-            ,
+            key: "GLMR",
             categories: ["crypto"],
             decimal: 18,
         },
@@ -309,7 +308,7 @@ let pynths = {
             key: "AVAX",
             categories: ["crypto"],
             decimal: 18,
-        }, 
+        },
         {
             id: 3,
             favorite: false,
@@ -327,7 +326,7 @@ let pynths = {
             key: "MATIC",
             categories: ["crypto"],
             decimal: 18,
-        }
+        },
     ],
     84532: [
         {
@@ -1167,7 +1166,7 @@ let pynths = {
             categories: ["crypto"],
             decimal: 18,
         },
-    ]
+    ],
 };
 
 export default pynths;

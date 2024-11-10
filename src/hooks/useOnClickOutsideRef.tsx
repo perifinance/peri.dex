@@ -8,7 +8,7 @@ const useOnClickOutsideRef = (callBackState:(state:boolean)=>void, state:boolean
 		(e) => {
 			try {
 				if (state && e.target.id !== targetId && !modalRef.current?.contains(e.target)) {
-					console.log("modalRef.current", state);
+					console.log("modalRef.current", state, targetId);
 					callBackState(!state);
 				}
 			} catch (e) {
@@ -17,16 +17,20 @@ const useOnClickOutsideRef = (callBackState:(state:boolean)=>void, state:boolean
 		},
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[callBackState, state]
+		[state]
 	);
 
 	useEffect(() => {
 		window.addEventListener("click", closeModalHandler);
 
 		return () => {
-			window.addEventListener("click", closeModalHandler);
+			window.removeEventListener("click", closeModalHandler);
+			modalRef.current = null;
 		};
 	}, [closeModalHandler]);
+
+
+
 
 	return modalRef;
 };

@@ -248,7 +248,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
             // NotificationManager.warning("No pUSD is available to exchange in your wallet.");
         }
 
-        gasLimit = (gasLimit * 11n) / 10n;
+        gasLimit = (gasLimit * 125n) / 100n;
         console.debug("gasLimit", gasLimit);
         // setGasLimit(gasLimit);
         return gasLimit;

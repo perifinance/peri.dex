@@ -19,7 +19,7 @@ export const getBalance = async (
     const balanceMapping = (data: bigint): PynthBalance => {
         let amount = 0;
         try {
-            amount = toNumber(data);
+            amount = Math.round(toNumber(data)*10**6)/10**6;
         } catch (e) {
             amount = 0;
         }

@@ -10,6 +10,7 @@ const useInterval = () => {
 	};
 
 	const initInterval = (callback, delay) => {
+		stopInterval();
 		savedCallback.current = callback;
 		savedId.current = setInterval(executeCallback, delay);
 	};

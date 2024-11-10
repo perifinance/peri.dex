@@ -7,7 +7,7 @@ export type SelectBarProps = {
 
 const SelectBar:React.FC<SelectBarProps> = ({isBuy, setIsBuy}) => {
 	return (
-		<div className="flex flex-row items-center m-2 lg:my-4">
+		<div className="flex flex-row items-center my-2">
 			<button
 				className={`w-[50%] bg-transparent cursor-pointer p-2 hover:bg-gradient-to-l ${
 					isBuy

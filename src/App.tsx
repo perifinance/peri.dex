@@ -29,12 +29,12 @@ const App = () => {
     const transaction = useSelector((state: RootState) => state.transaction);
     const themeState = useSelector((state: RootState) => state.theme.theme);
     const { coinList } = useSelector((state: RootState) => state.coinList);
-    const { isReady } = useSelector((state: RootState) => state.app);
+    // const { isReady } = useSelector((state: RootState) => state.app);
     const [rateTickers, setRateTickers] = useState({});
 
     const [{ wallet }, connect, disconnectWallet] = useConnectWallet();
     const connectedWallets = useWallets();
-    const [{ contracts, IsContractsReady }, initContracts, connectContracts, clearContracts] = useContracts();
+    const [{ contracts, isContractsReady }, initContracts, connectContracts, clearContracts] = useContracts();
 
     const dispatch = useDispatch();
 
@@ -147,10 +147,17 @@ const App = () => {
     }, [transaction, dispatch]);
 
     useEffect(() => {
-        console.log("IsContractsReady", IsContractsReady);
-        IsContractsReady && dispatch(setAppReady(true));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [IsContractsReady]);
+        console.log("isContractsReady", isContractsReady);
+        if (isContractsReady) {
+            dispatch(setAppReady(true));
+            
+            getBridgeCost(networkId, contracts).then((cost) => {
+                console.log("Updating Cost", cost);
+                dispatch(setCost(cost));
+            });
+        }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isContractsReady, contracts?.chainId]);
 
     useEffect(() => {
         console.log("wallet", wallet);
