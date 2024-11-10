@@ -22,7 +22,7 @@ import { subscribeOnStreamByMain } from "lib/datafeed";
 import Swap from "pages/swap";
 import { toNumber } from "lib/bigInt";
 import { useTargetCoin, useInterval } from "hooks";
-import { format } from "path";
+import { add } from "date-fns";
 // import TradingViewIframeContent from "screens/TradingView/TradingViewIframeContent";
 // import Loading from "components/loading";
 // import Header from "screens/Header";
@@ -44,9 +44,12 @@ const Main = () => {
     // const history = useHistory();
 
     const getInboundings = async () => {
+        // console.log("getInboundings", networkId, contracts);
         if (!networkId || !Object.keys(SUPPORTED_NETWORKS).includes(networkId.toString()) || !contracts) {
             return;
         }
+
+        // console.log("getInboundings", networkId, contracts);
 
         const contractName = {
             PERI: "BridgeState",
@@ -60,9 +63,11 @@ const Main = () => {
                         : TESTNET
                     : TESTNET
                 : MAINNET;
+            console.debug("contractName", network);
             Object.keys(contractName).forEach(async (key) => {
-                if (contracts || contracts[contractName[key]] === undefined) {
-                    // console.log('contracts[contractName[key]] === undefined', contracts[contractName[key]]);
+                console.debug("key", key, isReady);
+                if (!isReady || contracts[contractName[key]] === (undefined || null)) {
+                    console.debug('contracts[contractName[key]] === undefined', contracts[contractName[key]]);
                     return;
                 }
                 const ids = await contracts[contractName[key]].applicableInboundIds(address);
@@ -81,7 +86,7 @@ const Main = () => {
                 }
                 let promiseData = await Promise.all(datas);
                 // eslint-disable-next-line no-sequences
-                let returnValue = Object.keys(network).reduce((a, b) => ((a[b] = 0n), a), {});
+                let returnValue = Object.keys(network).reduce((a, b) => ((a[b] = 0), a), {});
 
                 promiseData.forEach((data) => {
                     if (returnValue[data.srcChainId]) {
@@ -91,12 +96,12 @@ const Main = () => {
                     }
                 });
 
-                console.log("returnValue", returnValue);
+                console.debug("returnValue", returnValue);
 
                 dispatch(updateBridgeStatus({ coin: key, total: totalAmount, pendings: returnValue }));
             });
         } catch (e) {
-            console.log(e);
+            console.debug(e);
         }
     };
 
@@ -143,7 +148,7 @@ const Main = () => {
     };
 
     const setPynthBalances = useCallback(async () => {
-        console.log("setPynthBalances", isReady, networkId, address);
+        console.debug("setPynthBalances", isReady, networkId, address);
         // console.log("window.location.href", window.location.href);
         
         if (!isReady) return;
@@ -156,11 +161,12 @@ const Main = () => {
 
         try {
             // let rates = await getLastRates({ currencyName: govCoin[networkId] });
+            // const addressT = '0x235C654f8C80C2155D6d3392A9d4178ce1d5D87d';
             let balancePynths = (await getBalances({ networkId, address })) as Array<PynthBalance>;
 
             balancePynths.sort((a, b) => b.amount - a.amount);
 
-            console.log("setPynthBalances", balancePynths);
+            console.debug("setPynthBalances", balancePynths);
 
             dispatch(initPynthBalance({ balancePynths }));
         } catch (e) {
@@ -186,7 +192,7 @@ const Main = () => {
         // console.log('useEffect obsolete', obsolete);
         getInboundings();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [obsolete]);
+    }, [obsolete, isReady]);
 
     useEffect(() => {
         console.log("Main useEffect coinList", location.pathname);
@@ -197,7 +203,7 @@ const Main = () => {
     }, [coinList.length, destination?.symbol, isConnect, location]);
 
     useEffect(() => {
-        // console.log("isConnect", isConnect, networkId);
+        // console.log("useEffect getInboundings", isConnect, networkId);
         if (isNaN(networkId) || networkId === 0 || networkId === undefined) {
             return;
         }

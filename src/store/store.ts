@@ -15,11 +15,11 @@ const persistConfig  = {
 
 const persistedReducers = persistReducer(persistConfig, reducers);
 
-/* const bigintToString = (key, value) => 
+const bigintToString = (key, value) => 
 	typeof value === 'bigint' ? value.toString() : value;
 
 const stringToBigint = (key, value) => 
-	typeof value === 'string' && /^(\d+)n$/.test(value) ? BigInt(value.slice(0, -1)) : value; */
+	typeof value === 'string' && /^(\d+)n$/.test(value) ? BigInt(value.slice(0, -1)) : value;
 
 export const store = configureStore({
 	reducer: persistedReducers,
@@ -27,12 +27,12 @@ export const store = configureStore({
 		serializableCheck: false,
 		immutableCheck: false
 	}),
-	/* devTools: {
+	devTools: {
 		actionSanitizer: (action) => 
 			JSON.parse(JSON.stringify(action, bigintToString), stringToBigint),
 		stateSanitizer: (state) => 
 			JSON.parse(JSON.stringify(state, bigintToString), stringToBigint),
-	}, */
+	},
 });
 
 export let persistor = persistStore(store)

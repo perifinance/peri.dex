@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { networkInfo } from "configure/networkInfo";
-import { formatCurrency } from "lib";
+import { formatNumber } from "lib";
 // import { changeNetwork } from "lib/network";
 import React, { useEffect } from "react";
 import { /* useDispatch, */ useDispatch, useSelector } from "react-redux";
@@ -35,6 +35,7 @@ const BridgeStatus = ({ selectedCoin, setIsProcessing }: IBridgeStatus) => {
 
         // console.log('useEffect pendingCoins', pendingCoins);
         const currentAsset = pendingCoins.filter((item) => item.coin === selectedCoin)[0];
+        console.log("currentAsset", currentAsset);
         setPendingCoin(currentAsset);
 
         if (!currentAsset || currentAsset.coin !== selectedCoin) {
@@ -71,7 +72,7 @@ const BridgeStatus = ({ selectedCoin, setIsProcessing }: IBridgeStatus) => {
                                                 {pendingCoin.pendings[key]
                                                     ? `${
                                                         pendingCoin.pendings[key]
-                                                            ? formatCurrency(pendingCoin.pendings[key], 4)
+                                                            ? formatNumber(pendingCoin.pendings[key], 4)
                                                             : 0
                                                       } ${selectedCoin}`
                                                     : 0}
