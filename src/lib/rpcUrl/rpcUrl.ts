@@ -1,4 +1,4 @@
-export const INFURA_ID: string = process.env.REACT_APP_INFURA_ID;
+export const INFURA_ID: string = process.env.REACT_APP_INFURA_API_KEY;
 
 export const RPC_URLS: object = {
 	1: `https://mainnet.infura.io/v3/${INFURA_ID}`,

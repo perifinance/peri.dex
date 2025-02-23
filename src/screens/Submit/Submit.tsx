@@ -175,13 +175,13 @@ const Submit = () => {
     };
 
     const getGasLimit = async () => {
-        return networkId === 1285
+        return [1284, 1285].includes(networkId)
             ? selectedCoin.name === "PERI"
                 ? Number(step) <= 1
                     ? 3000000n
                     : 1200000n
                 : 2300000n
-            : 610000n;
+            : 1000000n;
         /* let gasLimit = 600000n;
 
         console.log("cost", cost, "step", step);

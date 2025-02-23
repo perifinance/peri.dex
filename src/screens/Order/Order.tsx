@@ -276,7 +276,7 @@ const Order = ({ isCoinList, closeCoinList, openCoinList, balance, setBalance, i
 
         const transactionSettings = {
             gasPrice: toWei(gasPrice, "gwei"),
-            gasLimit: gasLimit === 0n ? await getGasLimit() : gasLimit,
+            gasLimit: await getGasLimit(),
         };
 
         const srcCoin = isBuy ? source : destination;

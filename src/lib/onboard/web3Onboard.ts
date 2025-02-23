@@ -63,7 +63,7 @@ export const web3Onboard: Web3Onboard = {
             options: {
                 extensionOnly: false,
                 // injectProvider: true,
-                infuraAPIKey: process.env.REACT_APP_INFURA_ID,
+                infuraAPIKey: process.env.REACT_APP_INFURA_API_KEY,
                 dappMetadata: {
                     url: "https://dex.peri.finance",
                     name: "PERI Finance DEX",
